@@ -6,9 +6,13 @@ export default defineConfig({
     plugins: [react()],
     server: {
         port: 3000,
+        fs: {
+            strict: false,
+            allow: ['..']
+        },
         proxy: {
             '/api': {
-                target: 'https://api-dr-indu-child-care.brahmaastra.ai',
+                target: 'http://localhost:5000',
                 changeOrigin: true,
             },
         },

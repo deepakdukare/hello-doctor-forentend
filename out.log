@@ -1,0 +1,21 @@
+
+> frontend@1.0.0 dev
+> vite
+
+
+  [32m[1mVITE[22m v7.3.1[39m  [2mready in [0m[1m668[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m3000[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+file:///C:/Users/deepa/Desktop/deep%20agency/Dr-indu-child-care-frontend/node_modules/vite/dist/node/chunks/config.js:32018
+					fileHash: getHash(metadata.hash + depsInfo[id].file + JSON.stringify(output.imports)),
+					                                                                            ^
+
+TypeError: [31mError during dependency optimization:
+
+[39mCannot read properties of undefined (reading 'imports')
+    at file:///C:/Users/deepa/Desktop/deep%20agency/Dr-indu-child-care-frontend/node_modules/vite/dist/node/chunks/config.js:32018:82
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+Node.js v20.19.0
