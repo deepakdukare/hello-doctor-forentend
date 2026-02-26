@@ -10,7 +10,9 @@ import {
     Bell,
     Search,
     LogOut,
-    MessageSquare
+    MessageSquare,
+    Stethoscope,
+    Shield
 } from 'lucide-react';
 
 import Dashboard from './pages/Dashboard';
@@ -22,6 +24,8 @@ import Settings from './pages/Settings';
 import Scheduling from './pages/Scheduling';
 import PublicRegister from './pages/PublicRegister';
 import BotInteractions from './pages/BotInteractions';
+import Doctors from './pages/Doctors';
+import Admins from './pages/Admins';
 
 const MobileNav = () => {
     const location = useLocation();
@@ -58,7 +62,9 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
         { name: 'Appointments', path: '/appointments', icon: Calendar },
         { name: 'Scheduling', path: '/scheduling', icon: Clock },
         { name: 'Patients', path: '/patients', icon: Users },
-        { name: 'Bot Interactions', path: '/bot-interactions', icon: MessageSquare },
+        { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare },
+        { name: 'Doctors', path: '/doctors', icon: Stethoscope },
+        { name: 'Admin Users', path: '/admins', icon: Shield },
         { name: 'MRD', path: '/mrd', icon: FileText },
         { name: 'Settings', path: '/settings', icon: SettingsIcon },
     ];
@@ -82,11 +88,15 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
                                         ? "Manage clinic time slots and daily availability."
                                         : item.name === 'Patients'
                                             ? "Manage patient records and registrations."
-                                            : item.name === 'Bot Interactions'
+                                            : item.name === 'Bot Hub'
                                                 ? "Track interactions from people who Haven't registered as patients yet."
-                                                : item.name === 'MRD'
-                                                    ? "Search a patient to view or update their longitudinal health file."
-                                                    : ""
+                                                : item.name === 'Doctors'
+                                                    ? "Manage clinic practitioners and specialities."
+                                                    : item.name === 'Admin Users'
+                                                        ? "Manage dashboard access for clinic staff."
+                                                        : item.name === 'MRD'
+                                                            ? "Search a patient to view or update their longitudinal health file."
+                                                            : ""
                             }
                         >
                             <item.icon size={20} />
@@ -125,24 +135,6 @@ const Header = () => {
     return (
         <header className="header" style={{ gap: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-                <div className="search-bar" style={{ position: 'relative', display: 'flex', flex: 1, maxWidth: '420px' }}>
-                    <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        style={{
-                            padding: '0.75rem 1rem 0.75rem 2.75rem',
-                            borderRadius: '14px',
-                            border: '1px solid var(--border-color)',
-                            width: '100%',
-                            outline: 'none',
-                            fontSize: '0.9rem',
-                            background: '#fff',
-                            boxShadow: 'var(--shadow-sm)',
-                            transition: 'var(--transition)'
-                        }}
-                    />
-                </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
@@ -212,6 +204,8 @@ const App = () => {
                                 <Route path="/scheduling" element={<Scheduling />} />
                                 <Route path="/patients" element={<Patients />} />
                                 <Route path="/bot-interactions" element={<BotInteractions />} />
+                                <Route path="/doctors" element={<Doctors />} />
+                                <Route path="/admins" element={<Admins />} />
                                 <Route path="/mrd" element={<MRD />} />
                                 <Route path="/settings" element={<Settings />} />
                                 <Route path="/login" element={<Navigate to="/" replace />} />

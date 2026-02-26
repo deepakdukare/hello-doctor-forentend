@@ -28,7 +28,9 @@ api.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            window.location.href = '/login';
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }
@@ -42,30 +44,37 @@ export const getPatients = (params) => api.get('/patients', { params });
 export const searchPatients = (q) => api.get('/patients', { params: { search: q } });
 export const getPatientById = (id) => api.get(`/patients/${id}`);
 export const getPatientByMobile = (mobile) => api.get(`/patients/by-mobile/${mobile}`);
-export const getPatientByWa = (mobile) => api.get(`/patients/by-mobile/${mobile}`);
+export const getPatientByWa = (wa_id) => api.get(`/patients/by-wa/${encodeURIComponent(wa_id)}`);
 export const registerPatient = (data) => api.post('/patients', data);
+export const registerFromForm = (data) => api.post('/patients/form', data);
+export const registerFromWhatsapp = (data) => api.post('/patients/whatsapp', data);
 export const updatePatient = (id, data) => api.put(`/patients/${id}`, data);
 
 // ── Appointments ──────────────────────────────────────────────────────────────
-/** List appointments. Params: { date, patient_id, status, source, page, limit } */
 export const getAppointments = (params) => api.get('/appointments', { params });
 export const getAppointmentsByDate = (date) => api.get('/appointments', { params: { date } });
+export const getTodayAppointments = () => api.get('/appointments/today');
 export const getAppointmentStats = (date) => api.get('/appointments/stats', { params: date ? { date } : {} });
 export const getAppointmentsByMobile = (mobile) => api.get(`/appointments/by-mobile/${mobile}`);
 export const getAppointmentsByWaId = (wa_id) => api.get(`/appointments/by-wa/${encodeURIComponent(wa_id)}`);
 export const getAppointmentById = (id) => api.get(`/appointments/${id}`);
+export const getPendingReminders = () => api.get('/appointments/reminders/pending-24h');
+export const markReminderSent = (id) => api.patch(`/appointments/reminders/${id}/mark-sent`);
 
 // Booking — three surfaces, one backend rule set
-/** Dashboard: patient_id + booking_source:'dashboard' */
 export const bookAppointment = (data) => api.post('/appointments', { ...data, booking_source: 'dashboard' });
-/** WhatsApp bot: wa_id (raw, e.g. '919876543210@c.us') */
 export const bookByWhatsapp = (data) => api.post('/appointments/whatsapp', data);
-/** Public web form: mobile number */
 export const bookByForm = (data) => api.post('/appointments/form', data);
 
 export const updateAppointment = (id, data) => api.patch(`/appointments/${id}`, data);
 export const cancelAppointment = (id, data) => api.patch(`/appointments/${id}/cancel`, data);
 
+// ── Doctors ───────────────────────────────────────────────────────────────────
+export const getDoctors = () => api.get('/doctors');
+export const getDoctorById = (id) => api.get(`/doctors/${id}`);
+export const createDoctor = (data) => api.post('/doctors', data);
+export const updateDoctor = (id, data) => api.patch(`/doctors/${id}`, data);
+export const deleteDoctor = (id) => api.delete(`/doctors/${id}`);
 
 // ── Slots ─────────────────────────────────────────────────────────────────────
 export const getAvailableSlots = (doctor_type, date) =>
@@ -82,6 +91,7 @@ export const unblockSlots = (data) => api.post('/slots/unblock', data);
 
 // ── MRD ───────────────────────────────────────────────────────────────────────
 export const getMRDByPatientId = (patient_id) => api.get(`/mrd/${patient_id}`);
+export const getEntryByAppointment = (appt_id) => api.get(`/mrd/appointment/${appt_id}`);
 export const exportMRD = (patient_id) => api.get(`/mrd/${patient_id}/export`);
 export const addMRDEntry = (data) => api.post('/mrd/entry', data);
 export const updateMRDEntry = (id, data) => api.patch(`/mrd/entry/${id}`, data);
@@ -97,9 +107,19 @@ export const getConfig = () => api.get('/config');
 export const updateConfig = (data) => api.patch('/config', data);
 export const getAuditLogs = (params) => api.get('/audit/logs', { params });
 
-// ── Bot Sessions (for dashboard oversight) ────────────────────────────────────
+// ── Bot Sessions ──────────────────────────────────────────────────────────────
+export const getBotSession = (wa_id) => api.get(`/bot/session/${wa_id}`);
+export const createBotSession = (data) => api.post('/bot/session/create', data);
+export const updateBotSession = (data) => api.patch('/bot/session/update', data);
+export const closeBotSession = (data) => api.post('/bot/session/close', data);
+export const getSessionHistory = (wa_id) => api.get(`/bot/session/${wa_id}/history`);
+export const logBotMessage = (data) => api.post('/bot/message/log', data);
+export const logChat = (data) => api.post('/bot/chat/log', data);
+export const getChatHistory = (wa_id) => api.get(`/bot/chat/history/${wa_id}`);
+export const escalateSession = (data) => api.post('/bot/escalate', data);
 export const getEscalations = () => api.get('/bot/escalations');
 export const resolveEscalation = (id) => api.patch(`/bot/escalations/${id}`);
 export const getUnregisteredInteractions = () => api.get('/bot/interactions/unregistered');
 
 export default api;
+

@@ -98,20 +98,9 @@ const MRD = () => {
             {/* Search */}
             <div className="card" style={{ marginBottom: '1.5rem', padding: '1rem 1.25rem' }}>
                 <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <div className="search-box">
-                        <Search className="search-icon" size={20} />
-                        <input
-                            id="mrd-search"
-                            type="text"
-                            placeholder="Search by mobile number or Patient ID (DICC-2026-XXXX)…"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && doSearch()}
-                        />
-                    </div>
                     <button className="btn btn-primary" onClick={doSearch} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}>
                         {loading ? <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={14} />}
-                        Search
+                        Sync Record
                     </button>
                 </div>
             </div>

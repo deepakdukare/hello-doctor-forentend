@@ -133,17 +133,6 @@ const Patients = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div className="search-box" style={{ flex: '1 1 100%', minWidth: '0' }}>
-                        <Search className="search-icon" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Name, mobile or ID..."
-                            value={search}
-                            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                            style={{ width: '100%', fontSize: '0.875rem' }}
-                        />
-                    </div>
-
                     <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                         <select
                             value={sourceFilter}
