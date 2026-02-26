@@ -712,11 +712,23 @@ const Scheduling = () => {
             <style>{`
                 .scheduling-page-v3 { padding: 3rem; max-width: 1400px; margin: 0 auto; min-height: 100vh; background: #f8fafc; }
                 
-                .page-header-v3 { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4rem; }
+                .page-header-v3 { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; }
                 .clinic-chip { display: flex; align-items: center; gap: 0.6rem; background: #fff; padding: 0.4rem 1rem; border-radius: 50px; border: 1px solid #e2e8f0; width: fit-content; margin-bottom: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
                 .clinic-chip span { font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
                 .main-title-v3 { font-size: 2.8rem; font-weight: 900; letter-spacing: -0.04em; color: #0f172a; margin: 0; }
-                
+
+                /* Screen Tab Navigation */
+                .screen-nav-v3 { display: flex; gap: 0.5rem; background: #fff; padding: 0.6rem; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 2px 12px rgba(0,0,0,0.04); margin-bottom: 2.5rem; width: fit-content; }
+                .screen-tab-v3 { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1.75rem; border-radius: 14px; border: none; background: transparent; color: #64748b; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; position: relative; }
+                .screen-tab-v3:hover { background: #f8fafc; color: #0f172a; }
+                .screen-tab-v3.active-tab { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); color: #fff; box-shadow: 0 10px 20px rgba(99,102,241,0.25); }
+                .screen-tab-v3.active-tab svg { opacity: 1; }
+                .screen-tab-v3 svg { opacity: 0.5; transition: 0.2s; }
+                .screen-tab-v3:hover svg { opacity: 0.8; }
+                .screen-body-v3 { animation: fadeIn 0.3s ease-out; }
+                .screen-content-v3 { display: grid; gap: 2.5rem; }
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
                 .doctor-selector-v3 { background: #fff; padding: 0.5rem 1rem; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1.5rem; }
                 .category-tabs { display: flex; gap: 0.5rem; }
                 .cat-tab { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1.25rem; border-radius: 14px; border: none; background: transparent; color: #94a3b8; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: 0.2s; white-space: nowrap; }
