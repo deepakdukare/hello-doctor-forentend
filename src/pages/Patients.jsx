@@ -1,270 +1,454 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, RefreshCw, AlertCircle, UserPlus, X, Edit2, User, Phone, Mail, MapPin, Calendar as CalendarIcon, FileText, Share2, ClipboardCheck, Share } from 'lucide-react';
-import { getPatients, registerPatient, updatePatient } from '../api/index';
+import {
+    Search, RefreshCw, AlertCircle, UserPlus, X, Edit2,
+    User, Phone, Mail, MapPin, Calendar as CalendarIcon,
+    FileText, Share2, Shield, Heart, MoreVertical,
+    ChevronRight, Info, Filter, CheckCircle2, Camera
+} from 'lucide-react';
+import { getPatients, registerPatient, updatePatient, getDoctors } from '../api/index';
+
+const SALUTATIONS = ['Master', 'Miss', 'Baby', 'Baby of', 'Mr.', 'Ms.'];
+const GENDERS = ['Male', 'Female', 'Other'];
+const ENROLLMENT_OPTIONS = [
+    { value: 'just_enroll', label: 'Just Enroll' },
+    { value: 'book_appointment', label: 'Enroll & Book' }
+];
 
 const EMPTY_FORM = {
-    child_name: '', parent_name: '', mobile: '',
-    alt_mobile: '', dob: '', gender: 'Male', email: '', address: '', symptoms_notes: '',
-    registration_source: 'dashboard'
+    salutation: 'Master',
+    first_name: '',
+    middle_name: '',
+    last_name: '',
+    gender: 'Male',
+    dob: '',
+    dob_unknown: false,
+    age_years: '',
+    age_months: '',
+    age_days: '',
+    birth_time_hours: '',
+    birth_time_minutes: '',
+    birth_time_ampm: 'AM',
+    father_name: '',
+    father_mobile: '',
+    father_occupation: '',
+    mother_name: '',
+    mother_mobile: '',
+    mother_occupation: '',
+    wa_id: '',
+    email: '',
+    area: '',
+    city: '',
+    pin_code: '',
+    doctor: '',
+    enrollment_option: 'just_enroll'
 };
 
 const Patients = () => {
     const [patients, setPatients] = useState([]);
-    const [search, setSearch] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [selected, setSelected] = useState(null);   // patient detail panel
-    const [showModal, setShowModal] = useState(false);
-    const [form, setForm] = useState(EMPTY_FORM);
-    const [formErr, setFormErr] = useState(null);
-    const [formOk, setFormOk] = useState(null);
-    const [saving, setSaving] = useState(false);
-    const [editId, setEditId] = useState(null); // If set, we are editing this patient_id
+    const [success, setSuccess] = useState(null);
+    const [selected, setSelected] = useState(null);
 
-    const [sourceFilter, setSourceFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
+    // Filters & Pagination
+    const [search, setSearch] = useState('');
+    const [filters, setFilters] = useState({
+        source: '',
+        status: '',
+        gender: '',
+        doctor: '',
+        city: ''
+    });
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ total: 0, pages: 1 });
 
-    const doSearch = useCallback(async (q, p = 1, src = '', st = '') => {
-        setLoading(true); setError(null);
+    // Modal & Form
+    const [showModal, setShowModal] = useState(false);
+    const [form, setForm] = useState(EMPTY_FORM);
+    const [submitting, setSubmitting] = useState(false);
+    const [editId, setEditId] = useState(null); // This will be the DICC-xxxx ID
+
+    // Metadata
+    const [doctors, setDoctors] = useState([]);
+
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        setError(null);
         try {
             const res = await getPatients({
-                search: q.trim() || undefined,
-                page: p,
-                source: src || undefined,
-                status: st || undefined
+                page,
+                limit: 20,
+                search: search.trim() || undefined,
+                ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v !== ''))
             });
             setPatients(res.data.data || []);
             setPagination({
                 total: res.data.total || 0,
-                ...(res.data.pagination || { page: 1, limit: 20, pages: 1 })
+                pages: res.data.pagination?.pages || 1,
+                page: res.data.pagination?.page || 1
             });
         } catch (e) {
-            setPatients([]);
-            const msg = e.response?.data?.message || e.response?.data?.error || e.message;
-            if (e.response?.status !== 404) setError(msg);
-        } finally { setLoading(false); }
-    }, []);
+            setError(e.response?.data?.message || e.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [page, search, filters]);
 
     useEffect(() => {
-        const t = setTimeout(() => doSearch(search, page, sourceFilter, statusFilter), 450);
+        const t = setTimeout(fetchData, 500);
         return () => clearTimeout(t);
-    }, [search, page, sourceFilter, statusFilter, doSearch]);
+    }, [fetchData]);
 
-    const handleRegister = async (e) => {
-        e.preventDefault();
-        setSaving(true); setFormErr(null); setFormOk(null);
-        try {
-            if (editId) {
-                const res = await updatePatient(editId, form);
-                setFormOk(`✅ Patient verified and updated!`);
-                // Update local status
-                await doSearch(search);
-                if (selected?.patient_id === editId) {
-                    setSelected(res.data.data);
-                }
-            } else {
-                const res = await registerPatient(form);
-                setFormOk(`✅ Patient registered! ID: ${res.data.data.patient_id}`);
-                setForm(EMPTY_FORM);
-                setSearch(form.mobile);
+    useEffect(() => {
+        const loadMetadata = async () => {
+            try {
+                const res = await getDoctors();
+                setDoctors(res.data.data || []);
+            } catch (e) {
+                console.error("Failed to load doctors", e);
             }
+        };
+        loadMetadata();
+    }, []);
+
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        setSubmitting(true);
+        setError(null);
+        try {
+            // Numeric conversion for API compatibility
+            const numericPayload = {
+                ...form,
+                age_years: form.age_years ? parseInt(form.age_years) : undefined,
+                age_months: form.age_months ? parseInt(form.age_months) : undefined,
+                age_days: form.age_days ? parseInt(form.age_days) : undefined,
+                birth_time_hours: form.birth_time_hours ? parseInt(form.birth_time_hours) : undefined,
+                birth_time_minutes: form.birth_time_minutes ? parseInt(form.birth_time_minutes) : undefined,
+            };
+
+            if (editId) {
+                await updatePatient(editId, numericPayload);
+                setSuccess("Patient profile updated successfully.");
+            } else {
+                const res = await registerPatient(numericPayload);
+                setSuccess(`Patient registered successfully: ${res.data.data.patient_id}`);
+            }
+            setShowModal(false);
+            setEditId(null);
+            setForm(EMPTY_FORM);
+            fetchData();
+            setTimeout(() => setSuccess(null), 4000);
         } catch (e) {
-            setFormErr(e.response?.data?.message || e.response?.data?.error || e.message);
-        } finally { setSaving(false); }
+            setError(e.response?.data?.message || e.message);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const startEdit = (p) => {
         setEditId(p.patient_id);
-        // Format DOB for input type="text" or handle date conversion
-        let dobStr = p.dob ? new Date(p.dob).toISOString().split('T')[0] : '';
         setForm({
-            child_name: p.child_name || '',
-            parent_name: p.parent_name || '',
-            mobile: p.parent_mobile || '',
-            alt_mobile: p.alt_mobile || '',
-            dob: dobStr,
+            salutation: p.salutation || 'Master',
+            first_name: p.first_name || '',
+            middle_name: p.middle_name || '',
+            last_name: p.last_name || '',
             gender: p.gender || 'Male',
+            dob: p.dob ? new Date(p.dob).toISOString().split('T')[0] : '',
+            dob_unknown: p.dob_unknown || false,
+            age_years: p.age_years || '',
+            age_months: p.age_months || '',
+            age_days: p.age_days || '',
+            birth_time_hours: p.birth_time_hours || '',
+            birth_time_minutes: p.birth_time_minutes || '',
+            birth_time_ampm: p.birth_time_ampm || 'AM',
+            father_name: p.father_name || '',
+            father_mobile: p.father_mobile || '',
+            father_occupation: p.father_occupation || '',
+            mother_name: p.mother_name || '',
+            mother_mobile: p.mother_mobile || '',
+            mother_occupation: p.mother_occupation || '',
+            wa_id: p.wa_id || '',
             email: p.email || '',
-            address: p.address || '',
-            symptoms_notes: p.symptoms_notes || '',
-            registration_source: p.registration_source || 'dashboard'
+            area: p.area || '',
+            city: p.city || '',
+            pin_code: p.pin_code || '',
+            doctor: p.doctor || '',
+            enrollment_option: p.enrollment_option || 'just_enroll'
         });
-        setFormErr(null);
-        setFormOk(null);
         setShowModal(true);
+        setSelected(null);
     };
 
-    const dobDisplay = (d) => {
-        if (!d) return '—';
-        try {
-            const date = new Date(d);
-            if (isNaN(date)) return d;
-            const years = Math.floor((Date.now() - date) / (365.25 * 24 * 3600 * 1000));
-            return `${date.toLocaleDateString('en-IN')} (${years}y)`;
-        } catch { return d; }
+    const calculateAge = (dob) => {
+        if (!dob) return '—';
+        const birthDate = new Date(dob);
+        const today = new Date();
+        let years = today.getFullYear() - birthDate.getFullYear();
+        let months = today.getMonth() - birthDate.getMonth();
+        if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
+            years--;
+            months = 12 + months;
+        }
+        return `${years}y ${months}m`;
+    };
+
+    const copyFormLink = () => {
+        const link = window.location.origin + '/register-form';
+        navigator.clipboard.writeText(link);
+        setSuccess('Form link copied to clipboard!');
+        setTimeout(() => setSuccess(null), 3000);
     };
 
     return (
-        <div className="patients-page">
-            <div className="title-section" style={{ marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                    <div style={{ flex: '1 1 200px' }}>
-                        <h1 title="Manage patient records and registrations." style={{ margin: 0, fontSize: '1.5rem' }}>Registered Patients</h1>
+        <div className="patients-page" style={{ animation: 'fadeIn 0.5s ease-out' }}>
+            <div className="title-section" style={{ marginBottom: '2.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem' }}>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                            <div style={{ padding: '0.6rem', background: 'var(--primary-light)', borderRadius: '12px', color: 'var(--primary)' }}>
+                                <Heart size={24} />
+                            </div>
+                            <h1>Patient Repository</h1>
+                        </div>
+                        <p>Manage medical records, registrations, and child health profiles.</p>
                     </div>
-                    <div className="action-buttons" style={{ display: 'flex', gap: '0.5rem', width: '100%', maxWidth: window.innerWidth < 480 ? '100%' : '320px', flexWrap: 'wrap' }}>
-                        <button className="btn btn-primary" style={{ flex: '1 1 140px', height: '40px', fontSize: '0.85rem' }} onClick={() => { setEditId(null); setForm(EMPTY_FORM); setShowModal(true); setFormErr(null); setFormOk(null); }}>
-                            <UserPlus size={16} /> Register Patient
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <button className="btn btn-outline" onClick={copyFormLink}>
+                            <Share2 size={18} />
+                            <span className="mobile-hide">Share Reg. Form</span>
                         </button>
-                        <button
-                            className="btn btn-outline"
-                            onClick={() => {
-                                const link = window.location.origin + '/register-form';
-                                navigator.clipboard.writeText(link);
-                                setFormOk('Link copied!');
-                                setTimeout(() => setFormOk(null), 3000);
-                            }}
-                            style={{ flex: '1 1 120px', height: '40px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                        >
-                            <Share2 size={16} /> Share Form
+                        <button className="btn btn-primary" onClick={() => { setEditId(null); setForm(EMPTY_FORM); setShowModal(true); }}>
+                            <UserPlus size={18} />
+                            <span>Register New Patient</span>
                         </button>
                     </div>
                 </div>
+            </div>
 
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+            <div className="card" style={{ marginBottom: '2rem', padding: '1.25rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <div className="search-box" style={{ flex: '2 1 300px' }}>
+                        <Search className="search-icon" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search by name, DICC ID, or mobile number..."
+                            value={search}
+                            onChange={e => { setSearch(e.target.value); setPage(1); }}
+                        />
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', flex: '1 1 auto' }}>
                         <select
-                            value={sourceFilter}
-                            onChange={e => { setSourceFilter(e.target.value); setPage(1); }}
-                            style={{ flex: 1, minWidth: '0', padding: '0.6rem 0.4rem', borderRadius: '10px', border: '1px solid var(--border-color)', background: '#fff', fontSize: '0.8rem' }}
+                            className="btn-outline"
+                            style={{ padding: '0.75rem', borderRadius: '12px', flex: 1, minWidth: '130px' }}
+                            value={filters.source}
+                            onChange={e => setFilters({ ...filters, source: e.target.value })}
                         >
                             <option value="">All Sources</option>
                             <option value="dashboard">Dashboard</option>
                             <option value="whatsapp">WhatsApp</option>
-                            <option value="form">Online Form</option>
+                            <option value="form">Form</option>
                         </select>
-
                         <select
-                            value={statusFilter}
-                            onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
-                            style={{ flex: 1, minWidth: '0', padding: '0.6rem 0.4rem', borderRadius: '10px', border: '1px solid var(--border-color)', background: '#fff', fontSize: '0.8rem' }}
+                            className="btn-outline"
+                            style={{ padding: '0.75rem', borderRadius: '12px', flex: 1, minWidth: '130px' }}
+                            value={filters.status}
+                            onChange={e => setFilters({ ...filters, status: e.target.value })}
                         >
                             <option value="">All Status</option>
                             <option value="COMPLETE">Complete</option>
                             <option value="PENDING">Pending</option>
                         </select>
-
-                        <button className="btn btn-outline" style={{ padding: '0.6rem', height: '38px' }} onClick={() => doSearch(search, page, sourceFilter, statusFilter)} disabled={loading}>
-                            <RefreshCw size={16} className={loading ? 'spin' : ''} />
+                        <button className="btn btn-outline" style={{ padding: '0.75rem' }} onClick={fetchData}>
+                            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
                         </button>
                     </div>
                 </div>
             </div>
 
             {error && (
-                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1.5rem', color: '#dc2626', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <AlertCircle size={16} /> {error}
+                <div className="alert-item" style={{ background: '#fff1f2', border: '1px solid #fecdd3', color: '#e11d48', marginBottom: '1.5rem', padding: '1rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <AlertCircle size={20} />
+                    <span style={{ fontWeight: 600 }}>{error}</span>
                 </div>
             )}
 
-            {/* Results */}
-            <div className="card">
-                <div className="card-header">
-                    <h3>Patient List {pagination.total > 0 && `(${pagination.total} result${pagination.total > 1 ? 's' : ''})`}</h3>
+            {success && (
+                <div className="alert-item" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#16a34a', marginBottom: '1.5rem', padding: '1rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <CheckCircle2 size={20} />
+                    <span style={{ fontWeight: 600 }}>{success}</span>
                 </div>
-                {!loading && patients.length === 0 ? (
-                    <p style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8' }}>
-                        {search.trim() || sourceFilter || statusFilter ? `No patient found matching the criteria.` : 'No patients registered yet.'}
-                    </p>
-                ) : (
-                    <table>
+            )}
+
+            <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+                <div className="table-container" style={{ border: 'none', borderRadius: '0' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr>
-                                <th>Patient ID</th>
-                                <th>Child Name</th>
-                                <th className="mobile-hide">Parent Name</th>
-                                <th>MOBILE</th>
-                                <th>DOB / AGE</th>
-                                <th className="mobile-hide">SOURCE</th>
-                                <th>STATUS</th>
-                                <th>ACTION</th>
+                                <th style={{ padding: '1.25rem' }}>Child Information</th>
+                                <th className="mobile-hide">Parent Details</th>
+                                <th>Contact Information</th>
+                                <th className="mobile-hide">Registration</th>
+                                <th style={{ textAlign: 'right', paddingRight: '1.5rem' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {patients.map((p) => p && (
-                                <React.Fragment key={p.patient_id}>
-                                    <tr style={{ background: selected?.patient_id === p.patient_id ? 'var(--primary-light)' : 'transparent', transition: 'var(--transition)' }}>
-                                        <td style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '0.82rem', color: '#6366f1' }}>{p.patient_id}</td>
-                                        <td style={{ fontWeight: 600, color: '#1e293b' }}>{p.child_name}</td>
-                                        <td className="mobile-hide">{p.parent_name}</td>
-                                        <td>{p.parent_mobile}</td>
-                                        <td style={{ fontSize: '0.85rem' }}>{dobDisplay(p.dob)}</td>
+                            {loading && !patients.length ? (
+                                <tr>
+                                    <td colSpan={5} style={{ padding: '5rem', textAlign: 'center' }}>
+                                        <RefreshCw className="animate-spin" size={32} color="var(--primary)" />
+                                        <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>Fetching patient records...</p>
+                                    </td>
+                                </tr>
+                            ) : patients.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} style={{ padding: '5rem', textAlign: 'center' }}>
+                                        <Info size={32} color="#94a3b8" />
+                                        <p style={{ marginTop: '1rem', color: '#94a3b8' }}>No patients found matching your search.</p>
+                                    </td>
+                                </tr>
+                            ) : patients.map(p => (
+                                <React.Fragment key={p._id}>
+                                    <tr
+                                        className={`user-row ${selected?._id === p._id ? 'selected-row' : ''}`}
+                                        style={{ background: selected?._id === p._id ? '#f8faff' : 'transparent' }}
+                                    >
+                                        <td style={{ padding: '1.25rem' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                <div style={{
+                                                    width: '44px',
+                                                    height: '44px',
+                                                    borderRadius: '14px',
+                                                    background: p.gender === 'Female' ? 'linear-gradient(135deg, #f472b6 0%, #db2777 100%)' : 'linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)',
+                                                    color: '#fff',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontWeight: 'bold',
+                                                    boxShadow: '0 4px 10px rgba(0,0,0,0.05)'
+                                                }}>
+                                                    {p.first_name?.charAt(0) || 'P'}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1e293b' }}>{p.full_name}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                        <span style={{ fontWeight: 600, color: 'var(--primary)' }}>{p.patient_id}</span>
+                                                        <span>•</span>
+                                                        <span>{p.gender}, {calculateAge(p.dob)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
                                         <td className="mobile-hide">
-                                            <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 0.5rem', borderRadius: '6px', background: p.registration_source === 'WHATSAPP' ? '#dcfce7' : p.registration_source === 'FORM' ? '#fef9c3' : '#f1f5f9', color: p.registration_source === 'WHATSAPP' ? '#15803d' : p.registration_source === 'FORM' ? '#a16207' : '#64748b', border: '1px solid currentColor', opacity: 0.8 }}>
-                                                {p.registration_source || 'DASHBOARD'}
-                                            </span>
+                                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>
+                                                {p.father_name || p.parent_name || 'Not Recorded'}
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{p.mother_name ? `M: ${p.mother_name}` : 'Parent profile'}</div>
                                         </td>
                                         <td>
-                                            <span className={`badge ${p.registration_status === 'COMPLETE' ? 'badge-success' : 'badge-warning'}`}>
-                                                {p.registration_status || 'COMPLETE'}
-                                            </span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#475569', fontSize: '0.85rem', fontWeight: 600 }}>
+                                                <Phone size={14} color="#10b981" />
+                                                {p.wa_id || p.father_mobile || p.parent_mobile}
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94a3b8', fontSize: '0.75rem' }}>
+                                                <MapPin size={12} />
+                                                {p.city ? `${p.city}${p.area ? `, ${p.area}` : ''}` : 'Location unknown'}
+                                            </div>
                                         </td>
-                                        <td>
-                                            <button
-                                                className="btn btn-outline"
-                                                style={{ padding: '0.25rem 0.75rem', fontSize: '0.75rem', height: 'auto' }}
-                                                onClick={() => setSelected(selected?.patient_id === p.patient_id ? null : p)}
-                                            >
-                                                {selected?.patient_id === p.patient_id ? 'Hide' : 'View'}
-                                            </button>
+                                        <td className="mobile-hide">
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                                                <span className={`badge ${p.registration_status === 'COMPLETE' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.65rem', alignSelf: 'flex-start' }}>
+                                                    {p.registration_status}
+                                                </span>
+                                                <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                                                    Via: {p.registration_source?.toUpperCase() || 'DASHBOARD'}
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style={{ textAlign: 'right', paddingRight: '1.5rem' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                                                <button
+                                                    className="btn-action"
+                                                    onClick={() => setSelected(selected?._id === p._id ? null : p)}
+                                                    style={{ background: '#f1f5f9', color: '#475569', width: '36px', height: '36px', borderRadius: '10px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                >
+                                                    {selected?._id === p._id ? <X size={16} /> : <Info size={16} />}
+                                                </button>
+                                                <button
+                                                    className="btn-action"
+                                                    onClick={() => startEdit(p)}
+                                                    style={{ background: 'var(--primary-light)', color: 'var(--primary)', width: '36px', height: '36px', borderRadius: '10px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
-                                    {selected?.patient_id === p.patient_id && (
+                                    {selected?._id === p._id && (
                                         <tr>
-                                            <td colSpan={8} style={{ padding: '0', borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(99, 102, 241, 0.02)' }}>
-                                                <div className="animate-in" style={{ padding: '2rem 2.5rem' }}>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                                <User size={18} />
-                                                            </div>
-                                                            <h4 style={{ margin: 0, color: '#1e293b', fontSize: '1rem', fontWeight: 800 }}>Comprehensive Patient Profile</h4>
-                                                        </div>
-                                                        <button className="btn btn-outline" style={{ padding: '0.45rem 1rem', fontSize: '0.8rem', height: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', borderRadius: '10px' }} onClick={() => startEdit(p)}>
-                                                            <Edit2 size={14} /> Edit Patient Info
-                                                        </button>
-                                                    </div>
-
-                                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
-                                                        {[
-                                                            { label: 'Child Name', val: p.child_name, icon: User },
-                                                            { label: 'Parent Name', val: p.parent_name, icon: User },
-                                                            { label: 'Primary Mobile', val: p.parent_mobile, icon: Phone },
-                                                            { label: 'Alt Mobile', val: p.alt_mobile || 'None provided', icon: Phone },
-                                                            { label: 'Gender', val: p.gender || 'Not specified', icon: User },
-                                                            { label: 'Date of Birth', val: dobDisplay(p.dob), icon: CalendarIcon },
-                                                            { label: 'Email', val: p.email || 'None provided', icon: Mail },
-                                                            { label: 'Registered On', val: new Date(p.registered_at || p.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }), icon: CalendarIcon },
-                                                            { label: 'Reg. Source', val: (p.registration_source || 'dashboard').toUpperCase(), icon: Share2 },
-                                                            { label: 'Home Address', val: p.address || 'No address recorded', icon: MapPin },
-                                                        ].map(({ label, val, icon: Icon }) => (
-                                                            <div key={label} style={{ background: '#fff', padding: '1rem 1.25rem', borderRadius: '14px', border: '1px solid var(--border-color)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                                                    <Icon size={13} style={{ color: 'var(--text-muted)' }} />
-                                                                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
+                                            <td colSpan={5} style={{ padding: '0', background: 'linear-gradient(to bottom, #f8faff, #fff)' }}>
+                                                <div style={{ padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', borderBottom: '1px solid #f1f5f9' }}>
+                                                    <div>
+                                                        <h4 style={{ marginBottom: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem', fontSize: '0.9rem' }}>Comprehensive Identity</h4>
+                                                        <div style={{ display: 'grid', gap: '1rem' }}>
+                                                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                                                <div style={{ width: '80px', height: '80px', borderRadius: '20px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed #cbd5e1' }}>
+                                                                    <Camera size={24} color="#94a3b8" />
                                                                 </div>
-                                                                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#334155' }}>{val}</div>
+                                                                <div>
+                                                                    <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>{p.salutation} {p.first_name} {p.last_name}</div>
+                                                                    <div style={{ color: 'var(--text-muted)' }}>Born: {p.dob ? new Date(p.dob).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Unknown'}</div>
+                                                                    <div style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 700, marginTop: '0.25rem' }}>{p.patient_id}</div>
+                                                                </div>
                                                             </div>
-                                                        ))}
-
-                                                        <div style={{ gridColumn: '1 / -1', background: 'linear-gradient(to right, #fff, #f8faff)', padding: '1rem 1.25rem', borderRadius: '14px', border: '1px solid var(--primary-light)', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                                                            <div style={{ padding: '0.5rem', borderRadius: '10px', background: 'var(--primary-light)', color: 'var(--primary)' }}>
-                                                                <FileText size={18} />
+                                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                                                <div className="meta-item">
+                                                                    <span>Gender</span>
+                                                                    <strong>{p.gender}</strong>
+                                                                </div>
+                                                                <div className="meta-item">
+                                                                    <span>Enrollment</span>
+                                                                    <strong>{p.enrollment_option?.replace('_', ' ')}</strong>
+                                                                </div>
                                                             </div>
-                                                            <div>
-                                                                <div style={{ fontSize: '0.65rem', color: 'var(--primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.25rem' }}>Medical Symptoms / Internal Notes</div>
-                                                                <div style={{ fontSize: '0.95rem', color: '#475569', fontWeight: 600, lineHeight: 1.5 }}>{p.symptoms_notes || 'No symptoms or special notes recorded for this patient.'}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <h4 style={{ marginBottom: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem', fontSize: '0.9rem' }}>Parental Information</h4>
+                                                        <div style={{ display: 'grid', gap: '0.75rem' }}>
+                                                            <div className="meta-item" style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                                                <span>Father</span>
+                                                                <strong>{p.father_name || '—'}</strong>
+                                                            </div>
+                                                            <div className="meta-item" style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                                                <span>Mother</span>
+                                                                <strong>{p.mother_name || '—'}</strong>
+                                                            </div>
+                                                            <div className="meta-item" style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                                                <span>WhatsApp/WA ID</span>
+                                                                <strong>{p.wa_id || '—'}</strong>
+                                                            </div>
+                                                            {p.email && (
+                                                                <div className="meta-item" style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                                                    <span>Email</span>
+                                                                    <strong>{p.email}</strong>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <h4 style={{ marginBottom: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem', fontSize: '0.9rem' }}>Contact & Location</h4>
+                                                        <div style={{ display: 'grid', gap: '0.75rem' }}>
+                                                            <div className="meta-item">
+                                                                <span>Residential Area</span>
+                                                                <strong>{p.area || '—'}</strong>
+                                                            </div>
+                                                            <div className="meta-item">
+                                                                <span>City & Pin</span>
+                                                                <strong>{p.city}{p.pin_code ? ` - ${p.pin_code}` : ''}</strong>
+                                                            </div>
+                                                            <div className="meta-item">
+                                                                <span>Assigned Doctor</span>
+                                                                <strong>{p.doctor || 'General Visit'}</strong>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -276,26 +460,26 @@ const Patients = () => {
                             ))}
                         </tbody>
                     </table>
-                )}
+                </div>
 
                 {pagination.pages > 1 && (
-                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '2rem', padding: '1rem', borderTop: '1px solid var(--border-color)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1.5rem', padding: '1.5rem', borderTop: '1px solid #f1f5f9' }}>
                         <button
                             className="btn btn-outline"
                             disabled={page === 1}
-                            onClick={() => setPage(p => p - 1)}
-                            style={{ padding: '0.5rem 1rem', height: 'auto' }}
+                            onClick={() => setPage(page - 1)}
+                            style={{ height: '40px' }}
                         >
                             Previous
                         </button>
-                        <span style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600 }}>
-                            Page {page} of {pagination.pages}
-                        </span>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>
+                            Page <span style={{ color: 'var(--primary)' }}>{page}</span> of {pagination.pages}
+                        </div>
                         <button
                             className="btn btn-outline"
                             disabled={page === pagination.pages}
-                            onClick={() => setPage(p => p + 1)}
-                            style={{ padding: '0.5rem 1rem', height: 'auto' }}
+                            onClick={() => setPage(page + 1)}
+                            style={{ height: '40px' }}
                         >
                             Next
                         </button>
@@ -303,96 +487,160 @@ const Patients = () => {
                 )}
             </div>
 
-            {/* Register modal */}
-            {
-                showModal && (
-                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ background: '#fff', borderRadius: '16px', padding: '2rem', width: '560px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 25px 60px rgba(0,0,0,0.2)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                                <h2 style={{ margin: 0, fontSize: '1.2rem' }}>{editId ? 'Edit Patient Information' : 'Register New Patient'}</h2>
-                                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
-                                    <X size={22} />
-                                </button>
+            {showModal && (
+                <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="modal-content card" style={{ width: '800px', maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto', padding: '0' }}>
+                        <div className="modal-header" style={{ padding: '1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 10 }}>
+                            <div>
+                                <h2 style={{ fontSize: '1.25rem' }}>{editId ? `Edit Patient: ${editId}` : 'Register New Patient'}</h2>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Comprehensive child and parent health profile registration.</p>
+                            </div>
+                            <button onClick={() => setShowModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '10px', padding: '0.5rem', cursor: 'pointer' }}>
+                                <X size={20} color="#64748b" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleFormSubmit} style={{ padding: '2rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
+                                {/* Section 1: Child Identity */}
+                                <div style={{ gridColumn: '1 / -1', marginTop: '0.5rem' }}>
+                                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                                        <Info size={16} /> Child Identity Information
+                                    </h4>
+                                </div>
+                                <div>
+                                    <label>Salutation</label>
+                                    <select value={form.salutation} onChange={e => setForm({ ...form, salutation: e.target.value })}>
+                                        {SALUTATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+                                </div>
+                                <div style={{ gridColumn: 'span 2' }}>
+                                    <label>Full Name (First, Middle, Last) *</label>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <input required placeholder="First" value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} />
+                                        <input placeholder="Middle" value={form.middle_name} onChange={e => setForm({ ...form, middle_name: e.target.value })} />
+                                        <input required placeholder="Last" value={form.last_name} onChange={e => setForm({ ...form, last_name: e.target.value })} />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label>Gender *</label>
+                                    <select value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })}>
+                                        {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Date of Birth *</label>
+                                    <input type="date" required={!form.dob_unknown} value={form.dob} onChange={e => setForm({ ...form, dob: e.target.value })} disabled={form.dob_unknown} />
+                                    <div style={{ marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <input
+                                            type="checkbox"
+                                            id="dob_unknown"
+                                            checked={form.dob_unknown}
+                                            onChange={e => setForm({ ...form, dob_unknown: e.target.checked, dob: e.target.checked ? '' : form.dob })}
+                                            style={{ width: '16px', height: '16px' }}
+                                        />
+                                        <label htmlFor="dob_unknown" style={{ marginBottom: 0, fontSize: '0.75rem', cursor: 'pointer' }}>DOB Unknown (Enter Age Instead)</label>
+                                    </div>
+                                </div>
+                                {form.dob_unknown && (
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <label>Years</label>
+                                            <input type="number" placeholder="Y" value={form.age_years} onChange={e => setForm({ ...form, age_years: e.target.value })} />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <label>Months</label>
+                                            <input type="number" placeholder="M" value={form.age_months} onChange={e => setForm({ ...form, age_months: e.target.value })} />
+                                        </div>
+                                    </div>
+                                )}
+                                <div>
+                                    <label>Doctor Assigned</label>
+                                    <select value={form.doctor} onChange={e => setForm({ ...form, doctor: e.target.value })}>
+                                        <option value="">Select Doctor</option>
+                                        {doctors.map(d => <option key={d._id} value={d.full_name}>{d.full_name}</option>)}
+                                    </select>
+                                </div>
+
+                                {/* Section 2: Parents */}
+                                <div style={{ gridColumn: '1 / -1', marginTop: '1.5rem' }}>
+                                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                                        <Shield size={16} /> Parental & Contact Details
+                                    </h4>
+                                </div>
+                                <div>
+                                    <label>Father's Full Name</label>
+                                    <input placeholder="Father Name" value={form.father_name} onChange={e => setForm({ ...form, father_name: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label>Mother's Full Name</label>
+                                    <input placeholder="Mother Name" value={form.mother_name} onChange={e => setForm({ ...form, mother_name: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label>Primary WhatsApp (WA ID) *</label>
+                                    <input required placeholder="10-digit number" value={form.wa_id} onChange={e => setForm({ ...form, wa_id: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label>Email Address</label>
+                                    <input type="email" placeholder="email@example.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                                </div>
+
+                                {/* Section 3: Location */}
+                                <div style={{ gridColumn: '1 / -1', marginTop: '1.5rem' }}>
+                                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                                        <MapPin size={16} /> Location & Address
+                                    </h4>
+                                </div>
+                                <div style={{ gridColumn: 'span 2' }}>
+                                    <label>Residential Area / Landmark</label>
+                                    <input placeholder="e.g. Near Market, Bandra West" value={form.area} onChange={e => setForm({ ...form, area: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label>City</label>
+                                    <input placeholder="Mumbai" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label>Pin Code</label>
+                                    <input placeholder="400050" value={form.pin_code} onChange={e => setForm({ ...form, pin_code: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label>Enrollment Preference</label>
+                                    <select value={form.enrollment_option} onChange={e => setForm({ ...form, enrollment_option: e.target.value })}>
+                                        {ENROLLMENT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                    </select>
+                                </div>
                             </div>
 
-                            {formErr && (
-                                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '0.75rem', marginBottom: '1rem', color: '#dc2626', fontSize: '0.875rem' }}>
-                                    {formErr}
-                                </div>
-                            )}
-                            {formOk && (
-                                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '0.75rem', marginBottom: '1rem', color: '#16a34a', fontSize: '0.875rem' }}>
-                                    {formOk}
-                                </div>
-                            )}
-
-                            <form onSubmit={handleRegister}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                    {[
-                                        { id: 'child_name', label: "Child's Full Name *", required: true },
-                                        { id: 'gender', label: "Gender *", type: 'select', options: ['Male', 'Female', 'Other'] },
-                                        { id: 'parent_name', label: "Parent's Full Name *", required: true },
-                                        { id: 'mobile', label: 'Mobile Number *', required: true, placeholder: '10-digit mobile' },
-                                        { id: 'alt_mobile', label: 'Alternate Mobile', placeholder: 'Numeric or SKIP' },
-                                        { id: 'dob', label: 'Date of Birth *', required: true, placeholder: 'YYYY-MM-DD' },
-                                        { id: 'email', label: 'Email ID *', required: true, placeholder: 'name@example.com' },
-                                    ].map(({ id, label, required, placeholder, type, options }) => (
-                                        <div key={id}>
-                                            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.3rem', color: '#374151' }}>{label}</label>
-                                            {type === 'select' ? (
-                                                <select
-                                                    value={form[id]}
-                                                    onChange={e => setForm(f => ({ ...f, [id]: e.target.value }))}
-                                                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', outline: 'none', fontSize: '0.875rem', boxSizing: 'border-box', transition: 'var(--transition)' }}
-                                                >
-                                                    {options.map(opt => typeof opt === 'string' ? (
-                                                        <option key={opt} value={opt}>{opt}</option>
-                                                    ) : (
-                                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                    ))}
-                                                </select>
-                                            ) : (
-                                                <input
-                                                    id={`reg-${id}`}
-                                                    type="text"
-                                                    required={required}
-                                                    placeholder={placeholder || ''}
-                                                    value={form[id]}
-                                                    onChange={e => setForm(f => ({ ...f, [id]: e.target.value }))}
-                                                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', outline: 'none', fontSize: '0.875rem', boxSizing: 'border-box', transition: 'var(--transition)' }}
-                                                />
-                                            )}
-                                        </div>
-                                    ))}
-
-                                    <div style={{ gridColumn: 'span 2' }}>
-                                        <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.3rem', color: '#374151' }}>Residential Address *</label>
-                                        <input id="reg-address" type="text" required value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-                                            placeholder="Full address include Area and City"
-                                            style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', outline: 'none', fontSize: '0.875rem', boxSizing: 'border-box' }} />
-                                    </div>
-                                    <div style={{ gridColumn: '1 / -1' }}>
-                                        <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.3rem', color: '#374151' }}>Symptoms / Reason for Visit</label>
-                                        <textarea id="reg-symptoms" rows={3} value={form.symptoms_notes} onChange={e => setForm(f => ({ ...f, symptoms_notes: e.target.value }))}
-                                            placeholder="Describe symptoms or type VACCINATION"
-                                            style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1px solid var(--border-color)', outline: 'none', fontSize: '0.875rem', resize: 'vertical', boxSizing: 'border-box' }} />
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
-                                    <button type="button" className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-                                    <button type="submit" className="btn btn-primary" disabled={saving}>
-                                        {saving ? 'Saving…' : editId ? 'Update Information' : 'Register'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                            <div style={{ marginTop: '2.5rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
+                                <button type="button" className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
+                                <button type="submit" className="btn btn-primary" style={{ minWidth: '160px' }} disabled={submitting}>
+                                    {submitting ? <RefreshCw className="animate-spin" size={18} /> : (editId ? 'Update Information' : 'Grant Activation')}
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                )
-            }
+                </div>
+            )}
 
-            <style>{`@keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }`}</style>
-        </div >
+            <style>{`
+                .user-row { transition: all 0.2s; cursor: pointer; }
+                .user-row:hover { background-color: #f8fafc !important; }
+                .selected-row { background-color: #f0f7ff !important; }
+                .meta-item { display: flex; flex-direction: column; gap: 0.2rem; background: #fff; padding: 0.75rem; borderRadius: 10px; border: 1px solid #f1f5f9; }
+                .meta-item span { font-size: 0.65rem; color: #94a3b8; font-weight: 700; textTransform: uppercase; letter-spacing: 0.04em; }
+                .meta-item strong { font-size: 0.85rem; color: #334155; }
+                
+                label { display: block; fontSize: 0.8rem; fontWeight: 700; color: #475569; marginBottom: 0.4rem; }
+                input, select { width: 100%; padding: 0.75rem 1rem; borderRadius: 12px; border: 1px solid #e2e8f0; outline: none; fontSize: 0.95rem; transition: all 0.2s; }
+                input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+                
+                @media (max-width: 768px) {
+                    .meta-item { padding: 0.5rem; }
+                }
+            `}</style>
+        </div>
     );
 };
 
 export default Patients;
+

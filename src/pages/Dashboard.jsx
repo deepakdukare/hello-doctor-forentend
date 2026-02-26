@@ -20,7 +20,8 @@ import {
     getAppointmentStats,
     getPatients,
     getUnregisteredInteractions,
-    getPendingReminders
+    getPendingReminders,
+    getEscalations
 } from '../api/index';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, color, loading }) => (
