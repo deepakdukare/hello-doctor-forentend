@@ -12,7 +12,7 @@ export default defineConfig({
         },
         proxy: {
             '/api': {
-                target: 'http://localhost:5000',
+                target: 'https://api-dr-indu-child-care.brahmaastra.ai/',
                 changeOrigin: true,
             },
         },

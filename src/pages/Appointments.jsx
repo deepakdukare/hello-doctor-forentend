@@ -1,15 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
     Plus, RefreshCw, Search, Calendar, Filter, X, Check,
     Clock, AlertCircle, MoreVertical, Calendar as CalendarIcon,
     ChevronRight, User, Users, Phone, MapPin, Trash2, Edit3,
     ArrowRight, Info, CheckCircle2, XCircle, AlertTriangle,
     FileText, Link as LinkIcon, Download, Search as SearchIcon,
-<<<<<<< HEAD
     Stethoscope, Activity, UserPlus, Heart, ExternalLink
-=======
-    Stethoscope, Activity, Zap, Clipboard, Shield, Mail
->>>>>>> b7cefe6039d11ac0344a821f089293b692d01b8d
 } from 'lucide-react';
 import api, {
     getAppointments, bookAppointment, updateAppointment,
@@ -270,7 +266,6 @@ const Appointments = () => {
     };
 
     return (
-<<<<<<< HEAD
         <div className="appointments-container" style={{ padding: '1.5rem', maxWidth: '1600px', margin: '0 auto' }}>
             {/* Header Section */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
@@ -495,637 +490,613 @@ const Appointments = () => {
                                     </tr>
                                 ))
                             )}
-=======
         <div className="appointments-page-v3">
-            <div className="header-flex-premium">
-                <div className="header-titles-v3">
-                    <h1 className="header-h1-v3">Clinical Flow</h1>
-                    <div className="stats-row-mini-v3">
-                        <StatCardMini label="Today's Load" value={stats?.total_today || 0} icon={Users} color="#6366f1" bg="#e0e7ff" />
-                        <StatCardMini label="Confirmed" value={stats?.confirmed || 0} icon={CheckCircle2} color="#10b981" bg="#dcfce7" />
-                        <StatCardMini label="Cancelled" value={stats?.cancelled || 0} icon={XCircle} color="#ef4444" bg="#fef2f2" />
-                    </div>
-                </div>
-                <div className="header-btns-v3">
-                    <button className="sync-btn-v3" onClick={fetchData}>
-                        <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
-                        <span>Sync</span>
-                    </button>
-                    <button className="book-btn-v3" onClick={() => openBookingModal()}>
-                        <Plus size={22} />
-                        <span>Book Appointment</span>
-                    </button>
-                </div>
-            </div>
-
-            <div className="filter-shelf-premium">
-                <div className="filter-group-v3">
-                    <div className="filter-item-v3">
-                        <CalendarIcon size={18} className="f-icon" />
-                        <input
-                            type="date"
-                            value={filters.date}
-                            onChange={e => setFilters({ ...filters, date: e.target.value })}
-                            className="f-input"
-                        />
-                    </div>
-                    <div className="filter-item-v3">
-                        <Stethoscope size={18} className="f-icon" />
-                        <select
-                            value={filters.doctor_id}
-                            onChange={e => setFilters({ ...filters, doctor_id: e.target.value })}
-                            className="f-select"
-                        >
-                            <option value="">All Doctors</option>
-                            {doctors.map(doc => (
-                                <option key={doc._id} value={doc.doctor_id}>{doc.full_name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="filter-item-v3">
-                        <Activity size={18} className="f-icon" />
-                        <select
-                            value={filters.status}
-                            onChange={e => setFilters({ ...filters, status: e.target.value })}
-                            className="f-select"
-                        >
-                            <option value="">Global Status</option>
-                            <option value="CONFIRMED">Confirmed</option>
-                            <option value="COMPLETED">Completed</option>
-                            <option value="CANCELLED">Cancelled</option>
-                            <option value="PENDING">Pending</option>
-                        </select>
-                    </div>
-                </div>
-                <div className="search-pill-v3">
-                    <Search size={18} />
-                    <input type="text" placeholder="Quick find by name or ID..." />
-                </div>
-            </div>
-
-            {error && (
-                <div className="alert-v3 error">
-                    <AlertTriangle size={20} />
-                    <span>{error}</span>
-                    <button onClick={() => setError(null)}>×</button>
-                </div>
-            )}
-
-            <div className="repository-card-v3">
-                <div className="table-flow-v3">
-                    <table className="main-table-v3">
-                        <thead>
-                            <tr>
-                                <th>Schedule & Slot</th>
-                                <th>Patient File</th>
-                                <th>Medical Assignment</th>
-                                <th>Real-time Status</th>
-                                <th>Ingress</th>
-                                <th style={{ textAlign: 'center' }}>Management</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading && !appointments.length ? (
-                                Array(6).fill(0).map((_, i) => (
-                                    <tr key={i}><td colSpan={6}><div className="skeleton-line-v3"></div></td></tr>
-                                ))
-                            ) : appointments.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} className="empty-state-v3">
-                                        <div className="empty-box-v3">
-                                            <CalendarIcon size={48} />
-                                            <h3>No appointments found</h3>
-                                            <p>The schedule is clear for the selected filters.</p>
+                                <div className="header-flex-premium">
+                                    <div className="header-titles-v3">
+                                        <h1 className="header-h1-v3">Clinical Flow</h1>
+                                        <div className="stats-row-mini-v3">
+                                            <StatCardMini label="Today's Load" value={stats?.total_today || 0} icon={Users} color="#6366f1" bg="#e0e7ff" />
+                                            <StatCardMini label="Confirmed" value={stats?.confirmed || 0} icon={CheckCircle2} color="#10b981" bg="#dcfce7" />
+                                            <StatCardMini label="Cancelled" value={stats?.cancelled || 0} icon={XCircle} color="#ef4444" bg="#fef2f2" />
                                         </div>
-                                    </td>
-                                </tr>
-                            ) : appointments.map((appt) => (
-                                <tr key={appt.appointment_id} className="row-hover-v3">
-                                    <td>
-                                        <div className="slot-id-box">
-                                            <div className="slot-badge-v3">{appt.slot_id}</div>
-                                            <div>
-                                                <div className="slot-label-v3">{appt.slot_label || 'Allocated Slot'}</div>
-                                                <div className="slot-sub-v3">{appt.session || 'Session'}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div className="patient-link-v3">
-                                            <div className="p-name-v3">{appt.child_name || 'Legacy Patient'}</div>
-                                            <div className="p-meta-v3">
-                                                <span className="p-id-v3">{appt.patient_id}</span>
-                                                <span className="dot">•</span>
-                                                <Zap size={10} color="#10b981" />
-                                                <span>{appt.parent_mobile}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div className="doc-assign-v3">
-                                            <div className="d-name-v3">{appt.assigned_doctor_name || 'Dr. Indu'}</div>
-                                            <div className="v-tag-v3">{appt.visit_type}</div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div className="status-chip-v3" style={{ background: STATUS_CONFIG[appt.status]?.bg, color: STATUS_CONFIG[appt.status]?.color }}>
-                                            {STATUS_CONFIG[appt.status]?.icon}
-                                            <span>{appt.status}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div className="source-link-v3">
-                                            {appt.booking_source === 'whatsapp' ? <Phone size={14} className="wa-icon" /> : <FileText size={14} />}
-                                            <span>{appt.booking_source?.toUpperCase() || 'DASHBOARD'}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div className="action-hub-v3">
-                                            <button className="hub-btn edit" title="Reschedule" onClick={() => openBookingModal(appt)} disabled={appt.status === 'CANCELLED'}>
-                                                <Edit3 size={18} />
-                                            </button>
-                                            <button className="hub-btn cancel" title="Purge/Cancel" onClick={() => setCancelModal({ show: true, id: appt.appointment_id, reason: '' })} disabled={appt.status === 'CANCELLED'}>
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
->>>>>>> b7cefe6039d11ac0344a821f089293b692d01b8d
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-<<<<<<< HEAD
-            {/* Combined Booking / Registration Modal */}
-            {showModal && (
-                <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(8px)' }}>
-                    <div className="modal-content" style={{ width: '650px', maxWidth: '95vw', padding: 0, overflow: 'hidden', borderRadius: '32px', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 40px 80px rgba(0,0,0,0.15)' }}>
-                        <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #4338ca 100%)', padding: '2rem', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                                <h2 style={{ margin: 0, color: '#fff', fontSize: '1.5rem', fontWeight: 800 }}>{editMode ? 'Manage Appointment' : 'Schedule New Visit'}</h2>
-                                <p style={{ margin: '0.4rem 0 0 0', opacity: 0.9, fontSize: '0.9rem', fontWeight: 500 }}>
-                                    {editMode ? `Updating ${selectedAppointment?.appointment_id}` : 'Enroll a patient and select a time slot'}
-                                </p>
-                            </div>
-                            <button onClick={() => setShowModal(false)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', padding: '0.6rem', borderRadius: '14px', cursor: 'pointer', display: 'flex' }}>
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        {/* Custom Tab Switcher */}
-                        {!editMode && (
-                            <div style={{ display: 'flex', padding: '0.75rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', gap: '0.5rem' }}>
-                                {[
-                                    { id: 'patient', label: '1. Existing Patient', icon: <Search size={16} /> },
-                                    { id: 'new-patient', label: '2. Register New', icon: <UserPlus size={16} /> },
-                                    { id: 'visit', label: '3. Visit Details', icon: <Calendar size={16} />, disabled: !selectedPatient }
-                                ].map((tab) => (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => !tab.disabled && setActiveTab(tab.id)}
-                                        style={{
-                                            flex: 1, padding: '0.8rem', borderRadius: '12px', border: 'none',
-                                            background: activeTab === tab.id ? '#fff' : 'transparent',
-                                            color: activeTab === tab.id ? 'var(--primary)' : '#64748b',
-                                            fontWeight: 800, fontSize: '0.85rem', cursor: tab.disabled ? 'not-allowed' : 'pointer',
-                                            boxShadow: activeTab === tab.id ? '0 4px 10px rgba(0,0,0,0.05)' : 'none',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
-                                            transition: 'all 0.2s',
-                                            opacity: tab.disabled ? 0.4 : 1
-                                        }}
-                                    >
-                                        {tab.icon} {tab.label}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
-                        <div style={{ padding: '2rem', maxHeight: '75vh', overflowY: 'auto' }}>
-                            {activeTab === 'patient' && !editMode && (
-                                <div style={{ animation: 'fadeIn 0.4s' }}>
-                                    <div className="search-box-premium" style={{ marginBottom: '1.5rem' }}>
-                                        <SearchIcon size={22} className="search-icon-p" />
-                                        <input
-                                            type="text"
-                                            placeholder="Search by name, ID or mobile number..."
-                                            value={patientSearch}
-                                            onChange={(e) => handlePatientSearch(e.target.value)}
-                                        />
                                     </div>
-
-                                    {searching && <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}><RefreshCw size={32} className="animate-spin" /></div>}
-
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                        {searchResults.map(p => (
-                                            <div
-                                                key={p.patient_id}
-                                                onClick={() => selectPatient(p)}
-                                                className="patient-search-card"
-                                            >
-                                                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>{p.child_name.charAt(0)}</div>
-                                                <div style={{ flex: 1 }}>
-                                                    <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '1rem' }}>{p.child_name}</div>
-                                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>ID: {p.patient_id} • Mob: {p.parent_mobile}</div>
-                                                </div>
-                                                <div className="select-badge">Select Patient <ArrowRight size={14} /></div>
-                                            </div>
-                                        ))}
-                                        {!searching && patientSearch.length >= 3 && searchResults.length === 0 && (
-                                            <div style={{ padding: '3rem 2rem', textAlign: 'center', background: '#fef2f2', borderRadius: '20px', color: '#ef4444' }}>
-                                                <XCircle size={40} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                                                <h3 style={{ margin: 0 }}>No records found</h3>
-                                                <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>Check spelling or register as a new patient</p>
-                                                <button onClick={() => setActiveTab('new-patient')} className="btn btn-primary" style={{ marginTop: '1.5rem', padding: '0.6rem 2rem', background: '#ef4444' }}>Register New Patient</button>
-                                            </div>
-                                        )}
-                                        {!searching && patientSearch.length < 3 && (
-                                            <div style={{ padding: '4rem 2rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '24px', border: '2px dashed #e2e8f0' }}>
-                                                <SearchIcon size={48} style={{ marginBottom: '1.25rem', opacity: 0.3 }} />
-                                                <p style={{ fontWeight: 700, fontSize: '1.1rem' }}>Enter patient name, ID or mobile</p>
-                                                <p style={{ fontSize: '0.9rem', marginTop: '0.25rem' }}>Type at least 3 characters to search the database</p>
-=======
-            {/* Booking Modal */}
-            {showModal && (
-                <div className="modal-overlay-premium">
-                    <div className="modal-content-lg-v3">
-                        <div className="modal-header-v3">
-                            <div className="modal-title-box">
-                                <div className="modal-icon-wrap"><Clipboard size={28} /></div>
-                                <div>
-                                    <h2>{editMode ? 'Reschedule Patient' : 'Authorize Appointment'}</h2>
-                                    <p>{editMode ? `Modifying record ${selectedAppointment?.appointment_id}` : 'Enroll patient into a clinical time slot'}</p>
-                                </div>
-                            </div>
-                            <button className="modal-close-v3" onClick={() => setShowModal(false)}><X size={24} /></button>
-                        </div>
-
-                        <div className="modal-stepper-v3">
-                            <button className={`step-btn ${activeTab === 'patient' ? 'active' : ''}`} onClick={() => !editMode && setActiveTab('patient')}>
-                                <span className="step-num">1</span>
-                                <span>Patient Selection</span>
-                            </button>
-                            <div className="step-divider"></div>
-                            <button className={`step-btn ${activeTab === 'visit' ? 'active' : ''}`} onClick={() => selectedPatient && setActiveTab('visit')}>
-                                <span className="step-num">2</span>
-                                <span>Clinical Parameters</span>
-                            </button>
-                        </div>
-
-                        <div className="modal-body-v3">
-                            {activeTab === 'patient' ? (
-                                <div className="patient-selector-v3">
-                                    <div className="search-wrap-v3">
-                                        <Search size={22} className="s-icon" />
-                                        <input
-                                            type="text"
-                                            placeholder="Registry Search (Name, ID, Mobile)..."
-                                            value={patientSearch}
-                                            onChange={(e) => handlePatientSearch(e.target.value)}
-                                            className="s-input"
-                                        />
-                                    </div>
-
-                                    {searching && <div className="search-loader">Scanning Clinical Database...</div>}
-
-                                    <div className="search-results-v3">
-                                        {searchResults.map(p => (
-                                            <div key={p.patient_id} className="patient-result-card" onClick={() => selectPatient(p)}>
-                                                <div className="p-avatar-mini">{p.child_name?.charAt(0)}</div>
-                                                <div className="p-details-mini">
-                                                    <div className="p-name-bold">{p.child_name}</div>
-                                                    <div className="p-id-sub">{p.patient_id} • {p.parent_mobile}</div>
-                                                </div>
-                                                <ArrowRight size={18} className="p-arrow" />
-                                            </div>
-                                        ))}
-                                        {!searching && patientSearch.length >= 3 && searchResults.length === 0 && (
-                                            <div className="no-results-v3">No matches found in repository.</div>
-                                        )}
-                                        {patientSearch.length < 3 && !searchResults.length && (
-                                            <div className="search-placeholder-v3">
-                                                <Users size={48} />
-                                                <p>Enter 3+ characters to start searching</p>
->>>>>>> b7cefe6039d11ac0344a821f089293b692d01b8d
-                                            </div>
-                                        )}
+                                    <div className="header-btns-v3">
+                                        <button className="sync-btn-v3" onClick={fetchData}>
+                                            <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+                                            <span>Sync</span>
+                                        </button>
+                                        <button className="book-btn-v3" onClick={() => openBookingModal()}>
+                                            <Plus size={22} />
+                                            <span>Book Appointment</span>
+                                        </button>
                                     </div>
                                 </div>
-<<<<<<< HEAD
-                            )}
 
-                            {activeTab === 'new-patient' && !editMode && (
-                                <form onSubmit={handleQuickRegister} style={{ animation: 'fadeIn 0.4s' }}>
-                                    <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.2rem' }}><UserPlus size={24} color="var(--primary)" /> Quick Registration</h3>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                                        <div>
-                                            <label>Salutation</label>
-                                            <select value={newPatient.salutation} onChange={e => setNewPatient({ ...newPatient, salutation: e.target.value })}>
-                                                {SALUTATIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                                            </select>
-                                        </div>
-                                        <div style={{ gridColumn: 'span 2' }}>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                                <div>
-                                                    <label>First Name *</label>
-                                                    <input required placeholder="First name" value={newPatient.first_name} onChange={e => setNewPatient({ ...newPatient, first_name: e.target.value })} />
-                                                </div>
-                                                <div>
-                                                    <label>Last Name *</label>
-                                                    <input required placeholder="Last name" value={newPatient.last_name} onChange={e => setNewPatient({ ...newPatient, last_name: e.target.value })} />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label>Gender *</label>
-                                            <select value={newPatient.gender} onChange={e => setNewPatient({ ...newPatient, gender: e.target.value })}>
-                                                <option value="Male">Male</option>
-                                                <option value="Female">Female</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label>Date of Birth *</label>
-                                            <input type="date" required value={newPatient.dob} onChange={e => setNewPatient({ ...newPatient, dob: e.target.value })} />
-                                        </div>
-                                        <div style={{ gridColumn: 'span 2' }}>
-                                            <label>WhatsApp Number *</label>
-                                            <div style={{ position: 'relative' }}>
-                                                <Phone size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                                                <input required style={{ paddingLeft: '3rem' }} placeholder="10-digit mobile" value={newPatient.wa_id} onChange={e => setNewPatient({ ...newPatient, wa_id: e.target.value.replace(/\D/g, '') })} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button type="submit" disabled={submitting} className="btn btn-primary" style={{ width: '100%', marginTop: '2rem', height: '56px', borderRadius: '16px' }}>
-                                        {submitting ? <RefreshCw size={20} className="animate-spin" /> : 'Register Child & Proceed'}
-                                    </button>
-                                </form>
-                            )}
-
-                            {activeTab === 'visit' && (
-                                <form onSubmit={handleFormSubmit} style={{ animation: 'fadeIn 0.4s' }}>
-                                    <div style={{ padding: '1.25rem', background: 'linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%)', borderRadius: '20px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1.25rem', border: '1px solid var(--primary-light)' }}>
-                                        <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 15px rgba(99, 102, 241, 0.2)' }}>
-                                            <User size={28} />
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '1.1rem' }}>{selectedPatient?.child_name}</div>
-                                            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>{selectedPatient?.patient_id} • {selectedPatient?.parent_mobile}</div>
-                                        </div>
-                                        {!editMode && (
-                                            <button type="button" onClick={() => setActiveTab('patient')} className="change-btn">Change Patient</button>
-                                        )}
-                                    </div>
-
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                                        <div>
-                                            <label>Visit Date *</label>
+                                <div className="filter-shelf-premium">
+                                    <div className="filter-group-v3">
+                                        <div className="filter-item-v3">
+                                            <CalendarIcon size={18} className="f-icon" />
                                             <input
                                                 type="date"
-                                                required
-                                                min={editMode ? '' : new Date().toISOString().split('T')[0]}
-                                                value={form.appointment_date}
-                                                onChange={e => setForm({ ...form, appointment_date: e.target.value })}
+                                                value={filters.date}
+                                                onChange={e => setFilters({ ...filters, date: e.target.value })}
+                                                className="f-input"
                                             />
                                         </div>
-                                        <div>
-                                            <label>Visit Category *</label>
+                                        <div className="filter-item-v3">
+                                            <Stethoscope size={18} className="f-icon" />
                                             <select
-                                                value={form.visit_type}
-                                                onChange={e => setForm({ ...form, visit_type: e.target.value })}
+                                                value={filters.doctor_id}
+                                                onChange={e => setFilters({ ...filters, doctor_id: e.target.value })}
+                                                className="f-select"
                                             >
-=======
-                            ) : (
-                                <form onSubmit={handleFormSubmit} className="booking-form-v3">
-                                    <div className="selected-patient-v3">
-                                        <div className="p-banner">
-                                            <div className="p-info">
-                                                <User size={20} />
-                                                <strong>{selectedPatient?.child_name}</strong>
-                                                <span>({selectedPatient?.patient_id})</span>
-                                            </div>
-                                            {!editMode && <button type="button" onClick={() => setActiveTab('patient')}>Change</button>}
-                                        </div>
-                                    </div>
-
-                                    <div className="form-grid-v3">
-                                        <div className="form-group-v3">
-                                            <label>Appointment Date</label>
-                                            <div className="input-wrap-v3">
-                                                <CalendarIcon size={18} />
-                                                <input type="date" required value={form.appointment_date} onChange={e => setForm({ ...form, appointment_date: e.target.value })} />
-                                            </div>
-                                        </div>
-                                        <div className="form-group-v3">
-                                            <label>Visit Category</label>
-                                            <select value={form.visit_type} onChange={e => setForm({ ...form, visit_type: e.target.value })} className="input-v3">
->>>>>>> b7cefe6039d11ac0344a821f089293b692d01b8d
-                                                <option value="CONSULTATION">Consultation</option>
-                                                <option value="VACCINATION">Vaccination</option>
-                                                <option value="FOLLOWUP">Follow-up</option>
-                                                <option value="PULMONARY">Pulmonary Assessment</option>
+                                                <option value="">All Doctors</option>
+                                                {doctors.map(doc => (
+                                                    <option key={doc._id} value={doc.doctor_id}>{doc.full_name}</option>
+                                                ))}
                                             </select>
                                         </div>
+                                        <div className="filter-item-v3">
+                                            <Activity size={18} className="f-icon" />
+                                            <select
+                                                value={filters.status}
+                                                onChange={e => setFilters({ ...filters, status: e.target.value })}
+                                                className="f-select"
+                                            >
+                                                <option value="">Global Status</option>
+                                                <option value="CONFIRMED">Confirmed</option>
+                                                <option value="COMPLETED">Completed</option>
+                                                <option value="CANCELLED">Cancelled</option>
+                                                <option value="PENDING">Pending</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="search-pill-v3">
+                                        <Search size={18} />
+                                        <input type="text" placeholder="Quick find by name or ID..." />
+                                    </div>
+                                </div>
 
-<<<<<<< HEAD
-                                        <div style={{ gridColumn: 'span 2' }}>
-                                            <label style={{ marginBottom: '1rem', display: 'block' }}>Choose Available Slot *</label>
-                                            {slotsLoading ? (
-                                                <div style={{ textAlign: 'center', padding: '2rem' }}><RefreshCw size={32} className="animate-spin" color="var(--primary)" /></div>
-                                            ) : (
-                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.75rem' }}>
-=======
-                                        <div className="form-group-v3 full-span">
-                                            <label>Available Registry Slots</label>
-                                            {slotsLoading ? (
-                                                <div className="slot-loader-v3">Syncing availability...</div>
-                                            ) : (
-                                                <div className="slot-grid-v3">
->>>>>>> b7cefe6039d11ac0344a821f089293b692d01b8d
-                                                    {availableSlots.length > 0 ? availableSlots.map(slot => (
+                                {error && (
+                                    <div className="alert-v3 error">
+                                        <AlertTriangle size={20} />
+                                        <span>{error}</span>
+                                        <button onClick={() => setError(null)}>Ã—</button>
+                                    </div>
+                                )}
+
+                                <div className="repository-card-v3">
+                                    <div className="table-flow-v3">
+                                        <table className="main-table-v3">
+                                            <thead>
+                                                <tr>
+                                                    <th>Schedule & Slot</th>
+                                                    <th>Patient File</th>
+                                                    <th>Medical Assignment</th>
+                                                    <th>Real-time Status</th>
+                                                    <th>Ingress</th>
+                                                    <th style={{ textAlign: 'center' }}>Management</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {loading && !appointments.length ? (
+                                                    Array(6).fill(0).map((_, i) => (
+                                                        <tr key={i}><td colSpan={6}><div className="skeleton-line-v3"></div></td></tr>
+                                                    ))
+                                                ) : appointments.length === 0 ? (
+                                                    <tr>
+                                                        <td colSpan={6} className="empty-state-v3">
+                                                            <div className="empty-box-v3">
+                                                                <CalendarIcon size={48} />
+                                                                <h3>No appointments found</h3>
+                                                                <p>The schedule is clear for the selected filters.</p>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ) : appointments.map((appt) => (
+                                                    <tr key={appt.appointment_id} className="row-hover-v3">
+                                                        <td>
+                                                            <div className="slot-id-box">
+                                                                <div className="slot-badge-v3">{appt.slot_id}</div>
+                                                                <div>
+                                                                    <div className="slot-label-v3">{appt.slot_label || 'Allocated Slot'}</div>
+                                                                    <div className="slot-sub-v3">{appt.session || 'Session'}</div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className="patient-link-v3">
+                                                                <div className="p-name-v3">{appt.child_name || 'Legacy Patient'}</div>
+                                                                <div className="p-meta-v3">
+                                                                    <span className="p-id-v3">{appt.patient_id}</span>
+                                                                    <span className="dot">â€¢</span>
+                                                                    <Zap size={10} color="#10b981" />
+                                                                    <span>{appt.parent_mobile}</span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className="doc-assign-v3">
+                                                                <div className="d-name-v3">{appt.assigned_doctor_name || 'Dr. Indu'}</div>
+                                                                <div className="v-tag-v3">{appt.visit_type}</div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className="status-chip-v3" style={{ background: STATUS_CONFIG[appt.status]?.bg, color: STATUS_CONFIG[appt.status]?.color }}>
+                                                                {STATUS_CONFIG[appt.status]?.icon}
+                                                                <span>{appt.status}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className="source-link-v3">
+                                                                {appt.booking_source === 'whatsapp' ? <Phone size={14} className="wa-icon" /> : <FileText size={14} />}
+                                                                <span>{appt.booking_source?.toUpperCase() || 'DASHBOARD'}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div className="action-hub-v3">
+                                                                <button className="hub-btn edit" title="Reschedule" onClick={() => openBookingModal(appt)} disabled={appt.status === 'CANCELLED'}>
+                                                                    <Edit3 size={18} />
+                                                                </button>
+                                                                <button className="hub-btn cancel" title="Purge/Cancel" onClick={() => setCancelModal({ show: true, id: appt.appointment_id, reason: '' })} disabled={appt.status === 'CANCELLED'}>
+                                                                    <Trash2 size={18} />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                {/* Combined Booking / Registration Modal */}
+                                {showModal && (
+                                    <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(8px)' }}>
+                                        <div className="modal-content" style={{ width: '650px', maxWidth: '95vw', padding: 0, overflow: 'hidden', borderRadius: '32px', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 40px 80px rgba(0,0,0,0.15)' }}>
+                                            <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #4338ca 100%)', padding: '2rem', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div>
+                                                    <h2 style={{ margin: 0, color: '#fff', fontSize: '1.5rem', fontWeight: 800 }}>{editMode ? 'Manage Appointment' : 'Schedule New Visit'}</h2>
+                                                    <p style={{ margin: '0.4rem 0 0 0', opacity: 0.9, fontSize: '0.9rem', fontWeight: 500 }}>
+                                                        {editMode ? `Updating ${selectedAppointment?.appointment_id}` : 'Enroll a patient and select a time slot'}
+                                                    </p>
+                                                </div>
+                                                <button onClick={() => setShowModal(false)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', padding: '0.6rem', borderRadius: '14px', cursor: 'pointer', display: 'flex' }}>
+                                                    <X size={20} />
+                                                </button>
+                                            </div>
+
+                                            {/* Custom Tab Switcher */}
+                                            {!editMode && (
+                                                <div style={{ display: 'flex', padding: '0.75rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', gap: '0.5rem' }}>
+                                                    {[
+                                                        { id: 'patient', label: '1. Existing Patient', icon: <Search size={16} /> },
+                                                        { id: 'new-patient', label: '2. Register New', icon: <UserPlus size={16} /> },
+                                                        { id: 'visit', label: '3. Visit Details', icon: <Calendar size={16} />, disabled: !selectedPatient }
+                                                    ].map((tab) => (
                                                         <button
-                                                            key={slot.slot_id}
-                                                            type="button"
-                                                            className={`slot-pill-v3 ${form.slot_id === slot.slot_id ? 'active' : ''}`}
-                                                            onClick={() => setForm({ ...form, slot_id: slot.slot_id })}
-<<<<<<< HEAD
+                                                            key={tab.id}
+                                                            onClick={() => !tab.disabled && setActiveTab(tab.id)}
                                                             style={{
-                                                                padding: '1rem', borderRadius: '16px', border: '2px solid',
-                                                                borderColor: form.slot_id === slot.slot_id ? 'var(--primary)' : '#e2e8f0',
-                                                                background: form.slot_id === slot.slot_id ? 'var(--primary-light)' : '#fff',
-                                                                color: form.slot_id === slot.slot_id ? 'var(--primary)' : '#1e293b',
-                                                                fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s',
-                                                                boxShadow: form.slot_id === slot.slot_id ? '0 8px 15px rgba(99, 102, 241, 0.1)' : 'none'
+                                                                flex: 1, padding: '0.8rem', borderRadius: '12px', border: 'none',
+                                                                background: activeTab === tab.id ? '#fff' : 'transparent',
+                                                                color: activeTab === tab.id ? 'var(--primary)' : '#64748b',
+                                                                fontWeight: 800, fontSize: '0.85rem', cursor: tab.disabled ? 'not-allowed' : 'pointer',
+                                                                boxShadow: activeTab === tab.id ? '0 4px 10px rgba(0,0,0,0.05)' : 'none',
+                                                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem',
+                                                                transition: 'all 0.2s',
+                                                                opacity: tab.disabled ? 0.4 : 1
                                                             }}
                                                         >
-                                                            {slot.label}
-                                                            <div style={{ fontSize: '0.7rem', opacity: 0.7, fontWeight: 500 }}>{slot.session}</div>
+                                                            {tab.icon} {tab.label}
                                                         </button>
-                                                    )) : (
-                                                        <div style={{ gridColumn: 'span 12', padding: '2rem', textAlign: 'center', background: '#fef2f2', borderRadius: '16px', color: '#ef4444', fontWeight: 700, border: '1px solid #fecaca' }}>
-                                                            No availability for selected date/type
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <div style={{ padding: '2rem', maxHeight: '75vh', overflowY: 'auto' }}>
+                                                {activeTab === 'patient' && !editMode && (
+                                                    <div style={{ animation: 'fadeIn 0.4s' }}>
+                                                        <div className="search-box-premium" style={{ marginBottom: '1.5rem' }}>
+                                                            <SearchIcon size={22} className="search-icon-p" />
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Search by name, ID or mobile number..."
+                                                                value={patientSearch}
+                                                                onChange={(e) => handlePatientSearch(e.target.value)}
+                                                            />
                                                         </div>
-=======
+
+                                                        {searching && <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}><RefreshCw size={32} className="animate-spin" /></div>}
+
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                                            {searchResults.map(p => (
+                                                                <div
+                                                                    key={p.patient_id}
+                                                                    onClick={() => selectPatient(p)}
+                                                                    className="patient-search-card"
+                                                                >
+                                                                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>{p.child_name.charAt(0)}</div>
+                                                                    <div style={{ flex: 1 }}>
+                                                                        <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '1rem' }}>{p.child_name}</div>
+                                                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>ID: {p.patient_id} â€¢ Mob: {p.parent_mobile}</div>
+                                                                    </div>
+                                                                    <div className="select-badge">Select Patient <ArrowRight size={14} /></div>
+                                                                </div>
+                                                            ))}
+                                                            {!searching && patientSearch.length >= 3 && searchResults.length === 0 && (
+                                                                <div style={{ padding: '3rem 2rem', textAlign: 'center', background: '#fef2f2', borderRadius: '20px', color: '#ef4444' }}>
+                                                                    <XCircle size={40} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                                                                    <h3 style={{ margin: 0 }}>No records found</h3>
+                                                                    <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>Check spelling or register as a new patient</p>
+                                                                    <button onClick={() => setActiveTab('new-patient')} className="btn btn-primary" style={{ marginTop: '1.5rem', padding: '0.6rem 2rem', background: '#ef4444' }}>Register New Patient</button>
+                                                                </div>
+                                                            )}
+                                                            {!searching && patientSearch.length < 3 && (
+                                                                <div style={{ padding: '4rem 2rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '24px', border: '2px dashed #e2e8f0' }}>
+                                                                    <SearchIcon size={48} style={{ marginBottom: '1.25rem', opacity: 0.3 }} />
+                                                                    <p style={{ fontWeight: 700, fontSize: '1.1rem' }}>Enter patient name, ID or mobile</p>
+                                                                    <p style={{ fontSize: '0.9rem', marginTop: '0.25rem' }}>Type at least 3 characters to search the database</p>
+            {/* Booking Modal */}
+                                                                    {showModal && (
+                                                                        <div className="modal-overlay-premium">
+                                                                            <div className="modal-content-lg-v3">
+                                                                                <div className="modal-header-v3">
+                                                                                    <div className="modal-title-box">
+                                                                                        <div className="modal-icon-wrap"><Clipboard size={28} /></div>
+                                                                                        <div>
+                                                                                            <h2>{editMode ? 'Reschedule Patient' : 'Authorize Appointment'}</h2>
+                                                                                            <p>{editMode ? `Modifying record ${selectedAppointment?.appointment_id}` : 'Enroll patient into a clinical time slot'}</p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <button className="modal-close-v3" onClick={() => setShowModal(false)}><X size={24} /></button>
+                                                                                </div>
+
+                                                                                <div className="modal-stepper-v3">
+                                                                                    <button className={`step-btn ${activeTab === 'patient' ? 'active' : ''}`} onClick={() => !editMode && setActiveTab('patient')}>
+                                                                                        <span className="step-num">1</span>
+                                                                                        <span>Patient Selection</span>
+                                                                                    </button>
+                                                                                    <div className="step-divider"></div>
+                                                                                    <button className={`step-btn ${activeTab === 'visit' ? 'active' : ''}`} onClick={() => selectedPatient && setActiveTab('visit')}>
+                                                                                        <span className="step-num">2</span>
+                                                                                        <span>Clinical Parameters</span>
+                                                                                    </button>
+                                                                                </div>
+
+                                                                                <div className="modal-body-v3">
+                                                                                    {activeTab === 'patient' ? (
+                                                                                        <div className="patient-selector-v3">
+                                                                                            <div className="search-wrap-v3">
+                                                                                                <Search size={22} className="s-icon" />
+                                                                                                <input
+                                                                                                    type="text"
+                                                                                                    placeholder="Registry Search (Name, ID, Mobile)..."
+                                                                                                    value={patientSearch}
+                                                                                                    onChange={(e) => handlePatientSearch(e.target.value)}
+                                                                                                    className="s-input"
+                                                                                                />
+                                                                                            </div>
+
+                                                                                            {searching && <div className="search-loader">Scanning Clinical Database...</div>}
+
+                                                                                            <div className="search-results-v3">
+                                                                                                {searchResults.map(p => (
+                                                                                                    <div key={p.patient_id} className="patient-result-card" onClick={() => selectPatient(p)}>
+                                                                                                        <div className="p-avatar-mini">{p.child_name?.charAt(0)}</div>
+                                                                                                        <div className="p-details-mini">
+                                                                                                            <div className="p-name-bold">{p.child_name}</div>
+                                                                                                            <div className="p-id-sub">{p.patient_id} â€¢ {p.parent_mobile}</div>
+                                                                                                        </div>
+                                                                                                        <ArrowRight size={18} className="p-arrow" />
+                                                                                                    </div>
+                                                                                                ))}
+                                                                                                {!searching && patientSearch.length >= 3 && searchResults.length === 0 && (
+                                                                                                    <div className="no-results-v3">No matches found in repository.</div>
+                                                                                                )}
+                                                                                                {patientSearch.length < 3 && !searchResults.length && (
+                                                                                                    <div className="search-placeholder-v3">
+                                                                                                        <Users size={48} />
+                                                                                                        <p>Enter 3+ characters to start searching</p>
+                                                                                                    </div>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    )}
+
+                                                                                    {activeTab === 'new-patient' && !editMode && (
+                                                                                        <form onSubmit={handleQuickRegister} style={{ animation: 'fadeIn 0.4s' }}>
+                                                                                            <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.2rem' }}><UserPlus size={24} color="var(--primary)" /> Quick Registration</h3>
+                                                                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                                                                                                <div>
+                                                                                                    <label>Salutation</label>
+                                                                                                    <select value={newPatient.salutation} onChange={e => setNewPatient({ ...newPatient, salutation: e.target.value })}>
+                                                                                                        {SALUTATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                                                                                                    </select>
+                                                                                                </div>
+                                                                                                <div style={{ gridColumn: 'span 2' }}>
+                                                                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                                                                                        <div>
+                                                                                                            <label>First Name *</label>
+                                                                                                            <input required placeholder="First name" value={newPatient.first_name} onChange={e => setNewPatient({ ...newPatient, first_name: e.target.value })} />
+                                                                                                        </div>
+                                                                                                        <div>
+                                                                                                            <label>Last Name *</label>
+                                                                                                            <input required placeholder="Last name" value={newPatient.last_name} onChange={e => setNewPatient({ ...newPatient, last_name: e.target.value })} />
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                                <div>
+                                                                                                    <label>Gender *</label>
+                                                                                                    <select value={newPatient.gender} onChange={e => setNewPatient({ ...newPatient, gender: e.target.value })}>
+                                                                                                        <option value="Male">Male</option>
+                                                                                                        <option value="Female">Female</option>
+                                                                                                    </select>
+                                                                                                </div>
+                                                                                                <div>
+                                                                                                    <label>Date of Birth *</label>
+                                                                                                    <input type="date" required value={newPatient.dob} onChange={e => setNewPatient({ ...newPatient, dob: e.target.value })} />
+                                                                                                </div>
+                                                                                                <div style={{ gridColumn: 'span 2' }}>
+                                                                                                    <label>WhatsApp Number *</label>
+                                                                                                    <div style={{ position: 'relative' }}>
+                                                                                                        <Phone size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                                                                                        <input required style={{ paddingLeft: '3rem' }} placeholder="10-digit mobile" value={newPatient.wa_id} onChange={e => setNewPatient({ ...newPatient, wa_id: e.target.value.replace(/\D/g, '') })} />
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <button type="submit" disabled={submitting} className="btn btn-primary" style={{ width: '100%', marginTop: '2rem', height: '56px', borderRadius: '16px' }}>
+                                                                                                {submitting ? <RefreshCw size={20} className="animate-spin" /> : 'Register Child & Proceed'}
+                                                                                            </button>
+                                                                                        </form>
+                                                                                    )}
+
+                                                                                    {activeTab === 'visit' && (
+                                                                                        <form onSubmit={handleFormSubmit} style={{ animation: 'fadeIn 0.4s' }}>
+                                                                                            <div style={{ padding: '1.25rem', background: 'linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%)', borderRadius: '20px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1.25rem', border: '1px solid var(--primary-light)' }}>
+                                                                                                <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 15px rgba(99, 102, 241, 0.2)' }}>
+                                                                                                    <User size={28} />
+                                                                                                </div>
+                                                                                                <div style={{ flex: 1 }}>
+                                                                                                    <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '1.1rem' }}>{selectedPatient?.child_name}</div>
+                                                                                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>{selectedPatient?.patient_id} â€¢ {selectedPatient?.parent_mobile}</div>
+                                                                                                </div>
+                                                                                                {!editMode && (
+                                                                                                    <button type="button" onClick={() => setActiveTab('patient')} className="change-btn">Change Patient</button>
+                                                                                                )}
+                                                                                            </div>
+
+                                                                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                                                                                <div>
+                                                                                                    <label>Visit Date *</label>
+                                                                                                    <input
+                                                                                                        type="date"
+                                                                                                        required
+                                                                                                        min={editMode ? '' : new Date().toISOString().split('T')[0]}
+                                                                                                        value={form.appointment_date}
+                                                                                                        onChange={e => setForm({ ...form, appointment_date: e.target.value })}
+                                                                                                    />
+                                                                                                </div>
+                                                                                                <div>
+                                                                                                    <label>Visit Category *</label>
+                                                                                                    <select
+                                                                                                        value={form.visit_type}
+                                                                                                        onChange={e => setForm({ ...form, visit_type: e.target.value })}
+                                                                                                    >
+                            ) : (
+                                <form onSubmit={handleFormSubmit} className="booking-form-v3">
+                                                                                                            <div className="selected-patient-v3">
+                                                                                                                <div className="p-banner">
+                                                                                                                    <div className="p-info">
+                                                                                                                        <User size={20} />
+                                                                                                                        <strong>{selectedPatient?.child_name}</strong>
+                                                                                                                        <span>({selectedPatient?.patient_id})</span>
+                                                                                                                    </div>
+                                                                                                                    {!editMode && <button type="button" onClick={() => setActiveTab('patient')}>Change</button>}
+                                                                                                                </div>
+                                                                                                            </div>
+
+                                                                                                            <div className="form-grid-v3">
+                                                                                                                <div className="form-group-v3">
+                                                                                                                    <label>Appointment Date</label>
+                                                                                                                    <div className="input-wrap-v3">
+                                                                                                                        <CalendarIcon size={18} />
+                                                                                                                        <input type="date" required value={form.appointment_date} onChange={e => setForm({ ...form, appointment_date: e.target.value })} />
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                                <div className="form-group-v3">
+                                                                                                                    <label>Visit Category</label>
+                                                                                                                    <select value={form.visit_type} onChange={e => setForm({ ...form, visit_type: e.target.value })} className="input-v3">
+                                                                                                                        <option value="CONSULTATION">Consultation</option>
+                                                                                                                        <option value="VACCINATION">Vaccination</option>
+                                                                                                                        <option value="FOLLOWUP">Follow-up</option>
+                                                                                                                        <option value="PULMONARY">Pulmonary Assessment</option>
+                                                                                                                    </select>
+                                                                                                                </div>
+
+                                                                                                                <div style={{ gridColumn: 'span 2' }}>
+                                                                                                                    <label style={{ marginBottom: '1rem', display: 'block' }}>Choose Available Slot *</label>
+                                                                                                                    {slotsLoading ? (
+                                                                                                                        <div style={{ textAlign: 'center', padding: '2rem' }}><RefreshCw size={32} className="animate-spin" color="var(--primary)" /></div>
+                                                                                                                    ) : (
+                                                                                                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.75rem' }}>
+                                        <div className="form-group-v3 full-span">
+                                                                                                                                <label>Available Registry Slots</label>
+                                                                                                                                {slotsLoading ? (
+                                                                                                                                    <div className="slot-loader-v3">Syncing availability...</div>
+                                                                                                                                ) : (
+                                                                                                                                    <div className="slot-grid-v3">
+                                                                                                                                        {availableSlots.length > 0 ? availableSlots.map(slot => (
+                                                                                                                                            <button
+                                                                                                                                                key={slot.slot_id}
+                                                                                                                                                type="button"
+                                                                                                                                                className={`slot-pill-v3 ${form.slot_id === slot.slot_id ? 'active' : ''}`}
+                                                                                                                                                onClick={() => setForm({ ...form, slot_id: slot.slot_id })}
+                                                                                                                                                style={{
+                                                                                                                                                    padding: '1rem', borderRadius: '16px', border: '2px solid',
+                                                                                                                                                    borderColor: form.slot_id === slot.slot_id ? 'var(--primary)' : '#e2e8f0',
+                                                                                                                                                    background: form.slot_id === slot.slot_id ? 'var(--primary-light)' : '#fff',
+                                                                                                                                                    color: form.slot_id === slot.slot_id ? 'var(--primary)' : '#1e293b',
+                                                                                                                                                    fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s',
+                                                                                                                                                    boxShadow: form.slot_id === slot.slot_id ? '0 8px 15px rgba(99, 102, 241, 0.1)' : 'none'
+                                                                                                                                                }}
+                                                                                                                                            >
+                                                                                                                                                {slot.label}
+                                                                                                                                                <div style={{ fontSize: '0.7rem', opacity: 0.7, fontWeight: 500 }}>{slot.session}</div>
+                                                                                                                                            </button>
+                                                                                                                                        )) : (
+                                                                                                                                            <div style={{ gridColumn: 'span 12', padding: '2rem', textAlign: 'center', background: '#fef2f2', borderRadius: '16px', color: '#ef4444', fontWeight: 700, border: '1px solid #fecaca' }}>
+                                                                                                                                                No availability for selected date/type
+                                                                                                                                            </div>
                                                         >
                                                             <div className="slot-time">{slot.label}</div>
                                                             <div className="slot-session">{slot.session}</div>
                                                         </button>
                                                     )) : (
                                                         <div className="no-slots-v3">No availability for selected parameters.</div>
->>>>>>> b7cefe6039d11ac0344a821f089293b692d01b8d
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
+                                                                                                                                        )}
+                                                                                                                                    </div>
+                                                                                                                                )}
+                                                                                                                            </div>
 
-<<<<<<< HEAD
-                                        <div style={{ gridColumn: 'span 2' }}>
-                                            <label>Assigned Practitioner *</label>
-                                            <select
-                                                value={form.doctor_name}
-                                                onChange={e => setForm({ ...form, doctor_name: e.target.value })}
-                                            >
-=======
+                                                                                                                            <div style={{ gridColumn: 'span 2' }}>
+                                                                                                                                <label>Assigned Practitioner *</label>
+                                                                                                                                <select
+                                                                                                                                    value={form.doctor_name}
+                                                                                                                                    onChange={e => setForm({ ...form, doctor_name: e.target.value })}
+                                                                                                                                >
                                         <div className="form-group-v3">
-                                            <label>Consulting Doctor</label>
-                                            <select value={form.doctor_name} onChange={e => setForm({ ...form, doctor_name: e.target.value })} className="input-v3">
->>>>>>> b7cefe6039d11ac0344a821f089293b692d01b8d
-                                                <option value="Dr. Indu">Dr. Indu</option>
-                                                {doctors.map(d => <option key={d._id} value={d.full_name}>{d.full_name}</option>)}
-                                            </select>
-                                        </div>
-<<<<<<< HEAD
+                                                                                                                                        <label>Consulting Doctor</label>
+                                                                                                                                        <select value={form.doctor_name} onChange={e => setForm({ ...form, doctor_name: e.target.value })} className="input-v3">
+                                                                                                                                            <option value="Dr. Indu">Dr. Indu</option>
+                                                                                                                                            {doctors.map(d => <option key={d._id} value={d.full_name}>{d.full_name}</option>)}
+                                                                                                                                        </select>
+                                                                                                                                    </div>
 
-                                        <div>
-                                            <label>Consultation Mode</label>
-                                            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                                                {['OFFLINE', 'ONLINE'].map(mode => (
-                                                    <button
-                                                        key={mode}
-                                                        type="button"
-                                                        onClick={() => setForm({ ...form, appointment_mode: mode })}
-                                                        style={{
-                                                            flex: 1, padding: '0.8rem', borderRadius: '12px', border: '2px solid',
-                                                            background: form.appointment_mode === mode ? 'var(--primary)' : '#fff',
-                                                            borderColor: form.appointment_mode === mode ? 'var(--primary)' : '#e2e8f0',
-                                                            color: form.appointment_mode === mode ? '#fff' : '#475569',
-                                                            fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer'
-                                                        }}
-                                                    >
-                                                        {mode}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
+                                                                                                                                    <div>
+                                                                                                                                        <label>Consultation Mode</label>
+                                                                                                                                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                                                                                                                            {['OFFLINE', 'ONLINE'].map(mode => (
+                                                                                                                                                <button
+                                                                                                                                                    key={mode}
+                                                                                                                                                    type="button"
+                                                                                                                                                    onClick={() => setForm({ ...form, appointment_mode: mode })}
+                                                                                                                                                    style={{
+                                                                                                                                                        flex: 1, padding: '0.8rem', borderRadius: '12px', border: '2px solid',
+                                                                                                                                                        background: form.appointment_mode === mode ? 'var(--primary)' : '#fff',
+                                                                                                                                                        borderColor: form.appointment_mode === mode ? 'var(--primary)' : '#e2e8f0',
+                                                                                                                                                        color: form.appointment_mode === mode ? '#fff' : '#475569',
+                                                                                                                                                        fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer'
+                                                                                                                                                    }}
+                                                                                                                                                >
+                                                                                                                                                    {mode}
+                                                                                                                                                </button>
+                                                                                                                                            ))}
+                                                                                                                                        </div>
+                                                                                                                                    </div>
 
-                                        <div style={{ gridColumn: 'span 2' }}>
-                                            <label>Visit Notes (Optional)</label>
-                                            <textarea
-                                                rows={2}
-                                                placeholder="Enter symptoms, vaccination name, or special instructions..."
-                                                value={form.reason}
-                                                onChange={e => setForm({ ...form, reason: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
+                                                                                                                                    <div style={{ gridColumn: 'span 2' }}>
+                                                                                                                                        <label>Visit Notes (Optional)</label>
+                                                                                                                                        <textarea
+                                                                                                                                            rows={2}
+                                                                                                                                            placeholder="Enter symptoms, vaccination name, or special instructions..."
+                                                                                                                                            value={form.reason}
+                                                                                                                                            onChange={e => setForm({ ...form, reason: e.target.value })}
+                                                                                                                                        />
+                                                                                                                                    </div>
+                                                                                                                            </div>
 
-                                    <div style={{ display: 'flex', gap: '1.25rem', marginTop: '3rem' }}>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowModal(false)}
-                                            className="btn btn-outline"
-                                            style={{ flex: 1, height: '56px', borderRadius: '16px' }}
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="btn btn-primary"
-                                            style={{ flex: 2, height: '56px', borderRadius: '16px', fontSize: '1.1rem' }}
-                                            disabled={submitting}
-                                        >
-                                            {submitting ? <RefreshCw size={22} className="animate-spin" /> : editMode ? 'Update Appointment' : 'Confirm & Schedule Visit'}
-=======
+                                                                                                                            <div style={{ display: 'flex', gap: '1.25rem', marginTop: '3rem' }}>
+                                                                                                                                <button
+                                                                                                                                    type="button"
+                                                                                                                                    onClick={() => setShowModal(false)}
+                                                                                                                                    className="btn btn-outline"
+                                                                                                                                    style={{ flex: 1, height: '56px', borderRadius: '16px' }}
+                                                                                                                                >
+                                                                                                                                    Cancel
+                                                                                                                                </button>
+                                                                                                                                <button
+                                                                                                                                    type="submit"
+                                                                                                                                    className="btn btn-primary"
+                                                                                                                                    style={{ flex: 2, height: '56px', borderRadius: '16px', fontSize: '1.1rem' }}
+                                                                                                                                    disabled={submitting}
+                                                                                                                                >
+                                                                                                                                    {submitting ? <RefreshCw size={22} className="animate-spin" /> : editMode ? 'Update Appointment' : 'Confirm & Schedule Visit'}
                                         <div className="form-group-v3">
-                                            <label>Session Mode</label>
-                                            <select value={form.appointment_mode} onChange={e => setForm({ ...form, appointment_mode: e.target.value })} className="input-v3">
-                                                <option value="OFFLINE">Offline (In-Clinic)</option>
-                                                <option value="ONLINE">Online (Video)</option>
-                                            </select>
-                                        </div>
-                                        <div className="form-group-v3 full-span">
-                                            <label>Clinical Notes</label>
-                                            <textarea rows={2} placeholder="Symptom notes or special requests..." value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} className="input-v3 text-area"></textarea>
-                                        </div>
-                                    </div>
+                                                                                                                                        <label>Session Mode</label>
+                                                                                                                                        <select value={form.appointment_mode} onChange={e => setForm({ ...form, appointment_mode: e.target.value })} className="input-v3">
+                                                                                                                                            <option value="OFFLINE">Offline (In-Clinic)</option>
+                                                                                                                                            <option value="ONLINE">Online (Video)</option>
+                                                                                                                                        </select>
+                                                                                                                                    </div>
+                                                                                                                                    <div className="form-group-v3 full-span">
+                                                                                                                                        <label>Clinical Notes</label>
+                                                                                                                                        <textarea rows={2} placeholder="Symptom notes or special requests..." value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} className="input-v3 text-area"></textarea>
+                                                                                                                                    </div>
+                                                                                                                            </div>
 
-                                    <div className="modal-footer-v3">
-                                        <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>Discard</button>
-                                        <button type="submit" className="btn-save" disabled={submitting}>
-                                            {submitting ? <RefreshCw size={20} className="animate-spin" /> : (
-                                                <div className="flex-center-gap">
-                                                    <Shield size={20} />
-                                                    <span>{editMode ? 'Confirm Reschedule' : 'Authorize Appointment'}</span>
-                                                </div>
-                                            )}
->>>>>>> b7cefe6039d11ac0344a821f089293b692d01b8d
-                                        </button>
-                                    </div>
-                                </form>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                                                                                                                            <div className="modal-footer-v3">
+                                                                                                                                <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>Discard</button>
+                                                                                                                                <button type="submit" className="btn-save" disabled={submitting}>
+                                                                                                                                    {submitting ? <RefreshCw size={20} className="animate-spin" /> : (
+                                                                                                                                        <div className="flex-center-gap">
+                                                                                                                                            <Shield size={20} />
+                                                                                                                                            <span>{editMode ? 'Confirm Reschedule' : 'Authorize Appointment'}</span>
+                                                                                                                                        </div>
+                                                                                                                                    )}
+                                                                                                                                </button>
+                                                                                                                            </div>
+                                                                                                                        </form>
+                                                                                                                    )}
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
             )}
 
-            {/* Improved Cancellation Modal */}
-            {cancelModal.show && (
-<<<<<<< HEAD
-                <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, backdropFilter: 'blur(10px)' }}>
-                    <div className="modal-content" style={{ width: '420px', padding: '2.5rem', textAlign: 'center', borderRadius: '32px' }}>
-                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#fef2f2', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', boxShadow: '0 10px 20px rgba(239, 68, 68, 0.1)' }}>
-                            <XCircle size={48} />
-                        </div>
-                        <h2 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '0 0 0.75rem 0', color: '#1e293b' }}>Cancel Visit?</h2>
-                        <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontWeight: 500, lineHeight: 1.5 }}>Are you sure you want to cancel this appointment? The slot will be released for other patients immediately.</p>
+                                                                                                        {/* Improved Cancellation Modal */}
+                                                                                                        {cancelModal.show && (
+                                                                                                            <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, backdropFilter: 'blur(10px)' }}>
+                                                                                                                <div className="modal-content" style={{ width: '420px', padding: '2.5rem', textAlign: 'center', borderRadius: '32px' }}>
+                                                                                                                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#fef2f2', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', boxShadow: '0 10px 20px rgba(239, 68, 68, 0.1)' }}>
+                                                                                                                        <XCircle size={48} />
+                                                                                                                    </div>
+                                                                                                                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '0 0 0.75rem 0', color: '#1e293b' }}>Cancel Visit?</h2>
+                                                                                                                    <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontWeight: 500, lineHeight: 1.5 }}>Are you sure you want to cancel this appointment? The slot will be released for other patients immediately.</p>
 
-                        <div style={{ textAlign: 'left', marginBottom: '2rem' }}>
-                            <label style={{ fontSize: '0.8rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.6rem', display: 'block' }}>Cancellation Reason</label>
-                            <textarea
-                                placeholder="e.g. Patient not reachable / Rescheduled manually"
-                                value={cancelModal.reason}
-                                onChange={e => setCancelModal({ ...cancelModal, reason: e.target.value })}
-                                rows={2}
-                                style={{ width: '100%', borderRadius: '14px', border: '1.5px solid #e2e8f0', padding: '1rem', outline: 'none', background: '#f8fafc' }}
-                            />
-                        </div>
+                                                                                                                    <div style={{ textAlign: 'left', marginBottom: '2rem' }}>
+                                                                                                                        <label style={{ fontSize: '0.8rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.6rem', display: 'block' }}>Cancellation Reason</label>
+                                                                                                                        <textarea
+                                                                                                                            placeholder="e.g. Patient not reachable / Rescheduled manually"
+                                                                                                                            value={cancelModal.reason}
+                                                                                                                            onChange={e => setCancelModal({ ...cancelModal, reason: e.target.value })}
+                                                                                                                            rows={2}
+                                                                                                                            style={{ width: '100%', borderRadius: '14px', border: '1.5px solid #e2e8f0', padding: '1rem', outline: 'none', background: '#f8fafc' }}
+                                                                                                                        />
+                                                                                                                    </div>
 
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                            <button onClick={() => setCancelModal({ show: false, id: null, reason: '' })} className="btn btn-outline" style={{ flex: 1, borderRadius: '14px' }}>Keep It</button>
-                            <button onClick={handleCancel} className="btn btn-primary" style={{ flex: 1, background: '#ef4444', border: 'none', borderRadius: '14px' }}>Yes, Cancel</button>
-=======
+                                                                                                                    <div style={{ display: 'flex', gap: '1rem' }}>
+                                                                                                                        <button onClick={() => setCancelModal({ show: false, id: null, reason: '' })} className="btn btn-outline" style={{ flex: 1, borderRadius: '14px' }}>Keep It</button>
+                                                                                                                        <button onClick={handleCancel} className="btn btn-primary" style={{ flex: 1, background: '#ef4444', border: 'none', borderRadius: '14px' }}>Yes, Cancel</button>
                 <div className="modal-overlay-premium">
-                    <div className="modal-content-sm-v3">
-                        <div className="c-icon-wrap"><AlertTriangle size={32} /></div>
-                        <h2>Purge Appointment?</h2>
-                        <p>This will permanently release the clinical slot. This action is recorded in the audit logs.</p>
+                                                                                                                            <div className="modal-content-sm-v3">
+                                                                                                                                <div className="c-icon-wrap"><AlertTriangle size={32} /></div>
+                                                                                                                                <h2>Purge Appointment?</h2>
+                                                                                                                                <p>This will permanently release the clinical slot. This action is recorded in the audit logs.</p>
 
-                        <div className="reason-box-v3">
-                            <label>Cancellation Basis</label>
-                            <textarea placeholder="Legal or medical reason for purge..." value={cancelModal.reason} onChange={e => setCancelModal({ ...cancelModal, reason: e.target.value })} className="input-v3"></textarea>
-                        </div>
+                                                                                                                                <div className="reason-box-v3">
+                                                                                                                                    <label>Cancellation Basis</label>
+                                                                                                                                    <textarea placeholder="Legal or medical reason for purge..." value={cancelModal.reason} onChange={e => setCancelModal({ ...cancelModal, reason: e.target.value })} className="input-v3"></textarea>
+                                                                                                                                </div>
 
-                        <div className="c-footer-v3">
-                            <button onClick={() => setCancelModal({ show: false, id: null, reason: '' })} className="btn-cancel">Abort</button>
-                            <button onClick={handleCancel} className="btn-purge">Confirm Purge</button>
->>>>>>> b7cefe6039d11ac0344a821f089293b692d01b8d
-                        </div>
-                    </div>
-                </div>
+                                                                                                                                <div className="c-footer-v3">
+                                                                                                                                    <button onClick={() => setCancelModal({ show: false, id: null, reason: '' })} className="btn-cancel">Abort</button>
+                                                                                                                                    <button onClick={handleCancel} className="btn-purge">Confirm Purge</button>
+                                                                                                                                </div>
+                                                                                                                            </div>
+                                                                                                                        </div>
             )}
 
-            <style>{`
-<<<<<<< HEAD
+                                                                                                                        <style>{`
                 .hover-row:hover {
                     background: #f8fafc !important;
                 }
@@ -1261,7 +1232,6 @@ const Appointments = () => {
                 @keyframes spin {
                     from { transform: rotate(0deg); } to { transform: rotate(360deg); }
                 }
-=======
                 .appointments-page-v3 { padding: 2.5rem; max-width: 1600px; margin: 0 auto; animation: fadeUp 0.5s ease-out; }
                 @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -1385,10 +1355,9 @@ const Appointments = () => {
                 @keyframes shim { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
                 .flex-center-gap { display: flex; align-items: center; justify-content: center; gap: 0.75rem; }
->>>>>>> b7cefe6039d11ac0344a821f089293b692d01b8d
             `}</style>
-        </div>
-    );
+                                                                                                                    </div>
+                                                                                                                    );
 };
 
-export default Appointments;
+                                                                                                                    export default Appointments;
