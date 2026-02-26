@@ -21,7 +21,7 @@ import Patients from './pages/Patients';
 import MRD from './pages/MRD';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
-import Scheduling from './pages/Scheduling';
+
 import PublicRegister from './pages/PublicRegister';
 import BotInteractions from './pages/BotInteractions';
 import Doctors from './pages/Doctors';
@@ -33,7 +33,7 @@ const MobileNav = () => {
     const navItems = [
         { name: 'Home', path: '/', icon: LayoutDashboard },
         { name: 'Appts', path: '/appointments', icon: Calendar },
-        { name: 'Schedule', path: '/scheduling', icon: Clock },
+
         { name: 'Patients', path: '/patients', icon: Users },
         { name: 'Settings', path: '/settings', icon: SettingsIcon },
     ];
@@ -60,7 +60,7 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
     const navItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Appointments', path: '/appointments', icon: Calendar },
-        { name: 'Scheduling', path: '/scheduling', icon: Clock },
+
         { name: 'Patients', path: '/patients', icon: Users },
         { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare },
         { name: 'Doctors', path: '/doctors', icon: Stethoscope },
@@ -83,20 +83,18 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
                             className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
                             title={
                                 item.name === 'Appointments'
-                                    ? "Manage clinic schedule and upcoming visits. can be booked through whatsapp, form, admin and also book."
-                                    : item.name === 'Scheduling'
-                                        ? "Manage clinic time slots and daily availability."
-                                        : item.name === 'Patients'
-                                            ? "Manage patient records and registrations."
-                                            : item.name === 'Bot Hub'
-                                                ? "Track interactions from people who Haven't registered as patients yet."
-                                                : item.name === 'Doctors'
-                                                    ? "Manage clinic practitioners and specialities."
-                                                    : item.name === 'Admin Users'
-                                                        ? "Manage dashboard access for clinic staff."
-                                                        : item.name === 'MRD'
-                                                            ? "Search a patient to view or update their longitudinal health file."
-                                                            : ""
+                                    ? "Manage clinic schedule and upcoming visits."
+                                    : item.name === 'Patients'
+                                        ? "Manage patient records and registrations."
+                                        : item.name === 'Bot Hub'
+                                            ? "Track interactions from people who Haven't registered as patients yet."
+                                            : item.name === 'Doctors'
+                                                ? "Manage clinic practitioners and specialities."
+                                                : item.name === 'Admin Users'
+                                                    ? "Manage dashboard access for clinic staff."
+                                                    : item.name === 'MRD'
+                                                        ? "Search a patient to view or update their longitudinal health file."
+                                                        : ""
                             }
                         >
                             <item.icon size={20} />
@@ -122,7 +120,7 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
                     <span>Logout</span>
                 </button>
             </div>
-        </div>
+        </div >
     );
 };
 
@@ -201,7 +199,7 @@ const App = () => {
                             <Routes>
                                 <Route path="/" element={<Dashboard />} />
                                 <Route path="/appointments" element={<Appointments />} />
-                                <Route path="/scheduling" element={<Scheduling />} />
+
                                 <Route path="/patients" element={<Patients />} />
                                 <Route path="/bot-interactions" element={<BotInteractions />} />
                                 <Route path="/doctors" element={<Doctors />} />

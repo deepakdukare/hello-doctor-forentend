@@ -79,8 +79,8 @@ export const deleteDoctor = (id) => api.delete(`/doctors/${id}`);
 // ── Slots ─────────────────────────────────────────────────────────────────────
 export const getAvailableSlots = (doctor_type, date) =>
     api.get(`/slots/available?doctor_type=${doctor_type}&date=${date}`);
-export const getDailyStatus = (doctor_type, date) =>
-    api.get(`/slots/daily-status?doctor_type=${doctor_type}&date=${date}`);
+export const getDailyStatus = (doctor_name, date) =>
+    api.get(`/slots/daily-status?doctor_name=${encodeURIComponent(doctor_name)}&date=${date}`);
 export const updateDailySlot = (data) => api.post('/slots/daily-update', data);
 export const getSlotConfig = () => api.get('/slots/config');
 export const updateSlotConfig = (slots) => api.put('/slots/config', { slots });

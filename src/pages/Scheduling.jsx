@@ -1,411 +1,464 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Clock, Plus, Trash2, Edit2, Check, X,
-    RefreshCw, AlertCircle, Lock, Unlock, Calendar as CalIcon, Grid,
-    ChevronLeft, ChevronRight, Filter, Settings, Shield,
-    CheckCircle2, AlertTriangle, Activity, Coffee, Sun, Moon
+    RefreshCw, AlertCircle, Calendar as CalIcon,
+    ChevronLeft, ChevronRight, Settings, Shield,
+    CheckCircle2, AlertTriangle, Sun, Moon, Coffee,
+    LayoutGrid, ListChecks, Calendar, Database,
+    User, Stethoscope, Building2, Save,
+    Activity, ArrowRight, Zap, Info, Sliders,
+    ToggleLeft, ToggleRight
 } from 'lucide-react';
 import {
     getSlotConfig, createSlot, deleteSlot, updateSlotConfig,
-    getDailyStatus, blockSlots, unblockSlots
+    getDailyStatus, updateDailySlot, getDoctors
 } from '../api/index';
 
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS_FULL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAYS_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const SESSION_CONFIG = {
-    MORNING: { icon: <Sun size={18} />, color: '#f59e0b', bg: '#fffbeb', label: 'Morning Session' },
-    AFTERNOON: { icon: <Coffee size={18} />, color: '#0ea5e9', bg: '#f0f9ff', label: 'Afternoon Session' },
-    EVENING: { icon: <Moon size={18} />, color: '#8b5cf6', bg: '#f5f3ff', label: 'Evening Session' }
-};
-
-const DOCTOR_TYPES = [
-    { value: 'PULMONARY', label: 'Pulmonary Specialist', color: '#6366f1', bg: 'rgba(99, 102, 241, 0.1)' },
-    { value: 'NON_PULMONARY', label: 'Non-Pulmonary', color: '#0ea5e9', bg: 'rgba(14, 165, 233, 0.1)' },
-    { value: 'VACCINATION', label: 'Vaccination clinic', color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+const CLINIC_TYPES = [
+    { id: 'PULMONARY', label: 'Pulmonary Specialist', color: '#6366f1', icon: <Stethoscope size={18} /> },
+    { id: 'NON_PULMONARY', label: 'Non-Pulmonary', color: '#0ea5e9', icon: <Building2 size={18} /> },
+    { id: 'VACCINATION', label: 'Vaccination Clinic', color: '#10b981', icon: <Shield size={18} /> }
 ];
 
+const SESSION_MAP = {
+    MORNING: { icon: <Sun size={16} />, color: '#f59e0b', bg: '#fffbeb' },
+    AFTERNOON: { icon: <Coffee size={16} />, color: '#0ea5e9', bg: '#f0f9ff' },
+    EVENING: { icon: <Moon size={16} />, color: '#8b5cf6', bg: '#f5f3ff' }
+};
+
 const fmt12 = (t = '') => {
-    if (!t) return '';
+    if (!t) return '—';
     const [h, m] = t.split(':').map(Number);
     const suffix = h >= 12 ? 'PM' : 'AM';
     return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${suffix}`;
 };
 
 const Scheduling = () => {
-    const [tab, setTab] = useState('daily'); // Start with Daily View as it's most useful
-    const [slots, setSlots] = useState([]);
+    const [view, setView] = useState('weekly'); // 'weekly' | 'config' | 'daily'
+    const [masterSlots, setMasterSlots] = useState([]);
+    const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
 
-    // Filter / View States
-    const [docType, setDocType] = useState('PULMONARY');
-    const [weekStart, setWeekStart] = useState(() => {
-        const d = new Date();
-        d.setDate(d.getDate() - d.getDay()); // Start of week (Sunday)
-        return d.toISOString().split('T')[0];
-    });
+    // Weekly View State
+    const [selectedClinic, setSelectedClinic] = useState('VACCINATION');
 
-    const [weekGrid, setWeekGrid] = useState({});
+    // Daily Override State
+    const [dailyDate, setDailyDate] = useState(new Date().toISOString().split('T')[0]);
+    const [selectedDoc, setSelectedDoc] = useState('');
+    const [dailyGrid, setDailyGrid] = useState([]);
     const [dailyLoading, setDailyLoading] = useState(false);
 
-    // Master Slot Management
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [form, setForm] = useState({ slot_label: '', start_time: '', end_time: '', session: 'MORNING', sort_order: 99 });
-    const [saving, setSaving] = useState(false);
-
-    const weekDates = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(weekStart);
-        d.setDate(d.getDate() + i);
-        return d.toISOString().split('T')[0];
+    // Config State
+    const [showSlotModal, setShowSlotModal] = useState(false);
+    const [editingSlot, setEditingSlot] = useState(null);
+    const [slotForm, setSlotForm] = useState({
+        slot_id: '', slot_label: '', start_time: '', end_time: '',
+        session: 'MORNING', sort_order: 1, is_active: true
     });
 
-    const loadMasterData = useCallback(async () => {
+    const loadPrimaryData = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await getSlotConfig();
-            setSlots(res.data.data || []);
+            const [slotsRes, docsRes] = await Promise.all([
+                getSlotConfig(),
+                getDoctors()
+            ]);
+            setMasterSlots(slotsRes.data.data || []);
+            const docs = docsRes.data.data || [];
+            setDoctors(docs);
+            if (docs.length > 0 && !selectedDoc) setSelectedDoc(docs[0].name);
         } catch (err) {
-            setError("Failed to load slot configurations");
+            setError("Synchronization failure with Slot Engine.");
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [selectedDoc]);
 
-    const loadDailyGrid = useCallback(async () => {
+    const loadDailyData = useCallback(async () => {
+        if (!selectedDoc || view !== 'daily') return;
         setDailyLoading(true);
         try {
-            const results = await Promise.all(
-                weekDates.map(d => getDailyStatus(docType, d).catch(() => ({ data: { data: [] } })))
-            );
-            const grid = {};
-            results.forEach((res, i) => {
-                const dateStr = weekDates[i];
-                (res.data?.data || []).forEach(s => {
-                    if (!grid[s.slot_id]) grid[s.slot_id] = {};
-                    grid[s.slot_id][dateStr] = s;
-                });
-            });
-            setWeekGrid(grid);
+            const res = await getDailyStatus(selectedDoc, dailyDate);
+            setDailyGrid(res.data.data || []);
         } catch (err) {
-            setError("Failed to load daily status grid");
+            setError("Failed to fetch daily override registry.");
         } finally {
             setDailyLoading(false);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [docType, weekStart]);
+    }, [selectedDoc, dailyDate, view]);
 
-    useEffect(() => {
-        loadMasterData();
-    }, [loadMasterData]);
+    useEffect(() => { loadPrimaryData(); }, [loadPrimaryData]);
+    useEffect(() => { loadDailyData(); }, [loadDailyData]);
 
-    useEffect(() => {
-        if (tab === 'daily') loadDailyGrid();
-    }, [tab, loadDailyGrid]);
-
-    const handleToggleBlock = async (slot_id, dateStr, isBlocked) => {
+    // ──────────────────────────────────────────────────────────────────────────
+    // 1. WEEKLY VIEW LOGIC
+    // ──────────────────────────────────────────────────────────────────────────
+    const toggleWeeklyDay = async (slotId, dayIdx) => {
         try {
-            if (isBlocked) {
-                await unblockSlots({ slots: [slot_id], slot_date: dateStr, doctor_type: docType });
-            } else {
-                await blockSlots({ slots: [slot_id], slot_date: dateStr, doctor_type: docType });
-            }
-            loadDailyGrid();
-            setSuccess(`Slot ${isBlocked ? 'unblocked' : 'blocked'} successfully`);
-            setTimeout(() => setSuccess(null), 3000);
+            const updatedSlots = masterSlots.map(slot => {
+                if (slot.slot_id !== slotId) return slot;
+
+                const currentDays = slot.days_by_doctor?.[selectedClinic] || [];
+                const nextDays = currentDays.includes(dayIdx)
+                    ? currentDays.filter(d => d !== dayIdx)
+                    : [...currentDays, dayIdx];
+
+                return {
+                    ...slot,
+                    days_by_doctor: {
+                        ...(slot.days_by_doctor || {}),
+                        [selectedClinic]: nextDays
+                    }
+                };
+            });
+
+            setMasterSlots(updatedSlots);
+            await updateSlotConfig(updatedSlots);
+            setSuccess("Weekly pattern synchronized.");
+            setTimeout(() => setSuccess(null), 1500);
         } catch (err) {
-            setError("Failed to update slot status");
+            setError("Recurring update failed.");
+            loadPrimaryData();
         }
     };
 
-    const handleAddSlot = async (e) => {
+    // ──────────────────────────────────────────────────────────────────────────
+    // 2. SLOT CONFIG LOGIC
+    // ──────────────────────────────────────────────────────────────────────────
+    const handleSaveSlot = async (e) => {
         e.preventDefault();
-        setSaving(true);
         try {
-            await createSlot(form);
-            setShowAddModal(false);
-            setForm({ slot_label: '', start_time: '', end_time: '', session: 'MORNING', sort_order: 99 });
-            loadMasterData();
-            setSuccess("New slot template created");
-        } catch (err) {
-            setError("Failed to create slot");
-        } finally {
-            setSaving(false);
-        }
+            if (editingSlot) {
+                const updated = masterSlots.map(s => s.slot_id === editingSlot.slot_id ? slotForm : s);
+                await updateSlotConfig(updated);
+            } else {
+                await createSlot(slotForm);
+            }
+            setShowSlotModal(false);
+            setEditingSlot(null);
+            loadPrimaryData();
+            setSuccess("Chrono-Template committed.");
+        } catch (err) { setError("Validation error."); }
     };
 
     const handleDeleteSlot = async (id) => {
-        if (!window.confirm(`Delete slot ${id}? This cannot be undone.`)) return;
+        if (!window.confirm("Purge template?")) return;
         try {
             await deleteSlot(id);
-            loadMasterData();
-            setSuccess("Slot deleted successfully");
-        } catch (err) {
-            setError("Could not delete slot");
-        }
+            loadPrimaryData();
+            setSuccess("Purged.");
+        } catch (err) { setError("Locked template."); }
     };
 
-    const shiftWeek = (dir) => {
-        const d = new Date(weekStart);
-        d.setDate(d.getDate() + (dir * 7));
-        setWeekStart(d.toISOString().split('T')[0]);
+    // ──────────────────────────────────────────────────────────────────────────
+    // 3. DAILY OVERRIDE LOGIC
+    // ──────────────────────────────────────────────────────────────────────────
+    const handleDailyToggle = async (slotId, currentBlocked) => {
+        try {
+            await updateDailySlot({
+                doctor_name: selectedDoc,
+                slot_date: dailyDate,
+                slot_id: slotId,
+                blocked_by_admin: !currentBlocked
+            });
+            loadDailyData();
+            setSuccess("Precision override committed.");
+        } catch (err) { setError("Override rejected."); }
     };
 
     return (
-        <div style={{ padding: '1.5rem', maxWidth: '1600px', margin: '0 auto' }}>
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <div>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0, background: 'linear-gradient(135deg, #1e293b 0%, #4338ca 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        Clinic Scheduling
-                    </h1>
-                    <p style={{ color: 'var(--text-muted)', marginTop: '0.25rem' }}>Management of time slots, doctor availability, and overrides</p>
+        <div className="sched-container">
+            {/* Navigational Sidebar */}
+            <aside className="sched-sidebar">
+                <div className="sched-brand">
+                    <Sliders size={28} />
+                    <span>Control Hub</span>
                 </div>
-                <div style={{ display: 'flex', background: '#fff', padding: '0.4rem', borderRadius: '14px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
-                    {[
-                        { id: 'daily', label: 'Availability Grid', icon: <Grid size={16} /> },
-                        { id: 'master', label: 'Slot Templates', icon: <Settings size={16} /> }
-                    ].map(t => (
-                        <button
-                            key={t.id}
-                            onClick={() => setTab(t.id)}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 1.25rem', borderRadius: '10px',
-                                border: 'none', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
-                                background: tab === t.id ? 'var(--primary)' : 'transparent',
-                                color: tab === t.id ? '#fff' : 'var(--text-muted)',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            {t.icon} {t.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
 
-            {error && (
-                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem', color: '#ef4444', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <AlertTriangle size={20} /> {error}
-                    <button onClick={() => setError(null)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><X size={18} /></button>
-                </div>
-            )}
-
-            {success && (
-                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem', color: '#16a34a', display: 'flex', gap: '0.75rem', alignItems: 'center', animation: 'fadeInUp 0.3s ease-out' }}>
-                    <CheckCircle2 size={20} /> {success}
-                </div>
-            )}
-
-            {/* Daily View Tab */}
-            {tab === 'daily' && (
-                <div className="daily-view-container">
-                    {/* Controls Bar */}
-                    <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-                        <div style={{ display: 'flex', gap: '0.75rem' }}>
-                            {DOCTOR_TYPES.map(dt => (
-                                <button
-                                    key={dt.value}
-                                    onClick={() => setDocType(dt.value)}
-                                    style={{
-                                        padding: '0.6rem 1.25rem', borderRadius: '12px', border: '2px solid',
-                                        borderColor: docType === dt.value ? dt.color : '#f1f5f9',
-                                        background: docType === dt.value ? dt.bg : '#fff',
-                                        color: docType === dt.value ? dt.color : '#64748b',
-                                        fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s'
-                                    }}
-                                >
-                                    {dt.label}
-                                </button>
-                            ))}
+                <nav className="sched-nav">
+                    <button onClick={() => setView('weekly')} className={view === 'weekly' ? 'active' : ''}>
+                        <Calendar size={20} />
+                        <div>
+                            <strong>Weekly View</strong>
+                            <small>Recurring availability</small>
                         </div>
+                    </button>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: '#f8fafc', padding: '0.5rem 1rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                            <button onClick={() => shiftWeek(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)' }}><ChevronLeft size={20} /></button>
-                            <span style={{ fontWeight: 700, fontSize: '0.95rem', minWidth: '220px', textAlign: 'center', color: '#1e293b' }}>
-                                {new Date(weekDates[0]).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                                {' — '}
-                                {new Date(weekDates[6]).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            </span>
-                            <button onClick={() => shiftWeek(1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)' }}><ChevronRight size={20} /></button>
+                    <button onClick={() => setView('config')} className={view === 'config' ? 'active' : ''}>
+                        <Database size={20} />
+                        <div>
+                            <strong>Slot Config</strong>
+                            <small>Template management</small>
                         </div>
+                    </button>
 
-                        <button onClick={loadDailyGrid} className="btn btn-secondary" style={{ padding: '0.6rem 1rem', borderRadius: '12px' }}>
-                            <RefreshCw size={18} className={dailyLoading ? 'animate-spin' : ''} />
-                        </button>
+                    <button onClick={() => setView('daily')} className={view === 'daily' ? 'active' : ''}>
+                        <Activity size={20} />
+                        <div>
+                            <strong>Daily Overrides</strong>
+                            <small>Date-specific control</small>
+                        </div>
+                    </button>
+                </nav>
+
+                <div className="sched-meta">
+                    <div className="engine-status">
+                        <div className="pulse"></div>
+                        <span>Clinical Index Active</span>
                     </div>
+                </div>
+            </aside>
 
-                    {/* Matrix Grid */}
-                    <div className="card" style={{ overflow: 'hidden', border: '1px solid var(--border-color)', background: '#fff' }}>
-                        <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            {/* Content Core */}
+            <main className="sched-main">
+                {/* Global Toast */}
+                {(error || success) && (
+                    <div className={`sched-toast ${error ? 'error' : 'success'}`}>
+                        {error ? <AlertTriangle size={20} /> : <CheckCircle2 size={20} />}
+                        <span>{error || success}</span>
+                    </div>
+                )}
+
+                {/* 1. WEEKLY VIEW PANEL */}
+                {view === 'weekly' && (
+                    <section className="view-panel fadeIn">
+                        <header className="panel-header">
+                            <div>
+                                <h1>Recurring Weekly Logic</h1>
+                                <p>Define standard bandwidth patterns for departments</p>
+                            </div>
+                            <div className="clinic-filter">
+                                {CLINIC_TYPES.map(c => (
+                                    <button
+                                        key={c.id}
+                                        onClick={() => setSelectedClinic(c.id)}
+                                        className={selectedClinic === c.id ? 'active' : ''}
+                                        style={{ '--accent': c.color }}
+                                    >
+                                        {c.icon} {c.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </header>
+
+                        <div className="sched-card">
+                            <table className="weekly-matrix">
                                 <thead>
-                                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid var(--border-color)' }}>
-                                        <th style={{ padding: '1.25rem 1.5rem', width: '240px', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase' }}>Available Slots</th>
-                                        {weekDates.map((dateStr, i) => {
-                                            const isToday = dateStr === new Date().toISOString().split('T')[0];
-                                            return (
-                                                <th key={dateStr} style={{ padding: '1.25rem 0.5rem', textAlign: 'center', minWidth: '100px' }}>
-                                                    <div style={{ fontSize: '0.75rem', color: isToday ? 'var(--primary)' : 'var(--text-muted)', fontWeight: 800 }}>{DAYS_SHORT[i].toUpperCase()}</div>
-                                                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: isToday ? 'var(--primary)' : '#1e293b', marginTop: '0.25rem' }}>
-                                                        {new Date(dateStr).getDate()}
-                                                    </div>
-                                                    {isToday && <div style={{ height: '3px', width: '20px', background: 'var(--primary)', margin: '4px auto 0', borderRadius: '2px' }} />}
-                                                </th>
-                                            );
-                                        })}
+                                    <tr>
+                                        <th style={{ width: '250px', textAlign: 'left' }}>Chrono Index</th>
+                                        {DAYS_ABBR.map(d => <th key={d}>{d}</th>)}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {slots.length === 0 ? (
-                                        <tr><td colSpan="8" style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>No slots defined in Master Template</td></tr>
-                                    ) : (
-                                        slots.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(slot => (
-                                            <tr key={slot.slot_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                <td style={{ padding: '1.25rem 1.5rem' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                        <div style={{ padding: '0.5rem', borderRadius: '8px', background: SESSION_CONFIG[slot.session]?.bg || '#f1f5f9', color: SESSION_CONFIG[slot.session]?.color || '#64748b' }}>
-                                                            {SESSION_CONFIG[slot.session]?.icon}
-                                                        </div>
-                                                        <div>
-                                                            <div style={{ fontWeight: 750, color: '#1e293b', fontSize: '0.9rem' }}>{slot.slot_label}</div>
-                                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>{fmt12(slot.start_time)} – {fmt12(slot.end_time)}</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                {weekDates.map(dateStr => {
-                                                    const cell = weekGrid[slot.slot_id]?.[dateStr];
-                                                    const isBooked = cell?.is_booked || cell?.status?.is_booked;
-                                                    const isBlocked = cell?.blocked_by_admin || cell?.status?.blocked_by_admin;
+                                    {masterSlots.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(slot => (
+                                        <tr key={slot.slot_id}>
+                                            <td className="slot-id-cell">
+                                                <div className="slot-l">{slot.slot_label}</div>
+                                                <div className="slot-t">{fmt12(slot.start_time)} – {fmt12(slot.end_time)}</div>
+                                            </td>
+                                            {DAYS_ABBR.map((_, idx) => {
+                                                const isActive = (slot.days_by_doctor?.[selectedClinic] || []).includes(idx);
+                                                return (
+                                                    <td key={idx} className="matrix-cell">
+                                                        <button
+                                                            onClick={() => toggleWeeklyDay(slot.slot_id, idx)}
+                                                            className={`weekly-toggle ${isActive ? 'enabled' : 'disabled'}`}
+                                                        >
+                                                            {isActive ? <Check size={18} /> : <X size={18} />}
+                                                        </button>
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                )}
 
-                                                    return (
-                                                        <td key={dateStr} style={{ padding: '0.5rem', textAlign: 'center' }}>
-                                                            {isBooked ? (
-                                                                <div style={{ padding: '0.6rem', borderRadius: '10px', background: '#e0e7ff', color: '#4338ca', fontSize: '0.7rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
-                                                                    <Activity size={12} /> BOOKED
-                                                                </div>
-                                                            ) : (
-                                                                <button
-                                                                    onClick={() => handleToggleBlock(slot.slot_id, dateStr, isBlocked)}
-                                                                    style={{
-                                                                        width: '100%', padding: '0.6rem', borderRadius: '10px',
-                                                                        border: '1.5px solid', cursor: 'pointer',
-                                                                        background: isBlocked ? '#fef2f2' : '#f0fdf4',
-                                                                        borderColor: isBlocked ? '#fee2e2' : '#dcfce7',
-                                                                        color: isBlocked ? '#ef4444' : '#10b981',
-                                                                        fontSize: '0.7rem', fontWeight: 800,
-                                                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                                                                        transition: 'all 0.2s'
-                                                                    }}
-                                                                    className="grid-btn"
-                                                                >
-                                                                    {isBlocked ? <Lock size={12} /> : <Unlock size={12} />}
-                                                                    {isBlocked ? 'BLOCKED' : 'AVAILABLE'}
-                                                                </button>
-                                                            )}
-                                                        </td>
-                                                    );
-                                                })}
+                {/* 2. CONFIG PANEL */}
+                {view === 'config' && (
+                    <section className="view-panel fadeIn">
+                        <header className="panel-header">
+                            <div>
+                                <h1>Slot Architecture</h1>
+                                <p>Master registry for clinical timing templates</p>
+                            </div>
+                            <button onClick={() => {
+                                setEditingSlot(null);
+                                setSlotForm({ slot_id: '', slot_label: '', start_time: '', end_time: '', session: 'MORNING', sort_order: 1, is_active: true });
+                                setShowSlotModal(true);
+                            }} className="btn-primary-lux"><Plus size={18} /> New Definition</button>
+                        </header>
+
+                        <div className="sched-card">
+                            <table className="config-table">
+                                <thead>
+                                    <tr>
+                                        <th>Sort</th>
+                                        <th>Label</th>
+                                        <th>Time Interval</th>
+                                        <th>Session</th>
+                                        <th>Status</th>
+                                        <th style={{ textAlign: 'right' }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {masterSlots.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(s => (
+                                        <tr key={s.slot_id}>
+                                            <td className="sort-box">{s.sort_order}</td>
+                                            <td className="label-col">
+                                                <strong>{s.slot_label}</strong>
+                                                <code>{s.slot_id}</code>
+                                            </td>
+                                            <td>{fmt12(s.start_time)} — {fmt12(s.end_time)}</td>
+                                            <td>
+                                                <span className="session-pill" style={{ '--color': SESSION_MAP[s.session]?.color, '--bg': SESSION_MAP[s.session]?.bg }}>
+                                                    {SESSION_MAP[s.session]?.icon} {s.session}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className={`status-tag ${s.is_active ? 'active' : 'inactive'}`}>
+                                                    {s.is_active ? 'ENABLED' : 'DISABLED'}
+                                                </div>
+                                            </td>
+                                            <td style={{ textAlign: 'right' }}>
+                                                <div className="action-stack">
+                                                    <button onClick={() => {
+                                                        setEditingSlot(s);
+                                                        setSlotForm(s);
+                                                        setShowSlotModal(true);
+                                                    }} className="btn-i-edit"><Edit2 size={16} /></button>
+                                                    <button onClick={() => handleDeleteSlot(s.slot_id)} className="btn-i-trash"><Trash2 size={16} /></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                )}
+
+                {/* 3. DAILY OVERRIDE PANEL */}
+                {view === 'daily' && (
+                    <section className="view-panel fadeIn">
+                        <header className="panel-header">
+                            <div>
+                                <h1>Precision Control Panel</h1>
+                                <p>Block slots or modify schedules for specific dates</p>
+                            </div>
+                            <div className="daily-context">
+                                <input type="date" value={dailyDate} onChange={e => setDailyDate(e.target.value)} className="date-input-lux" />
+                                <div className="doc-pills">
+                                    {doctors.map(d => (
+                                        <button
+                                            key={d.doctor_id}
+                                            onClick={() => setSelectedDoc(d.name)}
+                                            className={selectedDoc === d.name ? 'active' : ''}
+                                        >
+                                            <User size={16} /> {d.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </header>
+
+                        <div className="sched-card">
+                            <table className="daily-control-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time Segment</th>
+                                        <th>Current Status</th>
+                                        <th style={{ textAlign: 'right' }}>Precision Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {dailyLoading ? (
+                                        <tr><td colSpan="3" style={{ textAlign: 'center', padding: '5rem' }}><RefreshCw className="spinning" size={32} /></td></tr>
+                                    ) : (
+                                        dailyGrid.map(s => (
+                                            <tr key={s.slot_id}>
+                                                <td className="seg-cell">
+                                                    <div className="seg-l">{s.slot_label}</div>
+                                                    <div className="seg-t">{fmt12(s.start_time)} – {fmt12(s.end_time)}</div>
+                                                </td>
+                                                <td>
+                                                    {s.is_booked ? (
+                                                        <span className="st-booked"><CheckCircle2 size={14} /> RESERVED</span>
+                                                    ) : s.blocked_by_admin ? (
+                                                        <span className="st-blocked"><Shield size={14} /> BLOCKED</span>
+                                                    ) : (
+                                                        <span className="st-avl"><Zap size={14} /> AVAILABLE</span>
+                                                    )}
+                                                </td>
+                                                <td style={{ textAlign: 'right' }}>
+                                                    <button
+                                                        onClick={() => handleDailyToggle(s.slot_id, s.blocked_by_admin)}
+                                                        className={`btn-override ${s.blocked_by_admin ? 'unblock' : 'block'}`}
+                                                        disabled={s.is_booked}
+                                                    >
+                                                        {s.blocked_by_admin ? 'Restore Slot' : 'Block Slot'}
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))
                                     )}
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                </div>
-            )}
+                    </section>
+                )}
+            </main>
 
-            {/* Master Template Tab */}
-            {tab === 'master' && (
-                <div className="master-view">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Slot Master Templates</h3>
-                        <button onClick={() => setShowAddModal(true)} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1.25rem', borderRadius: '12px' }}>
-                            <Plus size={18} /> Define New Slot
-                        </button>
-                    </div>
-
-                    <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ background: '#f8fafc', borderBottom: '1px solid var(--border-color)' }}>
-                                    <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 800 }}>ID & ORDER</th>
-                                    <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 800 }}>LABEL</th>
-                                    <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 800 }}>TIME RANGE</th>
-                                    <th style={{ padding: '1rem 1.5rem', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 800 }}>SESSION</th>
-                                    <th style={{ padding: '1rem 1.5rem', textAlign: 'right', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 800 }}>ACTIONS</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {slots.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(s => (
-                                    <tr key={s.slot_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                        <td style={{ padding: '1.25rem 1.5rem' }}>
-                                            <span style={{ fontWeight: 700, color: 'var(--primary)', background: 'rgba(99, 102, 241, 0.1)', padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem' }}>{s.slot_id}</span>
-                                            <span style={{ color: 'var(--text-muted)', marginLeft: '0.5rem', fontSize: '0.75rem' }}>Ord: {s.sort_order}</span>
-                                        </td>
-                                        <td style={{ padding: '1.25rem 1.5rem', fontWeight: 700, color: '#1e293b' }}>{s.slot_label}</td>
-                                        <td style={{ padding: '1.25rem 1.5rem', color: '#475569', fontSize: '0.9rem' }}>{fmt12(s.start_time)} – {fmt12(s.end_time)}</td>
-                                        <td style={{ padding: '1.25rem 1.5rem' }}>
-                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.3rem 0.75rem', borderRadius: '20px', background: SESSION_CONFIG[s.session]?.bg, color: SESSION_CONFIG[s.session]?.color, fontSize: '0.75rem', fontWeight: 700 }}>
-                                                {SESSION_CONFIG[s.session]?.icon} {s.session}
-                                            </div>
-                                        </td>
-                                        <td style={{ padding: '1.25rem 1.5rem', textAlign: 'right' }}>
-                                            <button onClick={() => handleDeleteSlot(s.slot_id)} style={{ padding: '0.5rem', borderRadius: '8px', border: 'none', background: '#fef2f2', color: '#ef4444', cursor: 'pointer' }} title="Delete Template">
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-
-            {/* Add Slot Modal */}
-            {showAddModal && (
-                <div className="modal-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div className="modal-content" style={{ width: '450px', padding: 0, overflow: 'hidden' }}>
-                        <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #4338ca 100%)', padding: '1.5rem', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h2 style={{ margin: 0, color: '#fff', fontSize: '1.25rem' }}>New Slot Template</h2>
-                            <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}><X size={20} /></button>
-                        </div>
-                        <form onSubmit={handleAddSlot} style={{ padding: '1.5rem' }}>
-                            <div style={{ display: 'grid', gap: '1.25rem' }}>
-                                <div>
-                                    <label>Slot Label *</label>
-                                    <input required placeholder="e.g. 09:00 AM Slot" value={form.slot_label} onChange={e => setForm({ ...form, slot_label: e.target.value })} />
+            {/* Config Modal */}
+            {showSlotModal && (
+                <div className="modal-overlay">
+                    <div className="modal-frame">
+                        <header className="modal-h">
+                            <h2>{editingSlot ? 'Refine Chrono-Template' : 'Define Master Segment'}</h2>
+                            <button onClick={() => setShowSlotModal(false)}><X size={24} /></button>
+                        </header>
+                        <form onSubmit={handleSaveSlot} className="modal-b">
+                            <div className="form-g-2">
+                                <div className="field-group">
+                                    <label>Visual Identifier</label>
+                                    <input required value={slotForm.slot_label} onChange={e => setFormState(e, 'slot_label')} placeholder="e.g. 09:00 AM" />
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                    <div>
-                                        <label>Start Time *</label>
-                                        <input type="time" required value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} />
-                                    </div>
-                                    <div>
-                                        <label>End Time *</label>
-                                        <input type="time" required value={form.end_time} onChange={e => setForm({ ...form, end_time: e.target.value })} />
-                                    </div>
+                                <div className="field-group">
+                                    <label>Registry ID</label>
+                                    <input required disabled={!!editingSlot} value={slotForm.slot_id} onChange={e => setFormState(e, 'slot_id')} placeholder="SLOT_0900" />
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                    <div>
-                                        <label>Session *</label>
-                                        <select value={form.session} onChange={e => setForm({ ...form, session: e.target.value })}>
-                                            <option value="MORNING">Morning</option>
-                                            <option value="AFTERNOON">Afternoon</option>
-                                            <option value="EVENING">Evening</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label>Sort Order</label>
-                                        <input type="number" value={form.sort_order} onChange={e => setForm({ ...form, sort_order: parseInt(e.target.value) })} />
-                                    </div>
+                                <div className="field-group">
+                                    <label>Start Time</label>
+                                    <input type="time" required value={slotForm.start_time} onChange={e => setFormState(e, 'start_time')} />
+                                </div>
+                                <div className="field-group">
+                                    <label>End Time</label>
+                                    <input type="time" required value={slotForm.end_time} onChange={e => setFormState(e, 'end_time')} />
+                                </div>
+                                <div className="field-group">
+                                    <label>Clinical Session</label>
+                                    <select value={slotForm.session} onChange={e => setFormState(e, 'session')}>
+                                        <option value="MORNING">Morning</option>
+                                        <option value="AFTERNOON">Afternoon</option>
+                                        <option value="EVENING">Evening</option>
+                                    </select>
+                                </div>
+                                <div className="field-group">
+                                    <label>Sort Priority</label>
+                                    <input type="number" required value={slotForm.sort_order} onChange={e => setFormState(e, 'sort_order', true)} />
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-                                <button type="button" onClick={() => setShowAddModal(false)} className="btn btn-secondary" style={{ flex: 1 }}>Cancel</button>
-                                <button type="submit" disabled={saving} className="btn btn-primary" style={{ flex: 2 }}>{saving ? 'Creating...' : 'Create Template'}</button>
+                            <div className="modal-f">
+                                <button type="button" onClick={() => setShowSlotModal(false)} className="btn-cancel">Abort</button>
+                                <button type="submit" className="btn-save">Commit Metadata</button>
                             </div>
                         </form>
                     </div>
@@ -413,17 +466,114 @@ const Scheduling = () => {
             )}
 
             <style>{`
-                .grid-btn:hover {
-                    filter: brightness(0.95);
-                    transform: scale(1.02);
+                .sched-container { display: flex; min-height: 100vh; background: #f1f5f9; color: #1e293b; font-family: 'Inter', sans-serif; }
+                
+                /* Sidebar Architecture */
+                .sched-sidebar { width: 320px; background: #ffffff; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; padding: 2.5rem 1.5rem; position: sticky; top: 0; height: 100vh; }
+                .sched-brand { display: flex; align-items: center; gap: 1rem; color: var(--primary); font-weight: 950; font-size: 1.5rem; margin-bottom: 4rem; padding-left: 1rem; }
+                .sched-nav { flex: 1; display: flex; flex-direction: column; gap: 0.75rem; }
+                .sched-nav button {
+                    display: flex; align-items: center; gap: 1.25rem; padding: 1.25rem 1.5rem; border: none; border-radius: 20px;
+                    background: transparent; color: #64748b; text-align: left; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 }
-                @keyframes fadeInUp {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
+                .sched-nav button:hover { background: #f8fafc; color: #1e293b; }
+                .sched-nav button.active { background: #eff6ff; color: var(--primary); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08); }
+                .sched-nav button strong { display: block; font-size: 1.05rem; font-weight: 800; }
+                .sched-nav button small { font-size: 0.75rem; font-weight: 600; opacity: 0.7; }
+                
+                .sched-meta { padding-top: 2rem; border-top: 1px solid #f1f5f9; }
+                .engine-status { display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 1px; }
+                .pulse { width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse 2s infinite; }
+
+                /* Main Scroll Body */
+                .sched-main { flex: 1; padding: 4rem; overflow-y: auto; height: 100vh; position: relative; }
+                .view-panel { max-width: 1400px; margin: 0 auto; }
+                .panel-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3.5rem; }
+                .panel-header h1 { font-size: 2.75rem; font-weight: 950; margin: 0; letter-spacing: -2px; color: #0f172a; }
+                .panel-header p { margin: 0.6rem 0 0 0; color: #64748b; font-weight: 600; font-size: 1.2rem; }
+
+                /* Cards & Tables */
+                .sched-card { background: #ffffff; border-radius: 40px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+                table { width: 100%; border-collapse: collapse; }
+                th { background: #f8fafc; padding: 1.75rem 1.5rem; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 0.75rem; font-weight: 850; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; }
+                td { padding: 1.5rem; border-bottom: 1px solid #f1f5f9; }
+
+                /* 1. Weekly specific */
+                .weekly-matrix th { border-left: 1px solid #f1f5f9; }
+                .slot-id-cell { padding-left: 2.5rem; text-align: left; }
+                .slot-l { font-weight: 900; font-size: 1.1rem; color: #0f172a; }
+                .slot-t { font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 0.2rem; }
+                .weekly-toggle {
+                    width: 48px; height: 48px; border-radius: 16px; border: 2.5px solid transparent;
+                    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s;
                 }
+                .weekly-toggle.enabled { background: #f0fdf4; color: #10b981; }
+                .weekly-toggle.disabled { background: #fef2f2; color: #ef4444; border-style: dashed; border-color: #fee2e2; }
+                .weekly-toggle:hover { transform: scale(1.1); }
+                .clinic-filter { display: flex; gap: 0.8rem; }
+                .clinic-filter button {
+                    padding: 0.8rem 1.75rem; border-radius: 18px; border: 2px solid transparent;
+                    background: #fff; color: #64748b; font-weight: 850; cursor: pointer; transition: 0.3s;
+                    display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem;
+                }
+                .clinic-filter button.active { border-color: var(--accent); color: var(--accent); background: #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.04); }
+
+                /* 2. Config specific */
+                .sort-box { width: 60px; text-align: center; font-weight: 950; color: var(--primary); font-size: 1.25rem; }
+                .label-col strong { display: block; font-size: 1.1rem; }
+                .label-col code { font-size: 0.7rem; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+                .session-pill { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.25rem; border-radius: 30px; background: var(--bg); color: var(--color); font-weight: 900; font-size: 0.8rem; border: 1.5px solid var(--color); }
+                .status-tag { display: inline-block; font-size: 0.65rem; font-weight: 950; padding: 4px 8px; border-radius: 6px; }
+                .status-tag.active { background: #dcfce7; color: #166534; }
+                .status-tag.inactive { background: #fee2e2; color: #991b1b; }
+                .action-stack { display: flex; gap: 0.5rem; justify-content: flex-end; }
+                .btn-i-edit { padding: 0.6rem; border-radius: 12px; border: none; background: #eff6ff; color: #2563eb; cursor: pointer; }
+                .btn-i-trash { padding: 0.6rem; border-radius: 12px; border: none; background: #fff1f2; color: #ef4444; cursor: pointer; }
+                .btn-primary-lux { padding: 1rem 2.5rem; border-radius: 20px; border: none; background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); color: #fff; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 0.8rem; box-shadow: 0 12px 24px rgba(99, 102, 241, 0.3); transition: 0.3s; }
+
+                /* 3. Daily specific */
+                .daily-context { display: flex; gap: 2rem; align-items: center; }
+                .date-input-lux { padding: 1rem 1.5rem; border-radius: 18px; border: 2px solid #e2e8f0; font-weight: 800; font-family: inherit; }
+                .doc-pills { display: flex; gap: 0.6rem; }
+                .doc-pills button { padding: 0.8rem 1.5rem; border-radius: 18px; border: 2px solid transparent; background: #fff; color: #64748b; font-weight: 850; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; }
+                .doc-pills button.active { background: #eff6ff; color: var(--primary); border-color: var(--primary); }
+                .btn-override { padding: 0.6rem 1.5rem; border-radius: 14px; border: none; font-weight: 900; font-size: 0.85rem; cursor: pointer; transition: 0.3s; }
+                .btn-override.block { background: #fff1f2; color: #ef4444; }
+                .btn-override.unblock { background: #dcfce7; color: #15803d; }
+                .st-booked { color: #2563eb; font-weight: 900; font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; }
+                .st-blocked { color: #ef4444; font-weight: 900; font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; }
+                .st-avl { color: #10b981; font-weight: 900; font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; }
+
+                /* Modal & Toast */
+                .sched-toast { position: fixed; top: 2.5rem; left: 50%; transform: translateX(-50%); z-index: 10000; padding: 1.25rem 2.5rem; border-radius: 25px; display: flex; align-items: center; gap: 1rem; box-shadow: 0 30px 60px rgba(0,0,0,0.15); font-weight: 900; backdrop-filter: blur(20px); }
+                .sched-toast.success { background: rgba(16, 185, 129, 0.95); color: #fff; }
+                .sched-toast.error { background: rgba(239, 68, 68, 0.95); color: #fff; }
+
+                .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(15px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 2rem; }
+                .modal-frame { background: #fff; width: 100%; max-width: 800px; border-radius: 50px; overflow: hidden; box-shadow: 0 50px 100px rgba(0,0,0,0.4); }
+                .modal-h { padding: 3rem 4rem; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; }
+                .modal-h h2 { margin: 0; font-weight: 950; font-size: 2rem; letter-spacing: -1px; }
+                .modal-b { padding: 4rem; }
+                .form-g-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+                .field-group label { display: block; font-size: 0.75rem; font-weight: 950; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 1px; }
+                .field-group input, .field-group select { width: 100%; padding: 1.25rem 2rem; border-radius: 20px; border: 3px solid #f1f5f9; background: #fbfbfc; font-weight: 850; outline: none; transition: 0.3s; }
+                .field-group input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 10px rgba(99, 102, 241, 0.05); }
+                .modal-f { display: flex; gap: 2rem; margin-top: 4rem; }
+                .btn-save { flex: 2; padding: 1.5rem; border: none; border-radius: 20px; background: var(--primary); color: #fff; font-weight: 950; font-size: 1.3rem; cursor: pointer; }
+                .btn-cancel { flex: 1; padding: 1.5rem; border: 3px solid #f1f5f9; border-radius: 20px; background: #fff; color: #64748b; font-weight: 850; cursor: pointer; }
+
+                @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+                .fadeIn { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+                .spinning { animation: spin 1s linear infinite; }
+                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
             `}</style>
         </div>
     );
+
+    function setFormState(e, key, isNum = false) {
+        setSlotForm({ ...slotForm, [key]: isNum ? parseInt(e.target.value) : e.target.value });
+    }
 };
 
 export default Scheduling;
