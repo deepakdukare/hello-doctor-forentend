@@ -26,6 +26,7 @@ import PublicRegister from './pages/PublicRegister';
 import BotInteractions from './pages/BotInteractions';
 import Doctors from './pages/Doctors';
 import Admins from './pages/Admins';
+import Scheduling from './pages/Scheduling';
 
 const MobileNav = () => {
     const location = useLocation();
@@ -33,7 +34,7 @@ const MobileNav = () => {
     const navItems = [
         { name: 'Home', path: '/', icon: LayoutDashboard },
         { name: 'Appts', path: '/appointments', icon: Calendar },
-
+        { name: 'Slots', path: '/scheduling', icon: Clock },
         { name: 'Patients', path: '/patients', icon: Users },
         { name: 'Settings', path: '/settings', icon: SettingsIcon },
     ];
@@ -60,6 +61,7 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
     const navItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Appointments', path: '/appointments', icon: Calendar },
+        { name: 'Scheduling', path: '/scheduling', icon: Clock },
 
         { name: 'Patients', path: '/patients', icon: Users },
         { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare },
@@ -84,17 +86,19 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
                             title={
                                 item.name === 'Appointments'
                                     ? "Manage clinic schedule and upcoming visits."
-                                    : item.name === 'Patients'
-                                        ? "Manage patient records and registrations."
-                                        : item.name === 'Bot Hub'
-                                            ? "Track interactions from people who Haven't registered as patients yet."
-                                            : item.name === 'Doctors'
-                                                ? "Manage clinic practitioners and specialities."
-                                                : item.name === 'Admin Users'
-                                                    ? "Manage dashboard access for clinic staff."
-                                                    : item.name === 'MRD'
-                                                        ? "Search a patient to view or update their longitudinal health file."
-                                                        : ""
+                                    : item.name === 'Scheduling'
+                                        ? "Configure session timings and clinical capacity matrix."
+                                        : item.name === 'Patients'
+                                            ? "Manage patient records and registrations."
+                                            : item.name === 'Bot Hub'
+                                                ? "Track interactions from people who Haven't registered as patients yet."
+                                                : item.name === 'Doctors'
+                                                    ? "Manage clinic practitioners and specialities."
+                                                    : item.name === 'Admin Users'
+                                                        ? "Manage dashboard access for clinic staff."
+                                                        : item.name === 'MRD'
+                                                            ? "Search a patient to view or update their longitudinal health file."
+                                                            : ""
                             }
                         >
                             <item.icon size={20} />
@@ -205,6 +209,7 @@ const App = () => {
                                 <Route path="/doctors" element={<Doctors />} />
                                 <Route path="/admins" element={<Admins />} />
                                 <Route path="/mrd" element={<MRD />} />
+                                <Route path="/scheduling" element={<Scheduling />} />
                                 <Route path="/settings" element={<Settings />} />
                                 <Route path="/login" element={<Navigate to="/" replace />} />
                             </Routes>
