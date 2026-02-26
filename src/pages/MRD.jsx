@@ -92,7 +92,7 @@ const MRD = () => {
     return (
         <div>
             <div className="title-section">
-                <h1 title="Search a patient to view or update their longitudinal health file.">Medical Records (MRD)</h1>
+                <h1 title="Search a patient to view or update their longitudinal health file.">MRD</h1>
             </div>
 
             {/* Search */}

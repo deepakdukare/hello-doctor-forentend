@@ -154,7 +154,7 @@ const Dashboard = () => {
         <div className="dashboard-page-v2">
             <div className="header-section-premium">
                 <div className="header-content-premium">
-                    <h1 className="header-title-premium">Clinic Overview</h1>
+                    <h1 className="header-title-premium">Dashboard</h1>
                     <div className="live-pill-premium">
                         <span className="live-dot"></span>
                         <span className="live-text">Live • {dateStr}</span>
@@ -218,11 +218,19 @@ const Dashboard = () => {
                                 <p>Syncing schedule...</p>
                             </div>
                         ) : data.appointments.length === 0 ? (
-                            <div className="empty-state-premium">
-                                <div className="empty-icon-wrap">🗓️</div>
-                                <h4>No appointments today</h4>
-                                <p>New bookings will appear here instantly as they come in via the dashboard or WhatsApp bot.</p>
-                                <Link to="/appointments" className="empty-btn-premium">Book First Patient</Link>
+                            <div className="empty-state-premium-v2">
+                                <div className="empty-icon-motion">
+                                    <div className="ring-pulse"></div>
+                                    <Calendar size={48} />
+                                </div>
+                                <h4 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b', marginBottom: '0.75rem' }}>No appointments today</h4>
+                                <p style={{ color: '#64748b', maxWidth: '300px', margin: '0 auto 2rem', fontWeight: 500, lineHeight: 1.5 }}>
+                                    The schedule is currently open. New bookings will appear here instantly.
+                                </p>
+                                <Link to="/appointments" className="book-first-btn-premium">
+                                    <Plus size={20} />
+                                    <span>Book First Patient</span>
+                                </Link>
                             </div>
                         ) : (
                             <div className="table-wrapper-premium">
@@ -878,6 +886,65 @@ const Dashboard = () => {
                     .sidebar-content-v2 { grid-template-columns: 1fr; }
                     .system-health-premium { grid-column: span 1; }
                     .stats-grid-v2 { grid-template-columns: 1fr; }
+                }
+
+                .empty-state-premium-v2 {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 5rem 2rem;
+                    text-align: center;
+                    background: #fff;
+                    border-radius: 24px;
+                }
+
+                .empty-icon-motion {
+                    position: relative;
+                    width: 100px;
+                    height: 100px;
+                    background: #f5f3ff;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #6366f1;
+                    margin-bottom: 2rem;
+                }
+
+                .ring-pulse {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    border-radius: 50%;
+                    border: 2px solid #6366f1;
+                    animation: ring-ripple 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+                    opacity: 0;
+                }
+
+                @keyframes ring-ripple {
+                    0% { transform: scale(1); opacity: 0.5; }
+                    100% { transform: scale(1.6); opacity: 0; }
+                }
+
+                .book-first-btn-premium {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+                    color: #fff;
+                    padding: 0.85rem 2rem;
+                    border-radius: 16px;
+                    font-weight: 800;
+                    text-decoration: none;
+                    transition: all 0.3s;
+                    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+                }
+
+                .book-first-btn-premium:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
+                    filter: brightness(1.1);
                 }
             `}</style>
         </div>

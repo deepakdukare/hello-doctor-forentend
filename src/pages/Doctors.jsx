@@ -107,7 +107,7 @@ const Doctors = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
                 <div>
                     <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, background: 'linear-gradient(135deg, #0f172a 0%, #4338ca 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.02em' }}>
-                        Medical Practitioners
+                        Doctors
                     </h1>
                     <p style={{ color: '#64748b', marginTop: '0.75rem', fontSize: '1.15rem', fontWeight: 500 }}>
                         Manage clinic doctors, specialities, and clinical credentials
@@ -251,35 +251,35 @@ const Doctors = () => {
             {/* Modal Form */}
             {showModal && (
                 <div className="modal-overlay-premium" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div className="modal-content-premium" style={{ width: '480px', padding: 0, overflow: 'hidden', borderRadius: '40px', boxShadow: '0 50px 100px -20px rgba(15, 23, 42, 0.3)' }}>
-                        <div style={{ background: 'linear-gradient(135deg, #4338ca 0%, #312e81 100%)', padding: '3rem 2.5rem', color: '#fff', position: 'relative' }}>
+                    <div className="modal-content-premium" style={{ width: '420px', padding: 0, overflow: 'hidden', borderRadius: '32px', boxShadow: '0 50px 100px -20px rgba(15, 23, 42, 0.3)' }}>
+                        <div style={{ background: 'linear-gradient(135deg, #4338ca 0%, #312e81 100%)', padding: '2.5rem 2rem', color: '#fff', position: 'relative' }}>
                             <div className="modal-header-bg"></div>
                             <div style={{ position: 'relative', zIndex: 1 }}>
-                                <div style={{ background: 'rgba(255,255,255,0.18)', width: '80px', height: '80px', borderRadius: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '2rem', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-                                    <Stethoscope size={40} />
+                                <div style={{ background: 'rgba(255,255,255,0.18)', width: '64px', height: '64px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+                                    <Stethoscope size={32} />
                                 </div>
-                                <h2 style={{ margin: 0, color: '#fff', fontSize: '2rem', fontWeight: 900, letterSpacing: '-0.02em' }}>{editingId ? 'Edit Profile' : 'Practitioner Enrollment'}</h2>
+                                <h2 style={{ margin: 0, color: '#fff', fontSize: '1.75rem', fontWeight: 900, letterSpacing: '-0.02em' }}>{editingId ? 'Edit Profile' : 'Enrollment'}</h2>
                                 <div style={{
-                                    margin: '1rem 0 0 0',
-                                    padding: '0.75rem 1.25rem',
+                                    margin: '0.75rem 0 0 0',
+                                    padding: '0.5rem 1rem',
                                     background: 'rgba(255,255,255,0.1)',
-                                    borderRadius: '16px',
+                                    borderRadius: '12px',
                                     display: 'inline-block',
                                     backdropFilter: 'blur(10px)',
                                     border: '1px solid rgba(255,255,255,0.1)'
                                 }}>
-                                    <p style={{ margin: 0, opacity: 0.95, fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        <Activity size={18} />
-                                        {editingId ? `Updating record for ${form.name}` : 'Enter doctor details to add to registry'}
+                                    <p style={{ margin: 0, opacity: 0.95, fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Activity size={16} />
+                                        {editingId ? 'Updating practitioner record' : 'Enter doctor credentials'}
                                     </p>
                                 </div>
                             </div>
                             <button onClick={() => setShowModal(false)} className="modal-close-premium">
-                                <X size={24} />
+                                <X size={20} />
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} style={{ padding: '3rem 2.5rem', background: '#fff' }}>
+                        <form onSubmit={handleSubmit} style={{ padding: '2.5rem 2rem', background: '#fff' }}>
                             <div style={{ display: 'grid', gap: '2rem' }}>
                                 <div className="input-group-premium">
                                     <label style={{ display: 'block', fontSize: '0.95rem', fontWeight: 800, color: '#1e293b', marginBottom: '0.75rem' }}>Doctor's Full Name <span style={{ color: '#ef4444' }}>*</span></label>

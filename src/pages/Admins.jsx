@@ -130,7 +130,7 @@ const Admins = () => {
                             <div style={{ padding: '0.6rem', background: 'var(--primary-light)', borderRadius: '12px', color: 'var(--primary)' }}>
                                 <ShieldCheck size={24} />
                             </div>
-                            <h1>System Administration</h1>
+                            <h1>Admin Users</h1>
                         </div>
                         <p>Manage access levels, staff accounts, and security permissions.</p>
                     </div>

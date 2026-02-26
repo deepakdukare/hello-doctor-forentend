@@ -215,7 +215,7 @@ const Patients = () => {
         <div className="patients-page-v2">
             <div className="header-section-premium">
                 <div className="header-content-premium">
-                    <h1 className="header-title-premium-v2">Patient Registry</h1>
+                    <h1 className="header-title-premium-v2">Patients</h1>
                     <div className="stats-pill-row">
                         <StatCardMini label="Total Registry" value={pagination.total} icon={Users} color="#6366f1" />
                         <StatCardMini label="Registered Today" value="8" icon={Activity} color="#10b981" />
