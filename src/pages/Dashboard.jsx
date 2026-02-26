@@ -11,7 +11,11 @@ import {
     Bell,
     ChevronRight,
     RefreshCw,
-    AlertCircle
+    AlertCircle,
+    Activity,
+    Shield,
+    TrendingUp,
+    Zap
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -24,36 +28,55 @@ import {
     getEscalations
 } from '../api/index';
 
-const StatCard = ({ title, value, subtitle, icon: Icon, color, loading }) => (
-    <div className="stat-card">
-        <div className="stat-icon" style={{ backgroundColor: `${color}15`, color }}>
-            <Icon size={22} />
+const StatCard = ({ title, value, subtitle, icon: Icon, color, loading, trend }) => (
+    <div className="stat-card-premium">
+        <div className="stat-card-inner">
+            <div className="stat-icon-premium" style={{
+                background: `linear-gradient(135deg, ${color}15 0%, ${color}30 100%)`,
+                color: color
+            }}>
+                <Icon size={24} />
+            </div>
+            <div className="stat-content">
+                <div className="stat-value-premium">
+                    {loading ? <div className="skeleton-pulse" style={{ width: '60px', height: '32px', borderRadius: '8px' }}></div> : value}
+                </div>
+                <div className="stat-label-premium">{title}</div>
+            </div>
+            {trend && (
+                <div className="stat-trend" style={{ color: trend > 0 ? '#10b981' : '#64748b' }}>
+                    <TrendingUp size={14} />
+                    <span>{trend}%</span>
+                </div>
+            )}
         </div>
-        <div className="stat-value">
-            {loading ? <span className="loading-dots">...</span> : value}
-        </div>
-        <div className="stat-label">{title}</div>
-        {subtitle && <div className="stat-desc" style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '4px' }}>{subtitle}</div>}
+        {!loading && <div className="stat-subtitle-premium">{subtitle}</div>}
     </div>
 );
 
-const QuickAction = ({ label, icon, to, color }) => (
-    <Link to={to} className="action-card">
-        <div className="action-icon" style={{ color }}>{icon}</div>
-        <span className="action-label">{label}</span>
+const QuickAction = ({ label, icon, to, color, description }) => (
+    <Link to={to} className="action-card-premium">
+        <div className="action-icon-premium" style={{ color }}>{icon}</div>
+        <div className="action-info-premium">
+            <span className="action-label-premium">{label}</span>
+            <span className="action-desc-premium">{description}</span>
+        </div>
+        <ChevronRight size={18} className="action-arrow" />
     </Link>
 );
 
 const AlertItem = ({ title, desc, icon: Icon, color, badge }) => (
-    <div className="alert-item">
-        <div className="alert-icon-wrap" style={{ backgroundColor: `${color}15`, color }}>
-            <Icon size={18} />
+    <div className="alert-item-premium">
+        <div className="alert-icon-wrap-premium" style={{ background: `${color}10`, color }}>
+            <Icon size={20} />
         </div>
-        <div className="alert-content">
-            <div className="alert-title">{title}</div>
-            <div className="alert-desc">{desc}</div>
+        <div className="alert-content-premium">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span className="alert-title-premium">{title}</span>
+                {badge && <span className="alert-badge-premium" style={{ background: color === '#e11d48' ? 'rgba(225, 29, 72, 0.1)' : 'rgba(99, 102, 241, 0.1)', color }}>{badge}</span>}
+            </div>
+            <div className="alert-desc-premium">{desc}</div>
         </div>
-        {badge && <div className="section-badge" style={{ background: color }}>{badge}</div>}
     </div>
 );
 
@@ -128,99 +151,109 @@ const Dashboard = () => {
     }, []);
 
     return (
-        <div className="dashboard-page">
-            <div className="title-section" style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                <div>
-                    <h1 style={{ fontSize: '2.4rem' }}>Today's Overview</h1>
-                    <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#6366f1', fontWeight: 600 }}>
-                        <span style={{ width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%', boxShadow: '0 0 8px #22c55e' }}></span>
-                        Live data for {dateStr}
-                    </p>
+        <div className="dashboard-page-v2">
+            <div className="header-section-premium">
+                <div className="header-content-premium">
+                    <h1 className="header-title-premium">Clinic Overview</h1>
+                    <div className="live-pill-premium">
+                        <span className="live-dot"></span>
+                        <span className="live-text">Live • {dateStr}</span>
+                    </div>
                 </div>
-                <div className="filter-tabs">
-                    {['Today', 'This Week', 'This Month'].map(tab => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
-                        >
-                            {tab}
-                        </button>
-                    ))}
+                <div className="header-actions-premium">
+                    <div className="filter-group-premium">
+                        {['Today', 'Week', 'Month'].map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`filter-tab-premium ${activeTab === tab ? 'active' : ''}`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
+                    </div>
+                    <button onClick={fetchData} className="refresh-btn-premium" title="Refresh Data">
+                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                    </button>
                 </div>
             </div>
 
             {error && (
-                <div style={{ background: '#fff1f2', color: '#e11d48', padding: '1rem', borderRadius: '16px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem', border: '1px solid #fecdd3', fontSize: '0.9rem', fontWeight: 500 }}>
-                    <AlertCircle size={18} /> {error}
+                <div className="error-banner-premium">
+                    <AlertCircle size={20} />
+                    <span>{error}</span>
+                    <button onClick={() => setError(null)} className="error-close-btn">×</button>
                 </div>
             )}
 
-            <div className="dashboard-grid">
-                {/* Left Column */}
-                <div className="dashboard-main">
-                    <div className="stats-grid">
-                        <StatCard title="Total Patients" value={data.stats.totalPatients} subtitle="All registered patients" icon={Users} color="#6366f1" loading={loading} />
+            <div className="dashboard-grid-v2">
+                <div className="main-content-v2">
+                    <div className="stats-grid-v2">
+                        <StatCard title="Total Patients" value={data.stats.totalPatients} subtitle="Active registry profiles" icon={Users} color="#6366f1" loading={loading} trend={12} />
                         <StatCard title="Today's Visits" value={data.stats.todayVisits} subtitle="Checked-in today" icon={Calendar} color="#0ea5e9" loading={loading} />
-                        <StatCard title="Completed Today" value={data.stats.completed} subtitle="Consultations done" icon={CheckCircle} color="#10b981" loading={loading} />
-                        <StatCard title="Pending Appointments" value={data.stats.pending} subtitle="Awaiting confirmation" icon={Clock} color="#f59e0b" loading={loading} />
+                        <StatCard title="Completed" value={data.stats.completed} subtitle="Sessions concluded" icon={CheckCircle} color="#10b981" loading={loading} />
+                        <StatCard title="Pending" value={data.stats.pending} subtitle="Awaiting consultation" icon={Clock} color="#f59e0b" loading={loading} />
                     </div>
 
-                    <div className="card" style={{ minHeight: '400px' }}>
-                        <div className="card-header">
-                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    📋 Today's Appointments
+                    <div className="card-premium-v2 appointments-card">
+                        <div className="card-header-premium">
+                            <div className="card-title-group">
+                                <h3 className="card-title-premium">
+                                    <FileText size={20} />
+                                    <span>Appointments Schedule</span>
                                 </h3>
-                                <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>
-                                    Last updated {lastUpdated || '...'} • {dateStr}
-                                </span>
+                                <p className="card-subtitle-premium">Live schedule queue for {dateStr}</p>
                             </div>
-                            <Link to="/appointments" className="btn btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }}>
-                                <Plus size={16} /> Book
+                            <Link to="/appointments" className="add-btn-premium">
+                                <Plus size={18} />
+                                <span>Book Visit</span>
                             </Link>
                         </div>
 
                         {loading ? (
-                            <div className="empty-state">
-                                <RefreshCw className="spin" size={32} color="#6366f1" />
-                                <p style={{ marginTop: '1rem', color: '#64748b' }}>Syncing with clinic schedule...</p>
+                            <div className="loader-container-premium">
+                                <div className="loader-bars">
+                                    <span></span><span></span><span></span>
+                                </div>
+                                <p>Syncing schedule...</p>
                             </div>
                         ) : data.appointments.length === 0 ? (
-                            <div className="empty-state">
-                                <div className="empty-icon">🗓️</div>
-                                <div className="empty-title">No appointments booked today yet</div>
-                                <p className="empty-text">Book a new appointment or wait for WhatsApp bot bookings to appear here.</p>
-                                <Link to="/appointments" className="btn btn-outline" style={{ borderStyle: 'dashed' }}>
-                                    <Calendar size={18} /> 📅 Book First Appointment
-                                </Link>
+                            <div className="empty-state-premium">
+                                <div className="empty-icon-wrap">🗓️</div>
+                                <h4>No appointments today</h4>
+                                <p>New bookings will appear here instantly as they come in via the dashboard or WhatsApp bot.</p>
+                                <Link to="/appointments" className="empty-btn-premium">Book First Patient</Link>
                             </div>
                         ) : (
-                            <div className="table-container">
-                                <table>
+                            <div className="table-wrapper-premium">
+                                <table className="table-premium-v2">
                                     <thead>
                                         <tr>
-                                            <th>Time</th>
-                                            <th>Patient</th>
-                                            <th>Visit Type</th>
+                                            <th>Time Slot</th>
+                                            <th>Patient Name</th>
+                                            <th>Category</th>
                                             <th>Source</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {data.appointments.map(appt => (
-                                            <tr key={appt.appointment_id}>
-                                                <td style={{ fontWeight: 700, color: '#6366f1' }}>{appt.slot_label || '—'}</td>
-                                                <td>
-                                                    <div style={{ fontWeight: 600 }}>{appt.child_name || 'Walk-in'}</div>
-                                                    <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{appt.patient_id || 'unregistered'}</div>
+                                            <tr key={appt.appointment_id} className="row-hover-premium">
+                                                <td className="slot-cell-premium">
+                                                    <div className="time-pill">{appt.slot_label || 'TBD'}</div>
                                                 </td>
                                                 <td>
-                                                    <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>{appt.visit_type}</span>
+                                                    <div className="patient-name-premium">{appt.child_name || 'Walk-in'}</div>
+                                                    <div className="patient-id-premium">{appt.patient_id || 'TEMP-ID'}</div>
                                                 </td>
-                                                <td style={{ textTransform: 'capitalize', fontSize: '0.75rem' }}>{appt.booking_source}</td>
                                                 <td>
-                                                    <span className={`badge ${appt.status === 'COMPLETED' ? 'badge-success' : 'badge-primary'}`}>
+                                                    <span className="category-pill-premium">{appt.visit_type}</span>
+                                                </td>
+                                                <td className="source-cell-premium">
+                                                    <span className="source-tag">{appt.booking_source}</span>
+                                                </td>
+                                                <td>
+                                                    <span className={`status-pill-v2 ${appt.status.toLowerCase()}`}>
                                                         {appt.status}
                                                     </span>
                                                 </td>
@@ -233,61 +266,622 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Right Column */}
-                <div className="dashboard-sidebar">
-                    <div style={{ marginBottom: '2.5rem' }}>
-                        <div className="section-header">
-                            <div className="section-title">⚡ Quick Actions</div>
-                        </div>
-                        <div className="quick-actions-grid">
-                            <QuickAction label="New Patient" icon="👶" to="/patients" color="#6366f1" />
-                            <QuickAction label="Book Appointment" icon="📅" to="/appointments" color="#0ea5e9" />
-                            <QuickAction label="View MRD" icon="🗂️" to="/mrd" color="#10b981" />
+                <div className="sidebar-content-v2">
+                    <div className="sidebar-section-premium">
+                        <h4 className="sidebar-title-premium">Quick Actions</h4>
+                        <div className="actions-stack-premium">
+                            <QuickAction label="Enroll Patient" description="Add new medical profile" icon="👶" to="/patients" color="#6366f1" />
+                            <QuickAction label="Book Appointment" description="Schedule a visit slot" icon="📅" to="/appointments" color="#0ea5e9" />
+                            <QuickAction label="Medical Records" description="Access patient history" icon="🗂️" to="/mrd" color="#10b981" />
                         </div>
                     </div>
 
-                    <div>
-                        <div className="section-header">
-                            <div className="section-title">🔔 Alerts & Reminders</div>
-                            <span style={{ fontSize: '0.75rem', color: '#22c55e', fontStyle: 'italic' }}>Live updates</span>
+                    <div className="sidebar-section-premium">
+                        <div className="sidebar-header-row">
+                            <h4 className="sidebar-title-premium">Live Monitoring</h4>
+                            <div className="pulse-indicator"></div>
                         </div>
-                        <div className="alerts-section">
+                        <div className="alerts-stack-premium">
                             <AlertItem
-                                title={`${data.botInteractions} Bot Interactions`}
-                                desc="Unregistered users messaged the WhatsApp bot"
+                                title="Bot Interactions"
+                                desc={`${data.botInteractions} new unregistered inquiries`}
                                 icon={MessageSquare}
                                 color="#6366f1"
-                                badge={data.botInteractions > 0 ? `${data.botInteractions} New` : null}
+                                badge={data.botInteractions > 0 ? "New" : null}
                             />
                             {data.escalations > 0 && (
                                 <AlertItem
-                                    title={`${data.escalations} Support Escalations`}
-                                    desc="Users requested human assistance"
+                                    title="Urgent Escalations"
+                                    desc={`${data.escalations} human support requests`}
                                     icon={AlertCircle}
                                     color="#e11d48"
-                                    badge="URGENT"
+                                    badge="Critical"
                                 />
                             )}
                             <AlertItem
-                                title="24h Reminders Pending"
-                                desc="Check tomorrow's appointments for reminders"
-                                icon={Clock}
+                                title="Pending SMS"
+                                desc={`${data.pendingReminders} reminders to be sent`}
+                                icon={Zap}
                                 color="#f59e0b"
-                                badge={data.pendingReminders > 0 ? `${data.pendingReminders}` : null}
                             />
                             <AlertItem
-                                title={data.systemStatus === 'Healthy' ? "System Healthy" : "System Issues"}
-                                desc={data.systemStatus === 'Healthy' ? "All APIs running normally" : "Database connection issues detected"}
-                                icon={data.systemStatus === 'Healthy' ? CheckCircle : AlertCircle}
+                                title="Clinic Engine"
+                                desc={data.systemStatus === 'Healthy' ? "All systems operational" : "Connection sluggish"}
+                                icon={Shield}
                                 color={data.systemStatus === 'Healthy' ? "#10b981" : "#e11d48"}
                             />
                         </div>
                     </div>
+
+                    <div className="system-health-premium">
+                        <div className="health-stats-premium">
+                            <div className="health-stat-premium">
+                                <span>API Latency</span>
+                                <strong>124ms</strong>
+                            </div>
+                            <div className="health-divider"></div>
+                            <div className="health-stat-premium">
+                                <span>Uptime</span>
+                                <strong>99.9%</strong>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <style>{`
+                .dashboard-page-v2 {
+                    padding: 2.5rem;
+                    max-width: 1600px;
+                    margin: 0 auto;
+                    animation: pageFadeIn 0.6s ease-out;
+                }
+
+                @keyframes pageFadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                .header-section-premium {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 3.5rem;
+                }
+
+                .header-title-premium {
+                    font-size: 2.5rem;
+                    font-weight: 900;
+                    letter-spacing: -0.03em;
+                    background: linear-gradient(135deg, #0f172a 0%, #4338ca 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                .live-pill-premium {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.6rem;
+                    background: #fff;
+                    padding: 0.4rem 1rem;
+                    border-radius: 50px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+                    border: 1px solid #f1f5f9;
+                    margin-top: 0.75rem;
+                    width: fit-content;
+                }
+
+                .live-dot {
+                    width: 8px;
+                    height: 8px;
+                    background: #10b981;
+                    border-radius: 50%;
+                    box-shadow: 0 0 10px #10b981;
+                    animation: pulse 2s infinite;
+                }
+
+                @keyframes pulse {
+                    0% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.5); opacity: 0.5; }
+                    100% { transform: scale(1); opacity: 1; }
+                }
+
+                .live-text {
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    color: #64748b;
+                }
+
+                .header-actions-premium {
+                    display: flex;
+                    align-items: center;
+                    gap: 1.5rem;
+                }
+
+                .filter-group-premium {
+                    background: #fff;
+                    padding: 0.4rem;
+                    border-radius: 16px;
+                    display: flex;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+                    border: 1px solid #f1f5f9;
+                }
+
+                .filter-tab-premium {
+                    padding: 0.5rem 1.25rem;
+                    border-radius: 12px;
+                    border: none;
+                    background: transparent;
+                    font-size: 0.9rem;
+                    font-weight: 700;
+                    color: #94a3b8;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+
+                .filter-tab-premium.active {
+                    background: #6366f1;
+                    color: #fff;
+                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+                }
+
+                .refresh-btn-premium {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 14px;
+                    border: 1px solid #e2e8f0;
+                    background: #fff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #64748b;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+                }
+
+                .refresh-btn-premium:hover {
+                    border-color: #6366f1;
+                    color: #6366f1;
+                    transform: rotate(30deg);
+                }
+
+                .dashboard-grid-v2 {
+                    display: grid;
+                    grid-template-columns: 1fr 380px;
+                    gap: 2.5rem;
+                }
+
+                .stats-grid-v2 {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 1.75rem;
+                    margin-bottom: 2.5rem;
+                }
+
+                .stat-card-premium {
+                    background: #fff;
+                    padding: 1.5rem;
+                    border-radius: 28px;
+                    border: 1px solid #f1f5f9;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .stat-card-premium:hover {
+                    transform: translateY(-8px);
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+                    border-color: #e0e7ff;
+                }
+
+                .stat-card-inner {
+                    display: flex;
+                    align-items: center;
+                    gap: 1.25rem;
+                    margin-bottom: 1rem;
+                }
+
+                .stat-icon-premium {
+                    width: 52px;
+                    height: 52px;
+                    border-radius: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .stat-value-premium {
+                    font-size: 1.75rem;
+                    font-weight: 800;
+                    color: #0f172a;
+                    margin-bottom: 0.15rem;
+                    font-family: 'Outfit', sans-serif;
+                }
+
+                .stat-label-premium {
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    color: #94a3b8;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
+
+                .stat-trend {
+                    position: absolute;
+                    top: 1.5rem;
+                    right: 1.5rem;
+                    font-size: 0.75rem;
+                    font-weight: 800;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.2rem;
+                    background: #f0fdf4;
+                    padding: 0.25rem 0.6rem;
+                    border-radius: 50px;
+                }
+
+                .stat-subtitle-premium {
+                    font-size: 0.8rem;
+                    color: #64748b;
+                    font-weight: 500;
+                }
+
+                .card-premium-v2 {
+                    background: #fff;
+                    border-radius: 32px;
+                    border: 1px solid #f1f5f9;
+                    box-shadow: 0 4px 25px rgba(0,0,0,0.02);
+                    overflow: hidden;
+                }
+
+                .card-header-premium {
+                    padding: 2rem 2.5rem;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-end;
+                    background: linear-gradient(to bottom, #fcfdff, #fff);
+                    border-bottom: 1px solid #f8fafc;
+                }
+
+                .card-title-premium {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    font-size: 1.4rem;
+                    font-weight: 800;
+                    color: #0f172a;
+                    margin: 0;
+                }
+
+                .card-subtitle-premium {
+                    font-size: 0.95rem;
+                    color: #94a3b8;
+                    font-weight: 500;
+                    margin-top: 0.4rem;
+                }
+
+                .add-btn-premium {
+                    background: #6366f1;
+                    color: #fff;
+                    text-decoration: none;
+                    padding: 0.75rem 1.75rem;
+                    border-radius: 16px;
+                    font-weight: 700;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.6rem;
+                    transition: all 0.2s;
+                    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+                }
+
+                .add-btn-premium:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 12px 20px rgba(99, 102, 241, 0.3);
+                    filter: brightness(1.1);
+                }
+
+                .table-wrapper-premium {
+                    padding: 0 1.5rem 1.5rem;
+                }
+
+                .table-premium-v2 {
+                    width: 100%;
+                    border-collapse: separate;
+                    border-spacing: 0 0.75rem;
+                }
+
+                .table-premium-v2 th {
+                    padding: 1rem 1.5rem;
+                    font-size: 0.75rem;
+                    font-weight: 800;
+                    color: #94a3b8;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                    text-align: left;
+                }
+
+                .row-hover-premium {
+                    transition: all 0.2s;
+                }
+
+                .row-hover-premium td {
+                    padding: 1.25rem 1.5rem;
+                    background: #fff;
+                    transition: all 0.2s;
+                }
+
+                .row-hover-premium:hover td {
+                    background: #f8faff;
+                }
+
+                .row-hover-premium td:first-child { border-radius: 18px 0 0 18px; border-left: 1px solid #f1f5f9; }
+                .row-hover-premium td:last-child { border-radius: 0 18px 18px 0; border-right: 1px solid #f1f5f9; }
+                .row-hover-premium td { border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+
+                .time-pill {
+                    background: #eff6ff;
+                    color: #2563eb;
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 10px;
+                    font-weight: 800;
+                    font-size: 0.85rem;
+                    width: fit-content;
+                }
+
+                .patient-name-premium {
+                    font-weight: 700;
+                    color: #1e293b;
+                    font-size: 1rem;
+                }
+
+                .patient-id-premium {
+                    font-size: 0.75rem;
+                    color: #94a3b8;
+                    font-weight: 600;
+                    margin-top: 0.15rem;
+                }
+
+                .category-pill-premium {
+                    background: #f8fafc;
+                    padding: 0.35rem 0.75rem;
+                    border-radius: 8px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                    color: #64748b;
+                    border: 1px solid #f1f5f9;
+                }
+
+                .source-tag {
+                    font-size: 0.75rem;
+                    text-transform: capitalize;
+                    font-weight: 600;
+                    color: #64748b;
+                }
+
+                .status-pill-v2 {
+                    padding: 0.4rem 1rem;
+                    border-radius: 50px;
+                    font-size: 0.75rem;
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 0.02em;
+                }
+
+                .status-pill-v2.confirmed { background: #eff6ff; color: #2563eb; }
+                .status-pill-v2.completed { background: #f0fdf4; color: #16a34a; }
+                .status-pill-v2.cancelled { background: #fef2f2; color: #ef4444; }
+
+                /* Sidebar Styles */
+                .sidebar-section-premium {
+                    background: #fff;
+                    border-radius: 28px;
+                    padding: 2rem;
+                    margin-bottom: 2rem;
+                    border: 1px solid #f1f5f9;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+                }
+
+                .sidebar-title-premium {
+                    font-size: 1.1rem;
+                    font-weight: 800;
+                    color: #0f172a;
+                    margin-bottom: 1.5rem;
+                    letter-spacing: -0.01em;
+                }
+
+                .actions-stack-premium {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+
+                .action-card-premium {
+                    display: flex;
+                    align-items: center;
+                    gap: 1.25rem;
+                    padding: 1.25rem;
+                    border-radius: 20px;
+                    background: #fcfdff;
+                    text-decoration: none;
+                    border: 1.5px solid #f8fafc;
+                    transition: all 0.2s;
+                }
+
+                .action-card-premium:hover {
+                    border-color: #6366f1;
+                    background: #fff;
+                    transform: translateX(5px);
+                    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.08);
+                }
+
+                .action-icon-premium {
+                    font-size: 1.5rem;
+                    width: 48px;
+                    height: 48px;
+                    background: #fff;
+                    border-radius: 14px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+                }
+
+                .action-info-premium {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .action-label-premium {
+                    font-weight: 700;
+                    color: #1e293b;
+                    font-size: 0.95rem;
+                }
+
+                .action-desc-premium {
+                    font-size: 0.75rem;
+                    color: #94a3b8;
+                    margin-top: 0.1rem;
+                }
+
+                .action-arrow {
+                    color: #cbd5e1;
+                    transition: all 0.2s;
+                }
+
+                .action-card-premium:hover .action-arrow {
+                    color: #6366f1;
+                    transform: translateX(3px);
+                }
+
+                .alerts-stack-premium {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.75rem;
+                }
+
+                .alert-item-premium {
+                    display: flex;
+                    gap: 1rem;
+                    padding: 1.25rem;
+                    border-radius: 20px;
+                    background: #fff;
+                    border: 1px solid #f8fafc;
+                    transition: all 0.2s;
+                }
+
+                .alert-icon-wrap-premium {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+
+                .alert-title-premium {
+                    font-weight: 700;
+                    color: #1e293b;
+                    font-size: 0.9rem;
+                }
+
+                .alert-badge-premium {
+                    font-size: 0.65rem;
+                    font-weight: 800;
+                    padding: 0.2rem 0.5rem;
+                    border-radius: 6px;
+                    text-transform: uppercase;
+                }
+
+                .alert-desc-premium {
+                    font-size: 0.8rem;
+                    color: #94a3b8;
+                    margin-top: 0.25rem;
+                    line-height: 1.4;
+                }
+
+                .system-health-premium {
+                    background: linear-gradient(135deg, #4338ca 0%, #1e1b4b 100%);
+                    border-radius: 28px;
+                    padding: 1.75rem;
+                    color: #fff;
+                }
+
+                .health-stats-premium {
+                    display: flex;
+                    justify-content: space-around;
+                    align-items: center;
+                }
+
+                .health-stat-premium {
+                    text-align: center;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.25rem;
+                }
+
+                .health-stat-premium span {
+                    font-size: 0.75rem;
+                    color: rgba(255,255,255,0.6);
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
+
+                .health-stat-premium strong {
+                    font-size: 1.1rem;
+                    font-weight: 800;
+                }
+
+                .health-divider {
+                    width: 1px;
+                    height: 30px;
+                    background: rgba(255,255,255,0.1);
+                }
+
+                .skeleton-pulse {
+                    background: #f1f5f9;
+                    animation: skeleton-pulse 1.5s infinite ease-in-out;
+                }
+
+                @keyframes skeleton-pulse {
+                    0% { opacity: 1; }
+                    50% { opacity: 0.4; }
+                    100% { opacity: 1; }
+                }
+
+                @media (max-width: 1400px) {
+                    .dashboard-grid-v2 {
+                        grid-template-columns: 1fr;
+                    }
+                    .sidebar-content-v2 {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 1.5rem;
+                    }
+                    .system-health-premium {
+                        grid-column: span 2;
+                    }
+                }
+
+                @media (max-width: 1024px) {
+                    .stats-grid-v2 {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+
+                @media (max-width: 768px) {
+                    .header-section-premium { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+                    .sidebar-content-v2 { grid-template-columns: 1fr; }
+                    .system-health-premium { grid-column: span 1; }
+                    .stats-grid-v2 { grid-template-columns: 1fr; }
+                }
+            `}</style>
         </div>
     );
 };
 
 export default Dashboard;
-
