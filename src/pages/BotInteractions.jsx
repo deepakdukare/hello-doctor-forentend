@@ -5,7 +5,7 @@ import {
     MessageCircle, ExternalLink, Filter, HelpCircle, Activity,
     Zap, Headphones, ShieldCheck
 } from 'lucide-react';
-import { getUnregisteredInteractions, getEscalations, resolveEscalation } from '../api/index';
+import { getUnregisteredInteractions, getNotifications, markNotificationRead } from '../api/index';
 
 const BotInteractions = () => {
     const [tab, setTab] = useState('leads'); // leads, escalations
@@ -18,13 +18,29 @@ const BotInteractions = () => {
         setLoading(true);
         setError(null);
         try {
-            const [leadsRes, escRes] = await Promise.all([
+            const [leadsRes, notificationsRes] = await Promise.all([
                 getUnregisteredInteractions(),
-                getEscalations()
+                getNotifications()
             ]);
+
+            const notifications = notificationsRes.data?.data || [];
+            const escalations = notifications
+                .filter((item) => {
+                    if (item?.is_read) return false;
+                    const text = `${item?.title || ''} ${item?.message || ''} ${item?.type || ''}`.toLowerCase();
+                    return text.includes('escalat') || text.includes('urgent') || text.includes('critical');
+                })
+                .map((item) => ({
+                    id: item.id || item._id,
+                    wa_id: item.wa_id || item.wa_number || item?.meta?.wa_id || item?.context?.wa_id || '',
+                    reason: item.reason || item.title || item.type || 'Manual escalation',
+                    failed_state: item.failed_state || item.source || item.category || '',
+                    escalated_at: item.escalated_at || item.created_at || item.timestamp || item.updated_at,
+                }));
+
             setData({
                 leads: leadsRes.data.data || [],
-                escalations: escRes.data.data || []
+                escalations,
             });
         } catch (e) {
             setError(e.response?.data?.message || e.message);
@@ -38,9 +54,10 @@ const BotInteractions = () => {
     }, [fetchData]);
 
     const handleResolve = async (id) => {
+        if (!id) return;
         setResolving(id);
         try {
-            await resolveEscalation(id);
+            await markNotificationRead(id);
             await fetchData();
         } catch (e) {
             setError("Failed to resolve escalation");
@@ -182,15 +199,15 @@ const BotInteractions = () => {
                                 </thead>
                                 <tbody>
                                     {data.leads.map((it) => (
-                                        <tr key={it.session_id} className="hover-row" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                        <tr key={it.session_id || it.wa_id || it.wa_number} className="hover-row" style={{ borderBottom: '1px solid #f1f5f9' }}>
                                             <td style={{ padding: '1.5rem 2rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                                     <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#f1f5f9', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
                                                         WA
                                                     </div>
                                                     <div>
-                                                        <div style={{ fontWeight: 700, color: '#1e293b' }}>+{it.wa_number || it.wa_id}</div>
-                                                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{it.session_id.substring(0, 12)}...</div>
+                                                        <div style={{ fontWeight: 700, color: '#1e293b' }}>{it.wa_number || it.wa_id || '-'}</div>
+                                                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{(it.session_id || 'session').toString().substring(0, 12)}...</div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -241,14 +258,14 @@ const BotInteractions = () => {
                                 </thead>
                                 <tbody>
                                     {data.escalations.map((esc) => (
-                                        <tr key={esc._id} className="hover-row" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                        <tr key={esc.id || `${esc.wa_id}-${esc.escalated_at}`} className="hover-row" style={{ borderBottom: '1px solid #f1f5f9' }}>
                                             <td style={{ padding: '1.5rem 2rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                                     <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fef2f2', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
                                                         SOS
                                                     </div>
                                                     <div>
-                                                        <div style={{ fontWeight: 700, color: '#1e293b' }}>+{esc.wa_id}</div>
+                                                        <div style={{ fontWeight: 700, color: '#1e293b' }}>{esc.wa_id || 'Unknown user'}</div>
                                                         <div style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 700 }}>URGENT ASSISTANCE</div>
                                                     </div>
                                                 </div>
@@ -268,18 +285,21 @@ const BotInteractions = () => {
                                             <td style={{ padding: '1.5rem 2rem' }}>
                                                 <div style={{ display: 'flex', gap: '0.75rem' }}>
                                                     <button
-                                                        onClick={() => handleResolve(esc._id)}
-                                                        disabled={resolving === esc._id}
+                                                        onClick={() => handleResolve(esc.id)}
+                                                        disabled={!esc.id || resolving === esc.id}
                                                         className="btn btn-primary"
                                                         style={{ background: '#10b981', flex: 1, padding: '0.6rem', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
                                                     >
-                                                        {resolving === esc._id ? <RefreshCw size={16} className="animate-spin" /> : <><Check size={18} /> Resolve</>}
+                                                        {resolving === esc.id ? <RefreshCw size={16} className="animate-spin" /> : <><Check size={18} /> Resolve</>}
                                                     </button>
                                                     <a
-                                                        href={`https://wa.me/${esc.wa_id}`}
+                                                        href={esc.wa_id ? `https://wa.me/${esc.wa_id.replace('+', '')}` : '#'}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="btn btn-secondary"
+                                                        onClick={(e) => {
+                                                            if (!esc.wa_id) e.preventDefault();
+                                                        }}
                                                         style={{ width: '40px', height: '40px', padding: 0, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                                     >
                                                         <ExternalLink size={18} />

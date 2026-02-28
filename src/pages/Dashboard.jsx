@@ -24,8 +24,8 @@ import {
     getAppointmentStats,
     getPatients,
     getUnregisteredInteractions,
-    getPendingReminders,
-    getEscalations
+    getPendingMessages,
+    getNotifications
 } from '../api/index';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, color, loading, trend }) => (
@@ -108,21 +108,28 @@ const Dashboard = () => {
                 apptRes,
                 patientRes,
                 botRes,
-                reminderRes,
+                pendingMessagesRes,
                 healthRes,
-                escalationRes
+                notificationsRes
             ] = await Promise.all([
                 getAppointmentStats(apiDate),
                 getAppointmentsByDate(apiDate),
                 getPatients({ limit: 1 }),
                 getUnregisteredInteractions(),
-                getPendingReminders(),
+                getPendingMessages(),
                 getSystemHealth(),
-                getEscalations().catch(() => ({ data: { data: [] } }))
+                getNotifications().catch(() => ({ data: { data: [] } }))
             ]);
 
             const stats = statsRes.data?.data || {};
             const appts = apptRes.data?.data || [];
+
+            const notifications = notificationsRes.data?.data || [];
+            const escalationCount = notifications.filter((item) => {
+                if (item?.is_read) return false;
+                const text = `${item?.title || ''} ${item?.message || ''} ${item?.type || ''}`.toLowerCase();
+                return text.includes('escalat') || text.includes('urgent') || text.includes('critical');
+            }).length;
 
             setData({
                 stats: {
@@ -133,8 +140,8 @@ const Dashboard = () => {
                 },
                 appointments: appts,
                 botInteractions: botRes.data?.data?.length || 0,
-                pendingReminders: reminderRes.data?.data?.length || 0,
-                escalations: escalationRes.data?.data?.filter(e => e.status === 'PENDING').length || 0,
+                pendingReminders: pendingMessagesRes.data?.data?.length || 0,
+                escalations: escalationCount,
                 systemStatus: healthRes.data?.database === 'connected' ? 'Healthy' : 'Degraded'
             });
             setLastUpdated(new Date().toLocaleTimeString());
