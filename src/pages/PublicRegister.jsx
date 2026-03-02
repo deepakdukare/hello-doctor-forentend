@@ -111,12 +111,15 @@ const PublicRegister = () => {
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
+            const errorMsg = err.response?.data?.message || err.message;
             if (err.response?.data?.error_code === 'PATIENT_EXISTS') {
                 setBookingForm(prev => ({ ...prev, wa_id: patientForm.wa_id || patientForm.father_mobile }));
                 setStep(2);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (errorMsg.includes("E11000") && errorMsg.includes("patient_id")) {
+                setError("A profile with this registration identifier already exists. If this is unexpected, please refresh or contact the clinic for assistance.");
             } else {
-                setError(err.response?.data?.message || "Registration failed. Please try again.");
+                setError(errorMsg || "Registration failed. Please try again.");
             }
         } finally {
             setLoading(false);

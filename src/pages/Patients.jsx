@@ -158,10 +158,13 @@ const Patients = () => {
             fetchData();
             setTimeout(() => setSuccess(null), 4000);
         } catch (e) {
+            const errorMsg = e.response?.data?.message || e.message;
             if (e.response?.status === 409) {
                 setError("Profile Exists: Patient with this Registry ID or WhatsApp already exists.");
+            } else if (errorMsg.includes("E11000") && errorMsg.includes("patient_id")) {
+                setError("System Conflict: The generated ID (e.g. DICC-2026-0001) already has an existing Medical Record. This usually happens if a previous record wasn't fully cleared. Please contact support to sync the registry.");
             } else {
-                setError(e.response?.data?.message || e.message);
+                setError(errorMsg);
             }
         } finally {
             setSubmitting(false);

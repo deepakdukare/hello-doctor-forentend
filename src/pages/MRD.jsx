@@ -138,7 +138,12 @@ const MRD = () => {
                 setRecords(r.data?.data?.entries || []);
             }
         } catch (e) {
-            setFormStatus({ error: e.response?.data?.message || e.message, success: null });
+            const errorMsg = e.response?.data?.message || e.message;
+            if (errorMsg.includes("E11000") && errorMsg.includes("patient_id")) {
+                setFormStatus({ error: "Conflict: This Patient ID already has an existing MRD record. Multiple records for the same ID are not allowed.", success: null });
+            } else {
+                setFormStatus({ error: errorMsg, success: null });
+            }
         }
         finally { setSaving(false); }
     };

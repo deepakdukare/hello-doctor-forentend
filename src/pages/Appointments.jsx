@@ -426,8 +426,10 @@ const Appointments = () => {
                                         <tr key={appt.appointment_id} className="row-hover-v3">
                                             <td>
                                                 <div className="slot-id-box">
-                                                    <div className="slot-badge-v3">{appt.slot_id}</div>
-                                                    <div>
+                                                    <div className="slot-badge-v3">
+                                                        <div className="slot-pill-tag">{appt.slot_id}</div>
+                                                    </div>
+                                                    <div className="time-stack-v3">
                                                         <div className="slot-label-v3">{getSlotDisplayLabel(appt)}</div>
                                                         <div className="slot-sub-v3">{getSessionDisplay(appt)}</div>
                                                     </div>
@@ -440,7 +442,7 @@ const Appointments = () => {
                                                         <span className="p-id-v3">{appt.patient_id}</span>
                                                         <span className="dot">•</span>
                                                         <Zap size={10} color="#10b981" />
-                                                        <span>{appt.parent_mobile}</span>
+                                                        <span>{appt.parent_mobile || patient?.parent_mobile || '-'}</span>
                                                     </div>
                                                 </div>
                                             </td>
@@ -594,11 +596,18 @@ const Appointments = () => {
 
                                     <div className="form-grid-v3">
                                         <div className="form-group-v3">
-                                            <label>Appointment Date</label>
-                                            <div className="input-wrap-v3">
-                                                <CalendarIcon size={18} />
-                                                <input type="date" required value={form.appointment_date} onChange={e => setForm({ ...form, appointment_date: e.target.value })} />
-                                            </div>
+                                            <label>Consulting Doctor</label>
+                                            <select value={form.doctor_name} onChange={e => setForm({ ...form, doctor_name: e.target.value })} className="input-v3">
+                                                <option value="Dr. Indu">Dr. Indu</option>
+                                                {doctors.map((d) => {
+                                                    const doctorName = getDoctorDisplayName(d);
+                                                    return (
+                                                        <option key={d.doctor_id || d._id || doctorName} value={doctorName}>
+                                                            {doctorName}
+                                                        </option>
+                                                    );
+                                                })}
+                                            </select>
                                         </div>
                                         <div className="form-group-v3">
                                             <label>Visit Category</label>
@@ -607,6 +616,22 @@ const Appointments = () => {
                                                 <option value="VACCINATION">Vaccination</option>
                                                 <option value="FOLLOWUP">Follow-up</option>
                                                 <option value="PULMONARY">Pulmonary Assessment</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="form-group-v3">
+                                            <label>Appointment Date</label>
+                                            <div className="input-wrap-v3">
+                                                <CalendarIcon size={18} />
+                                                <input type="date" required value={form.appointment_date} onChange={e => setForm({ ...form, appointment_date: e.target.value })} />
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group-v3">
+                                            <label>Session Mode</label>
+                                            <select value={form.appointment_mode} onChange={e => setForm({ ...form, appointment_mode: e.target.value })} className="input-v3">
+                                                <option value="OFFLINE">Offline (In-Clinic)</option>
+                                                <option value="ONLINE">Online (Video)</option>
                                             </select>
                                         </div>
 
@@ -633,27 +658,6 @@ const Appointments = () => {
                                             )}
                                         </div>
 
-                                        <div className="form-group-v3">
-                                            <label>Consulting Doctor</label>
-                                            <select value={form.doctor_name} onChange={e => setForm({ ...form, doctor_name: e.target.value })} className="input-v3">
-                                                <option value="Dr. Indu">Dr. Indu</option>
-                                                {doctors.map((d) => {
-                                                    const doctorName = getDoctorDisplayName(d);
-                                                    return (
-                                                        <option key={d.doctor_id || d._id || doctorName} value={doctorName}>
-                                                            {doctorName}
-                                                        </option>
-                                                    );
-                                                })}
-                                            </select>
-                                        </div>
-                                        <div className="form-group-v3">
-                                            <label>Session Mode</label>
-                                            <select value={form.appointment_mode} onChange={e => setForm({ ...form, appointment_mode: e.target.value })} className="input-v3">
-                                                <option value="OFFLINE">Offline (In-Clinic)</option>
-                                                <option value="ONLINE">Online (Video)</option>
-                                            </select>
-                                        </div>
                                         <div className="form-group-v3 full-span">
                                             <label>Clinical Notes</label>
                                             <textarea rows={2} placeholder="Symptom notes or special requests..." value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} className="input-v3 text-area"></textarea>
@@ -733,10 +737,41 @@ const Appointments = () => {
 
                 .filter-shelf-premium { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 0.75rem; border-radius: 24px; border: 1px solid #f1f5f9; margin-bottom: 2.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
                 .filter-group-v3 { display: flex; gap: 0.75rem; }
-                .filter-item-v3 { position: relative; display: flex; align-items: center; gap: 0.75rem; padding: 0 1.25rem; background: #f8fafc; border-radius: 16px; }
+                .filter-item-v3 { 
+                    position: relative; 
+                    display: flex; 
+                    align-items: center; 
+                    gap: 0.75rem; 
+                    padding: 0 1.25rem; 
+                    background: #f8fafc; 
+                    border-radius: 16px; 
+                    transition: all 0.2s;
+                    border: 1px solid transparent;
+                }
+                .filter-item-v3:hover { background: #fff; border-color: #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
                 .f-icon { color: #6366f1; opacity: 0.6; }
-                .f-input, .f-select { height: 48px; border: none; background: transparent; font-weight: 700; color: #1e293b; font-size: 0.9rem; outline: none; cursor: pointer; }
-                .search-pill-v3 { display: flex; align-items: center; gap: 0.75rem; background: #f8fafc; padding: 0 1.5rem; border-radius: 50px; color: #cbd5e1; width: 300px; }
+                .f-input, .f-select { 
+                    height: 48px; 
+                    border: none; 
+                    background: transparent; 
+                    font-weight: 700; 
+                    color: #000000; 
+                    font-size: 0.9rem; 
+                    outline: none; 
+                    cursor: pointer; 
+                }
+                .f-select {
+                    appearance: none;
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+                    background-repeat: no-repeat;
+                    background-position: right 0 center;
+                    background-size: 1rem;
+                    padding-right: 2rem;
+                    min-width: 120px;
+                }
+                .f-select option { background: #fff; color: #000; }
+                .search-pill-v3 { display: flex; align-items: center; gap: 0.75rem; background: #f8fafc; padding: 0 1.5rem; border-radius: 50px; color: #cbd5e1; width: 300px; border: 1px solid transparent; transition: all 0.2s; }
+                .search-pill-v3:focus-within { background: #fff; border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
                 .search-pill-v3 input { border: none; background: transparent; height: 48px; font-weight: 600; font-size: 0.9rem; width: 100%; outline: none; color: #1e293b; }
 
                 .repository-card-v3 { background: #fff; border-radius: 32px; border: 1px solid #f1f5f9; box-shadow: 0 4px 30px rgba(0,0,0,0.02); overflow: hidden; }
@@ -746,22 +781,42 @@ const Appointments = () => {
                 .row-hover-v3 td { padding: 1.5rem 2rem; border-bottom: 1px solid #f8fafc; }
                 .row-hover-v3:hover td { background: #fcfdff; }
 
-                .slot-id-box { display: flex; align-items: center; gap: 1.25rem; }
-                .slot-badge-v3 { width: 44px; height: 44px; background: #eef2ff; color: #6366f1; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; }
-                .slot-label-v3 { font-size: 0.95rem; font-weight: 800; color: #1e293b; }
-                .slot-sub-v3 { font-size: 0.75rem; color: #94a3b8; font-weight: 600; }
+                .slot-id-box { display: flex; align-items: center; gap: 1.5rem; }
+                .slot-badge-v3 { 
+                    min-width: 50px; 
+                    height: 50px; 
+                    background: #f1f5f9; 
+                    border-radius: 14px; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    padding: 0 0.75rem;
+                }
+                .slot-pill-tag {
+                    background: #6366f1;
+                    color: #fff;
+                    font-size: 0.65rem;
+                    font-weight: 900;
+                    padding: 0.2rem 0.5rem;
+                    border-radius: 6px;
+                    letter-spacing: 0.05em;
+                }
+                .time-stack-v3 { display: flex; flex-direction: column; gap: 0.1rem; }
+                .slot-label-v3 { font-size: 1rem; font-weight: 900; color: #0f172a; }
+                .slot-sub-v3 { font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 
                 .patient-link-v3 { display: flex; flex-direction: column; gap: 0.25rem; }
-                .p-name-v3 { font-weight: 800; color: #0f172a; font-size: 1rem; }
-                .p-meta-v3 { display: flex; align-items: center; gap: 0.5rem; color: #64748b; font-size: 0.8rem; font-weight: 600; }
+                .p-name-v3 { font-weight: 800; color: #0f172a; font-size: 1.05rem; }
+                .p-meta-v3 { display: flex; align-items: center; gap: 0.5rem; color: #64748b; font-size: 0.85rem; font-weight: 600; }
                 .dot { opacity: 0.3; }
 
                 .doc-assign-v3 { display: flex; flex-direction: column; gap: 0.4rem; }
-                .d-name-v3 { font-weight: 700; color: #1e293b; font-size: 0.9rem; }
-                .v-tag-v3 { font-size: 0.65rem; font-weight: 900; color: #6366f1; background: #f5f3ff; padding: 0.2rem 0.6rem; border-radius: 6px; width: fit-content; text-transform: uppercase; letter-spacing: 0.05em; }
+                .d-name-v3 { font-weight: 800; color: #1e293b; font-size: 0.95rem; }
+                .v-tag-v3 { font-size: 0.6rem; font-weight: 900; color: #6366f1; background: #f5f3ff; padding: 0.2rem 0.6rem; border-radius: 6px; width: fit-content; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid rgba(99,102,241,0.1); }
 
-                .status-chip-v3 { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 50px; font-size: 0.75rem; font-weight: 800; width: fit-content; text-transform: uppercase; letter-spacing: 0.05em; }
-                .source-link-v3 { display: flex; align-items: center; gap: 0.5rem; color: #94a3b8; font-size: 0.75rem; font-weight: 700; }
+                .status-chip-v3 { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.7rem; font-weight: 800; width: fit-content; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid rgba(0,0,0,0.05); }
+                .source-link-v3 { display: flex; align-items: center; gap: 0.5rem; color: #cbd5e1; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+                .wa-icon { color: #25d366; }
 
                 .action-hub-v3 { display: flex; gap: 0.75rem; justify-content: flex-end; }
                 .hub-btn { width: 40px; height: 40px; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: #64748b; background: #f8fafc; }
@@ -799,9 +854,64 @@ const Appointments = () => {
                 .full-span { grid-column: 1 / -1; }
                 .form-group-v3 { display: flex; flex-direction: column; gap: 0.6rem; }
                 .form-group-v3 label { font-size: 0.85rem; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; }
-                .input-v3 { height: 56px; border-radius: 16px; border: 2px solid #f1f5f9; padding: 0 1.25rem; font-size: 0.95rem; font-weight: 600; outline: none; transition: 0.2s; }
-                .input-v3:focus { border-color: #6366f1; }
+                .input-v3 { 
+                    height: 56px; 
+                    border-radius: 16px; 
+                    border: 2px solid #f1f5f9; 
+                    padding: 0 1.25rem; 
+                    font-size: 0.95rem; 
+                    font-weight: 600; 
+                    outline: none; 
+                    transition: 0.2s; 
+                    background: #fff;
+                    color: #000000;
+                }
+                .input-v3:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
+                
+                select.input-v3 {
+                    appearance: none;
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+                    background-repeat: no-repeat;
+                    background-position: right 1.25rem center;
+                    background-size: 1.25rem;
+                    padding-right: 3rem;
+                }
+                select.input-v3 option { background: #fff; color: #000; }
+
                 .text-area { height: auto; padding: 1.25rem; resize: none; }
+                
+                .input-wrap-v3 { 
+                    position: relative; 
+                    display: flex; 
+                    align-items: center; 
+                    background: #fff; 
+                    border: 2px solid #f1f5f9; 
+                    border-radius: 16px; 
+                    height: 56px; 
+                    padding: 0 1.25rem;
+                    transition: all 0.2s;
+                }
+                .input-wrap-v3:focus-within { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
+                .input-wrap-v3 svg { color: #6366f1; margin: 0 0.75rem 0 0; flex-shrink: 0; }
+                .input-wrap-v3 input { 
+                    border: none; 
+                    outline: none; 
+                    flex: 1; 
+                    font-size: 0.95rem; 
+                    font-weight: 600; 
+                    color: #1e293b; 
+                    background: transparent;
+                    height: 100%;
+                    width: 100%;
+                    padding: 0;
+                    font-family: inherit;
+                }
+                .input-wrap-v3 input::-webkit-calendar-picker-indicator {
+                    cursor: pointer;
+                    opacity: 0.5;
+                    filter: invert(36%) sepia(87%) saturate(2250%) hue-rotate(222deg) brightness(96%) contrast(92%); /* Color matching #6366f1 */
+                    margin-left: 0.5rem;
+                }
                 
                 .selected-patient-v3 { margin-bottom: 2.5rem; }
                 .p-banner { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 2rem; background: #f0fdf4; border: 1px solid #dcfce7; border-radius: 20px; }
@@ -814,6 +924,17 @@ const Appointments = () => {
                 .slot-pill-v3.active { border-color: #6366f1; background: #f5f8ff; box-shadow: 0 8px 20px rgba(99,102,241,0.1); }
                 .slot-time { font-size: 1.05rem; font-weight: 900; color: #1e293b; }
                 .slot-session { font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 0.25rem; }
+                .no-slots-v3 { 
+                    grid-column: 1 / -1; 
+                    padding: 2.5rem; 
+                    background: #f8fafc; 
+                    border: 2px dashed #e2e8f0; 
+                    border-radius: 20px; 
+                    text-align: center; 
+                    color: #64748b; 
+                    font-weight: 700;
+                    font-size: 0.95rem;
+                }
 
                 .modal-footer-v3 { display: flex; gap: 1.5rem; margin-top: 3rem; }
                 .btn-cancel { flex: 1; height: 60px; border-radius: 20px; border: none; background: #f1f5f9; color: #64748b; font-weight: 800; cursor: pointer; transition: 0.2s; }
