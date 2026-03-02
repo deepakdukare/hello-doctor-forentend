@@ -132,3 +132,80 @@
       at C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:10800:39
       at JSXParserMixin.allowInAnd (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:12426:12)
       at JSXParserMixin.parseMaybeAssignAllowIn (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:10800:17)
+[2m2:46:39 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\src\pages\Scheduling.jsx: Identifier 'docData' has already been declared. (202:18)
+
+[0m [90m 200 |[31m             }))[33m;[31m
+ [90m 201 |[31m
+[31m[1m>[22m[31m[90m 202 |[31m             [36mconst[31m docData [33m=[31m (docRes[33m.[31mdata[33m?[31m[33m.[31mdata [33m||[31m [])[33m.[31msort((a[33m,[31m b) [33m=>[31m {
+ [90m     |[31m                   [31m[1m^[22m[31m
+ [90m 203 |[31m                 [36mconst[31m nameA [33m=[31m (a[33m.[31mname [33m||[31m a[33m.[31mfull_name [33m||[31m [32m''[31m)[33m.[31mtoLowerCase()[33m;[31m
+ [90m 204 |[31m                 [36mconst[31m nameB [33m=[31m (b[33m.[31mname [33m||[31m b[33m.[31mfull_name [33m||[31m [32m''[31m)[33m.[31mtoLowerCase()[33m;[31m
+ [90m 205 |[31m                 [36mreturn[31m nameA[33m.[31mlocaleCompare(nameB)[33m;[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/War_Room/Documents/GitHub/Dr-indu-child-care-frontend/src/pages/Scheduling.jsx[39m:202:18
+[33m  200 |              }));
+  201 |  
+  202 |              const docData = (docRes.data?.data || []).sort((a, b) => {
+      |                    ^
+  203 |                  const nameA = (a.name || a.full_name || '').toLowerCase();
+  204 |                  const nameB = (b.name || b.full_name || '').toLowerCase();[39m
+      at constructor (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:6599:19)
+      at ScopeHandler.checkRedeclarationInScope (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:1619:19)
+      at ScopeHandler.declareName (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:1585:12)
+      at JSXParserMixin.declareNameFromIdentifier (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:7567:16)
+      at JSXParserMixin.checkIdentifier (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:7563:12)
+      at JSXParserMixin.checkLVal (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:7500:12)
+      at JSXParserMixin.parseVarId (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:13412:10)
+      at JSXParserMixin.parseVar (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:13383:12)
+      at JSXParserMixin.parseVarStatement (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:13230:10)
+      at JSXParserMixin.parseStatementContent (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:12851:23)
+      at JSXParserMixin.parseStatementLike (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseTryStatement (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:13205:23)
+      at JSXParserMixin.parseStatementContent (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:12804:21)
+      at JSXParserMixin.parseStatementLike (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseStatementListItem (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:12747:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:13316:61)
+      at JSXParserMixin.parseBlockBody (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseBlock (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:13297:10)
+      at JSXParserMixin.parseFunctionBody (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:12100:24)
+      at JSXParserMixin.parseArrowExpression (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:12075:10)
+      at JSXParserMixin.parseAsyncArrowFromCallExpression (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11264:10)
+      at JSXParserMixin.parseCoverCallAndAsyncArrowHead (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11194:27)
+      at JSXParserMixin.parseSubscript (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11120:19)
+      at JSXParserMixin.parseSubscripts (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11094:19)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11085:17)
+      at JSXParserMixin.parseUpdate (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:10904:23)
+      at JSXParserMixin.parseMaybeConditional (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:10881:23)
+      at JSXParserMixin.parseMaybeAssign (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:10831:21)
+      at C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:10800:39
+      at JSXParserMixin.allowInAnd (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:12426:12)
+      at JSXParserMixin.parseMaybeAssignAllowIn (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:10800:17)
+      at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:12493:17)
+      at JSXParserMixin.parseExprListItem (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:12175:18)
+      at JSXParserMixin.parseCallExpressionArguments (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11252:22)
+      at JSXParserMixin.parseCoverCallAndAsyncArrowHead (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11186:29)
+      at JSXParserMixin.parseSubscript (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11120:19)
+      at JSXParserMixin.parseSubscripts (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11094:19)
+      at JSXParserMixin.parseExprSubscripts (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11085:17)
+      at JSXParserMixin.parseUpdate (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11066:21)
+      at JSXParserMixin.parseMaybeUnary (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:11046:23)
+      at JSXParserMixin.parseMaybeUnaryOrPrivate (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:10899:61)
+      at JSXParserMixin.parseExprOps (C:\Users\War_Room\Documents\GitHub\Dr-indu-child-care-frontend\node_modules\@babel\parser\lib\index.js:10904:23)
+[2m2:46:50 pm[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [33mwarning: [33mThis assignment will throw because "docData" is a constant[33m
+200 |        }));
+201 |  
+202 |        docData = (docData || []).sort((a, b) => {
+    |        ^
+203 |          const nameA = (a.name || a.full_name || '').toLowerCase();
+204 |          const nameB = (b.name || b.full_name || '').toLowerCase();
+[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36mC:/Users/War_Room/Documents/GitHub/Dr-indu-child-care-frontend/src/pages/Scheduling.jsx[39m

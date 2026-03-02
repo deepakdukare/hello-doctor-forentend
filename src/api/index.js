@@ -217,7 +217,12 @@ export const createSlot = (data) => api.post('/slots/config/add', data);
 export const deleteSlot = (slotId) => api.delete(`/slots/config/${slotId}`);
 export const updateDailySlot = (data) => {
     const doctorName = data?.doctor_name ? canonicalDoctorName(data.doctor_name) : data?.doctor_name;
-    const payload = { ...data, doctor_name: doctorName };
+    const { date, ...rest } = data;
+    const payload = {
+        ...rest,
+        doctor_name: doctorName,
+        slot_date: date || data.slot_date
+    };
     return withDoctorNameFallback(
         (nextPayload) => api.post('/slots/daily-update', nextPayload),
         payload

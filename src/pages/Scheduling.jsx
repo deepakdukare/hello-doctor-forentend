@@ -16,7 +16,7 @@ import {
     getDoctors,
     getSlotConfig,
     updateDailySlot,
-    updateSlotConfig,
+    updateDoctor,
 } from '../api/index';
 
 const TABS = { MASTER: 'master', WEEKLY: 'weekly', DAILY: 'daily' };
@@ -32,8 +32,12 @@ const getSunday = (seed = new Date()) => {
     return d;
 };
 
-const getDoctorDisplayName = (doc) =>
-    doc?.full_name || doc?.name || doc?.doctor_name || doc?.doctor_id || '';
+const getDoctorDisplayName = (doc) => {
+    if (!doc) return '';
+    const name = doc.full_name || doc.name || doc.doctor_name || doc.doctor_id || '';
+    const spec = doc.speciality || doc.specialization;
+    return spec ? `${name} (${spec})` : name;
+};
 
 const formatTime12h = (time) => {
     if (!time) return '--:--';
@@ -126,6 +130,7 @@ const Scheduling = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    const [masterFilter, setMasterFilter] = useState('ALL');
     const [showAdd, setShowAdd] = useState(false);
     const [addForm, setAddForm] = useState({
         slot_label: '',
@@ -170,8 +175,37 @@ const Scheduling = () => {
             const [slotRes, docRes] = await Promise.all([getSlotConfig(), getDoctors()]);
             const rawSlotData = slotRes.data?.data || [];
             const normalized = normalizeSlotConfigResponse(rawSlotData);
-            const slotData = (normalized.uniqueSlots || []).sort(slotSorter);
-            const docData = docRes.data?.data || [];
+            let docData = docRes.data?.data || [];
+
+            // Build days_by_doctor from each doctor's available_slots profile.
+            // available_slots format: { "0": ["S1","S2"], "1": ["S1"] } (day index → slot IDs)
+            const daysByDoctor = {}; // { slotId: { doctorName: [dayNums] } }
+            docData.forEach((doc) => {
+                const docName = getDoctorDisplayName(doc);
+                const avail = doc.available_slots || {};
+                Object.entries(avail).forEach(([dayStr, slotIds]) => {
+                    const dayNum = Number(dayStr);
+                    (slotIds || []).forEach((slotId) => {
+                        if (!daysByDoctor[slotId]) daysByDoctor[slotId] = {};
+                        if (!daysByDoctor[slotId][docName]) daysByDoctor[slotId][docName] = [];
+                        if (!daysByDoctor[slotId][docName].includes(dayNum)) {
+                            daysByDoctor[slotId][docName].push(dayNum);
+                        }
+                    });
+                });
+            });
+
+            const slotData = (normalized.uniqueSlots || []).sort(slotSorter).map((slot) => ({
+                ...slot,
+                days_by_doctor: daysByDoctor[slot.slot_id] || slot.days_by_doctor || {},
+            }));
+
+            docData = (docData || []).sort((a, b) => {
+                const nameA = (a.name || a.full_name || '').toLowerCase();
+                const nameB = (b.name || b.full_name || '').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+
             setSlots(slotData);
             setSlotTemplates(normalized.templates || []);
             setDoctors(docData);
@@ -298,9 +332,23 @@ const Scheduling = () => {
     };
 
     const saveWeeklyTemplate = async () => {
+        if (!selectedDoctor) return;
         setError('');
         try {
-            await updateSlotConfig(slots);
+            // Build available_slots: { "dayNum": ["S1", "S2", ...] } for the selected doctor
+            const availableSlots = {};
+            slots.forEach((slot) => {
+                const byDoctor = slot.days_by_doctor || {};
+                const days = Array.isArray(byDoctor[selectedDoctorName])
+                    ? byDoctor[selectedDoctorName]
+                    : (slot.days_of_week || []);
+                days.forEach((dayNum) => {
+                    const key = String(dayNum);
+                    if (!availableSlots[key]) availableSlots[key] = [];
+                    availableSlots[key].push(slot.slot_id);
+                });
+            });
+            await updateDoctor(selectedDoctor.doctor_id, { available_slots: availableSlots });
             setWeeklyDirty(false);
             withToast('Weekly template updated.');
         } catch (e) {
@@ -348,7 +396,11 @@ const Scheduling = () => {
 
     const renderSessionTables = (mode) => {
         if (mode === 'master' && slotTemplates.length > 0) {
-            return slotTemplates.map((template) => (
+            const filtered = masterFilter === 'ALL'
+                ? slotTemplates
+                : slotTemplates.filter((t) => t.name === masterFilter);
+
+            return filtered.map((template) => (
                 <div key={template.name} className="sch-card">
                     <div className="sch-section-title" style={{ color: template.is_doctor ? '#4f46e5' : '#64748b' }}>
                         <span className="sch-dot" style={{ background: template.is_doctor ? '#4f46e5' : '#94a3b8' }} />
@@ -555,10 +607,21 @@ const Scheduling = () => {
             {activeTab === TABS.MASTER && (
                 <>
                     <div className="action-row">
-                        <button className="btn light" onClick={loadBase}><RefreshCw size={14} /> Refresh</button>
-                        {showAdd
-                            ? <button className="btn primary" onClick={() => setShowAdd(false)}><X size={14} /> Cancel</button>
-                            : <button className="btn primary" onClick={() => setShowAdd(true)}><Plus size={14} /> Add Slot</button>}
+                        <div className="master-filter">
+                            <label>Show Template:</label>
+                            <select value={masterFilter} onChange={(e) => setMasterFilter(e.target.value)}>
+                                <option value="ALL">All Templates</option>
+                                {slotTemplates.map((t) => (
+                                    <option key={t.name} value={t.name}>{t.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="master-btns">
+                            <button className="btn light" onClick={loadBase}><RefreshCw size={14} /> Refresh</button>
+                            {showAdd
+                                ? <button className="btn primary" onClick={() => setShowAdd(false)}><X size={14} /> Cancel</button>
+                                : <button className="btn primary" onClick={() => setShowAdd(true)}><Plus size={14} /> Add Slot</button>}
+                        </div>
                     </div>
 
                     {showAdd && (
@@ -654,7 +717,11 @@ const Scheduling = () => {
                 .alert.error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
                 .alert.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
 
-                .action-row { display: flex; justify-content: flex-end; gap: 0.6rem; margin-bottom: 0.8rem; }
+                .action-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; gap: 1rem; }
+                .master-filter { display: flex; flex-direction: column; gap: 4px; }
+                .master-filter label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+                .master-filter select { height: 42px; padding: 0 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; font-weight: 600; color: #475569; min-width: 200px; }
+                .master-btns { display: flex; gap: 0.75rem; }
                 .btn { border: none; border-radius: 14px; height: 42px; padding: 0 1rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; }
                 .btn.light { border: 1px solid #e2e8f0; background: #fff; color: #334155; }
                 .btn.primary { background: linear-gradient(135deg, #5b5ce2, #3f46d7); color: #fff; }
