@@ -42,8 +42,8 @@ const EMPTY_FORM = {
     email: '',
     doctor: '',
     communication_preference: 'whatsapp',
-    remarks: '',
-    registration_source: 'dashboard',
+    remark: '',
+    enrollment_source: 'dashboard',
     enrollment_option: 'just_enroll'
 };
 
@@ -140,8 +140,8 @@ const Patients = () => {
                 age_months: form.age_months ? parseInt(form.age_months) : undefined,
                 birth_time_hours: form.birth_time_hours ? parseInt(form.birth_time_hours) : undefined,
                 birth_time_minutes: form.birth_time_minutes ? parseInt(form.birth_time_minutes) : undefined,
-                parent_mobile: form.parent_mobile || form.father_mobile || form.wa_id,
-                wa_id: form.wa_id || form.parent_mobile || form.father_mobile,
+                parent_mobile: (form.parent_mobile || form.father_mobile || form.wa_id).toString(),
+                wa_id: (form.wa_id || form.parent_mobile || form.father_mobile).toString(),
             };
 
             if (editId) {
@@ -158,7 +158,11 @@ const Patients = () => {
             fetchData();
             setTimeout(() => setSuccess(null), 4000);
         } catch (e) {
-            setError(e.response?.data?.message || e.message);
+            if (e.response?.status === 409) {
+                setError("Profile Exists: Patient with this Registry ID or WhatsApp already exists.");
+            } else {
+                setError(e.response?.data?.message || e.message);
+            }
         } finally {
             setSubmitting(false);
         }
@@ -226,8 +230,8 @@ const Patients = () => {
             email: p.email || '',
             doctor: p.doctor || '',
             communication_preference: p.communication_preference || 'whatsapp',
-            remarks: p.remarks || p.remark || '',
-            registration_source: p.registration_source || 'dashboard',
+            remark: p.remark || p.remarks || '',
+            enrollment_source: p.enrollment_source || p.registration_source || 'dashboard',
             enrollment_option: p.enrollment_option || 'just_enroll'
         });
         setShowInlineForm(true);
@@ -512,7 +516,7 @@ const Patients = () => {
                                 <div className="form-row-multi">
                                     <div className="form-group-v2">
                                         <label>Remarks / Notes</label>
-                                        <input placeholder="High priority patient" value={form.remarks} onChange={e => setForm({ ...form, remarks: e.target.value })} className="input-v3" />
+                                        <input placeholder="High priority patient" value={form.remark} onChange={e => setForm({ ...form, remark: e.target.value })} className="input-v3" />
                                     </div>
                                     <div className="form-group-v2">
                                         <label>Enrollment Option</label>
@@ -655,7 +659,7 @@ const Patients = () => {
                                                         <span className={`status-chip-v3 ${p.registration_status === 'COMPLETE' ? 'complete' : 'pending'}`}>
                                                             {p.registration_status}
                                                         </span>
-                                                        <span className="source-meta">Via {p.registration_source || 'Dashboard'}</span>
+                                                        <span className="source-meta">Via {p.enrollment_source || p.registration_source || 'Dashboard'}</span>
                                                         {p.balance > 0 && <span className="source-meta" style={{ color: '#ef4444' }}>Bal: ₹{p.balance}</span>}
                                                     </div>
                                                 </td>
@@ -725,47 +729,50 @@ const Patients = () => {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            {p.remarks && (
+                                                            {(p.remark || p.remarks) && (
                                                                 <div className="expansion-footer-premium" style={{ marginTop: '1.5rem', padding: '1.25rem', background: '#fff', borderRadius: '15px', border: '1px solid #eef2ff' }}>
                                                                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
                                                                         <Info size={16} style={{ color: '#6366f1', marginTop: '0.2rem' }} />
                                                                         <div>
                                                                             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Administrative Remarks</span>
-                                                                            <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.9rem', color: '#475569', fontWeight: 600, lineHeight: 1.5 }}>{p.remarks}</p>
+                                                                            <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.9rem', color: '#475569', fontWeight: 600, lineHeight: 1.5 }}>{p.remark || p.remarks}</p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             )}
                                                         </div>
-                                                    </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
                                     ))}
-                                                </tbody>
+                                </tbody>
                             </table>
                         </div>
 
-                                {pagination.pages > 1 && (
-                                    <div className="pagination-v2-premium">
-                                        <div className="pag-info">
-                                            Showing <strong>{(page - 1) * 20 + 1}</strong> to <strong>{Math.min(page * 20, pagination.total)}</strong> of <strong>{pagination.total}</strong>
-                                            <span className="pag-total">patients in registry</span>
-                                        </div>
-                                        <div style={{ display: 'flex', gap: '1rem' }}>
-                                            <button className="pag-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
-                                                <ChevronRight size={20} style={{ transform: 'rotate(180deg)' }} />
-                                                <span>Previous</span>
-                                            </button>
-                                            <button className="pag-btn" onClick={() => setPage(p => Math.min(pagination.pages, p + 1))} disabled={page === pagination.pages}>
-                                                <span>Next</span>
-                                                <ChevronRight size={20} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                        </div>
-                    </>
+                        {pagination.pages > 1 && (
+                            <div className="pagination-v2-premium">
+                                <div className="pag-info">
+                                    Showing <strong>{(page - 1) * 20 + 1}</strong> to <strong>{Math.min(page * 20, pagination.total)}</strong> of <strong>{pagination.total}</strong>
+                                    <span className="pag-total">patients in registry</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                    <button className="pag-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+                                        <ChevronRight size={20} style={{ transform: 'rotate(180deg)' }} />
+                                        <span>Previous</span>
+                                    </button>
+                                    <button className="pag-btn" onClick={() => setPage(p => Math.min(pagination.pages, p + 1))} disabled={page === pagination.pages}>
+                                        <span>Next</span>
+                                        <ChevronRight size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </>
             )}
 
-                    <style>{`
+            <style>{`
                 .segmented-control-premium {
                     background: #f1f5f9;
                     padding: 0.4rem;
@@ -1533,8 +1540,8 @@ const Patients = () => {
                     .btn-save-v3, .btn-cancel-v3 { width: 100%; }
                 }
             `}</style>
-                </div>
-            );
+        </div>
+    );
 };
 
-            export default Patients;
+export default Patients;
