@@ -37,6 +37,7 @@ import Scheduling from './pages/Scheduling';
 import QueueDisplay from './pages/QueueDisplay';
 import Reports from './pages/Reports';
 import Notifications from './pages/Notifications';
+import ClinicDisplay from './pages/ClinicDisplay';
 
 const MobileNav = () => {
     const location = useLocation();
@@ -353,6 +354,7 @@ const App = () => {
                 <Routes>
                     <Route path="/login" element={<Login onLogin={handleLogin} />} />
                     <Route path="/register-form" element={<PublicRegister />} />
+                    <Route path="/clinic-display" element={<ClinicDisplay />} />
                     <Route path="*" element={<Navigate to="/login" replace />} />
                 </Routes>
             </Router>
@@ -384,6 +386,7 @@ const App = () => {
                                 <Route path="/queue" element={<QueueDisplay />} />
                                 <Route path="/reports" element={<Reports />} />
                                 <Route path="/notifications" element={<Notifications />} />
+                                <Route path="/clinic-display" element={<ClinicDisplay />} />
                                 <Route path="/settings" element={<Settings />} />
                                 <Route path="/login" element={<Navigate to="/" replace />} />
                             </Routes>

@@ -32,8 +32,9 @@ import {
     cancelAppointment,
     getAvailableSlots,
     searchPatients,
-    registerPatient
-} from '../api';
+    registerPatient,
+    bookAppointmentWithToken
+} from '../api/index';
 
 const STATUS_CONFIG = {
     CONFIRMED: { icon: <CheckCircle2 size={16} />, color: '#10b981', bg: '#dcfce7' },
@@ -236,7 +237,15 @@ const Appointments = () => {
             if (editMode) {
                 await updateAppointment(selectedAppointment.appointment_id, form);
             } else {
-                await bookAppointment(form);
+                // Determine if we should use book-with-token (only for current date clinic visits)
+                const isTodayStr = new Date().toISOString().split('T')[0];
+                const isToday = form.appointment_date === isTodayStr;
+
+                if (isToday) {
+                    await bookAppointmentWithToken(form);
+                } else {
+                    await bookAppointment(form);
+                }
             }
             setError(null);
             setActiveView('queue');
@@ -287,6 +296,7 @@ const Appointments = () => {
                 doctor_name: 'Dr. Indu',
                 appointment_date: filters.date || new Date().toISOString().split('T')[0],
                 slot_id: '',
+                doctor_id: doctors.find(d => getDoctorDisplayName(d) === 'Dr. Indu')?.doctor_id || '',
                 doctor_speciality: 'Pediatrics',
                 visit_type: 'CONSULTATION',
                 appointment_mode: 'OFFLINE',
@@ -597,7 +607,15 @@ const Appointments = () => {
                                     <div className="form-grid-v3">
                                         <div className="form-group-v3">
                                             <label>Consulting Doctor</label>
-                                            <select value={form.doctor_name} onChange={e => setForm({ ...form, doctor_name: e.target.value })} className="input-v3">
+                                            <select
+                                                value={form.doctor_name}
+                                                onChange={e => {
+                                                    const name = e.target.value;
+                                                    const docObj = doctors.find(d => getDoctorDisplayName(d) === name);
+                                                    setForm({ ...form, doctor_name: name, doctor_id: docObj?.doctor_id || '' });
+                                                }}
+                                                className="input-v3"
+                                            >
                                                 <option value="Dr. Indu">Dr. Indu</option>
                                                 {doctors.map((d) => {
                                                     const doctorName = getDoctorDisplayName(d);

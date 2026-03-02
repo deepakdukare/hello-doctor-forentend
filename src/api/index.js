@@ -190,7 +190,7 @@ export const getClinicDisplayData = (params) => api.get('/appointments/clinic-di
 export const nextToken = (doctorId, params) => api.get(`/appointments/next-token/${doctorId}`, { params });
 export const checkInToken = (token, data) => api.post(`/appointments/token/${token}/check-in`, data);
 export const updateTokenStatus = (token, data) => api.patch(`/appointments/token/${token}/status`, data);
-export const getTokenStatus = (token) => api.get(`/appointments/token-status/${token}`);
+export const getTokenStatus = (token, params) => api.get(`/appointments/token-status/${token}`, { params });
 export const autoReschedule = (data) => api.post('/appointments/auto-reschedule', data);
 
 // Doctors

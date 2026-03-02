@@ -6,7 +6,8 @@ import {
 } from 'lucide-react';
 import {
     getDoctors, getDailyTokens, getClinicDisplayData,
-    nextToken, checkInToken, updateTokenStatus, autoReschedule, bookAppointmentWithToken
+    nextToken, checkInToken, updateTokenStatus, autoReschedule, bookAppointmentWithToken,
+    getTokenStatus
 } from '../api/index';
 
 const STATUS_CONFIG = {
@@ -88,6 +89,9 @@ const QueueDisplay = () => {
     const [searchQ, setSearchQ] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [tab, setTab] = useState('queue'); // queue | display
+    const [statusSearch, setStatusSearch] = useState('');
+    const [tokenStatusData, setTokenStatusData] = useState(null);
+    const [checkingStatus, setCheckingStatus] = useState(false);
 
     const showSuccess = (msg) => { setSuccess(msg); setTimeout(() => setSuccess(null), 3000); };
     const showError = (msg) => { setError(msg); setTimeout(() => setError(null), 5000); };
@@ -110,7 +114,24 @@ const QueueDisplay = () => {
                 getClinicDisplayData({ doctor_id: selectedDoctor, date })
             ]);
             setTokens(tokenRes.data?.data || []);
-            setDisplayData(displayRes.data?.data || null);
+            const displayList = displayRes.data?.display || displayRes.data?.data || [];
+            if (Array.isArray(displayList)) {
+                const currentDoctorDisplay = displayList.find(d => String(d.doctor_id) === String(selectedDoctor));
+                // Map API names to component expected names
+                if (currentDoctorDisplay) {
+                    setDisplayData({
+                        ...currentDoctorDisplay,
+                        current_token: currentDoctorDisplay.now_serving_token,
+                        now_serving: currentDoctorDisplay.now_serving_token,
+                        next_token: currentDoctorDisplay.next_token,
+                        queue_length: currentDoctorDisplay.queue_length
+                    });
+                } else {
+                    setDisplayData(null);
+                }
+            } else {
+                setDisplayData(displayList || null);
+            }
         } catch (e) {
             showError(e.response?.data?.message || 'Failed to load queue data');
         } finally {
@@ -122,7 +143,7 @@ const QueueDisplay = () => {
 
     const handleCheckIn = async (token) => {
         try {
-            await checkInToken(token, {});
+            await checkInToken(token, { doctor_id: selectedDoctor, date });
             showSuccess(`Token ${token} checked in`);
             fetchQueue();
         } catch (e) { showError(e.response?.data?.message || 'Check-in failed'); }
@@ -130,7 +151,7 @@ const QueueDisplay = () => {
 
     const handleStatusChange = async (token, status) => {
         try {
-            await updateTokenStatus(token, { status });
+            await updateTokenStatus(token, { status, doctor_id: selectedDoctor, date });
             showSuccess(`Token ${token} marked as ${status}`);
             fetchQueue();
         } catch (e) { showError(e.response?.data?.message || 'Status update failed'); }
@@ -151,6 +172,20 @@ const QueueDisplay = () => {
             showSuccess('Missed tokens auto-rescheduled');
             fetchQueue();
         } catch (e) { showError(e.response?.data?.message || 'Auto-reschedule failed'); }
+    };
+
+    const handleCheckTokenStatus = async () => {
+        if (!statusSearch) return;
+        setCheckingStatus(true);
+        setTokenStatusData(null);
+        try {
+            const res = await getTokenStatus(statusSearch, { doctor_id: selectedDoctor, date });
+            setTokenStatusData(res.data?.data || res.data);
+        } catch (e) {
+            showError(e.response?.data?.message || 'Token not found');
+        } finally {
+            setCheckingStatus(false);
+        }
     };
 
     const filtered = tokens.filter(t => {
@@ -214,7 +249,46 @@ const QueueDisplay = () => {
                     <option value="ALL">All Statuses</option>
                     {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
+                <div style={{ display: 'flex', gap: '8px', borderLeft: '1px solid #e2e8f0', paddingLeft: '1rem' }}>
+                    <input
+                        value={statusSearch}
+                        onChange={e => setStatusSearch(e.target.value)}
+                        placeholder="Token #..."
+                        style={{ border: '1.5px solid #e2e8f0', borderRadius: '10px', padding: '0.4rem 0.6rem', fontSize: '0.8rem', width: '80px', outline: 'none' }}
+                    />
+                    <button
+                        onClick={handleCheckTokenStatus}
+                        disabled={checkingStatus}
+                        style={{ padding: '0.4rem 0.8rem', borderRadius: '10px', background: '#f8fafc', border: '1.5px solid #e2e8f0', color: '#64748b', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem' }}
+                    >
+                        {checkingStatus ? '...' : <Zap size={14} />}
+                    </button>
+                </div>
             </div>
+
+            {/* Token Status Result */}
+            {tokenStatusData && (
+                <div style={{ background: '#eff6ff', borderRadius: '16px', padding: '1.25rem', border: '1px solid #bfdbfe', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#3b82f6', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 800 }}>
+                            {tokenStatusData.token}
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#60a5fa', textTransform: 'uppercase' }}>Token Status</div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e40af' }}>{tokenStatusData.status}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#60a5fa', textTransform: 'uppercase' }}>Position</div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e40af' }}>#{tokenStatusData.position_in_queue || '—'}</div>
+                        </div>
+                        <div>
+                            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#60a5fa', textTransform: 'uppercase' }}>Estimated Wait</div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e40af' }}>{tokenStatusData.estimated_wait || '0'}m</div>
+                        </div>
+                    </div>
+                    <button onClick={() => setTokenStatusData(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+                </div>
+            )}
 
             {/* Alerts */}
             {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '0.85rem 1.25rem', marginBottom: '1rem', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.75rem' }}><AlertCircle size={18} />{error}</div>}
