@@ -26,11 +26,14 @@ api.interceptors.response.use(
     async (error) => {
         const config = error.config || {};
         const isNetworkError = !error.response;
+        const isProxyFailure = error.response?.status === 404 || error.response?.status === 502;
+
         const canRetryWithRemote =
-            isNetworkError &&
+            (isNetworkError || isProxyFailure) &&
             !config.__retriedWithRemote &&
             typeof config.url === 'string' &&
-            config.url.startsWith('/');
+            config.url.startsWith('/') &&
+            API_BASE_URL.startsWith('/');
 
         if (canRetryWithRemote) {
             config.__retriedWithRemote = true;

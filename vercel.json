@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/api/(.*)",
+            "destination": "https://api-dr-indu-child-care.brahmaastra.ai/api/$1"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
