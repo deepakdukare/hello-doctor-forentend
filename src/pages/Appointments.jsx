@@ -309,35 +309,37 @@ const Appointments = () => {
             <header className="page-header-v3">
                 <div className="header-meta-group">
                     <h1 className="header-h1-v3">Appointments</h1>
-                    <div className="stats-row-mini-v3" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                        <div className="stat-card-improved" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)', borderRadius: '20px', padding: '1.25rem 1.75rem', minWidth: '140px', color: '#fff', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)' }}>
-                            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Users size={24} color="#fff" />
+                    {activeView !== 'authorizer' && (
+                        <div className="stats-row-mini-v3" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                            <div className="stat-card-improved" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)', borderRadius: '20px', padding: '1.25rem 1.75rem', minWidth: '140px', color: '#fff', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Users size={24} color="#fff" />
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1 }}>{stats?.total_today || 0}</div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Today</div>
+                                </div>
                             </div>
-                            <div>
-                                <div style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1 }}>{stats?.total_today || 0}</div>
-                                <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Today</div>
+                            <div className="stat-card-improved" style={{ background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)', borderRadius: '20px', padding: '1.25rem 1.75rem', minWidth: '140px', color: '#fff', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <CheckCircle2 size={24} color="#fff" />
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1 }}>{stats?.confirmed || 0}</div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Confirmed</div>
+                                </div>
+                            </div>
+                            <div className="stat-card-improved" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)', borderRadius: '20px', padding: '1.25rem 1.75rem', minWidth: '140px', color: '#fff', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <XCircle size={24} color="#fff" />
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1 }}>{stats?.cancelled || 0}</div>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cancelled</div>
+                                </div>
                             </div>
                         </div>
-                        <div className="stat-card-improved" style={{ background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)', borderRadius: '20px', padding: '1.25rem 1.75rem', minWidth: '140px', color: '#fff', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }}>
-                            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <CheckCircle2 size={24} color="#fff" />
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1 }}>{stats?.confirmed || 0}</div>
-                                <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Confirmed</div>
-                            </div>
-                        </div>
-                        <div className="stat-card-improved" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)', borderRadius: '20px', padding: '1.25rem 1.75rem', minWidth: '140px', color: '#fff', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)' }}>
-                            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <XCircle size={24} color="#fff" />
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1 }}>{stats?.cancelled || 0}</div>
-                                <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cancelled</div>
-                            </div>
-                        </div>
-                    </div>
+                    )}
                 </div>
 
                 <div className="header-nav-v3">
