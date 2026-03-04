@@ -349,7 +349,7 @@ const Dashboard = () => {
 
             <style>{`
                 .dashboard-page-v2 {
-                    padding: 2.5rem;
+                    padding: 1.5rem;
                     max-width: 1600px;
                     margin: 0 auto;
                     animation: pageFadeIn 0.6s ease-out;
@@ -364,7 +364,7 @@ const Dashboard = () => {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-bottom: 3.5rem;
+                    margin-bottom: 2rem;
                 }
 
                 .header-title-premium {
@@ -467,19 +467,19 @@ const Dashboard = () => {
                 .dashboard-grid-v2 {
                     display: grid;
                     grid-template-columns: 1fr 380px;
-                    gap: 2.5rem;
+                    gap: 1.5rem;
                 }
 
                 .stats-grid-v2 {
                     display: grid;
                     grid-template-columns: repeat(4, 1fr);
-                    gap: 1.75rem;
-                    margin-bottom: 2.5rem;
+                    gap: 1rem;
+                    margin-bottom: 1.5rem;
                 }
 
                 .stat-card-premium {
                     background: #fff;
-                    padding: 1.5rem;
+                    padding: 1.25rem;
                     border-radius: 28px;
                     border: 1px solid #f1f5f9;
                     box-shadow: 0 4px 20px rgba(0,0,0,0.02);

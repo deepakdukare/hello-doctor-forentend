@@ -347,17 +347,17 @@ const Appointments = () => {
                             {/* Custom Doctor Dropdown */}
                             <div className="filter-item-v3" style={{ position: 'relative', cursor: 'pointer', minWidth: '170px' }} onClick={() => { setDocDropOpen(o => !o); setStatusDropOpen(false); }}>
                                 <Stethoscope size={18} className="f-icon" />
-                                <span style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.9rem', flex: 1 }}>
-                                    {filters.doctor_id ? (doctors.find(d => d.doctor_id === filters.doctor_id)?.full_name || 'All Doctors') : 'All Doctors'}
+                                <span style={{ fontWeight: 800, color: '#000000', fontSize: '1rem', flex: 1 }}>
+                                    {filters.doctor_id ? (getDoctorDisplayName(doctors.find(d => d.doctor_id === filters.doctor_id)) || 'All Doctors') : 'All Doctors'}
                                 </span>
                                 <span style={{ marginLeft: '0.5rem', color: '#94a3b8', fontSize: '0.8rem' }}>▾</span>
                                 {docDropOpen && (
                                     <div style={{ position: 'absolute', top: '110%', left: 0, zIndex: 9999, background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: '14px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', minWidth: '200px', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
-                                        {[{ label: 'All Doctors', value: '' }, ...doctors.map(d => ({ label: d.full_name, value: d.doctor_id }))].map(opt => (
+                                        {[{ label: 'All Doctors', value: '' }, ...doctors.map(d => ({ label: getDoctorDisplayName(d), value: d.doctor_id }))].map(opt => (
                                             <div key={opt.value} onClick={() => { setFilters({ ...filters, doctor_id: opt.value }); setDocDropOpen(false); }}
-                                                style={{ padding: '0.75rem 1.25rem', color: '#1e293b', fontWeight: filters.doctor_id === opt.value ? 800 : 500, fontSize: '0.9rem', background: filters.doctor_id === opt.value ? '#f0f4ff' : '#fff', cursor: 'pointer' }}
-                                                onMouseEnter={e => e.currentTarget.style.background = '#f8faff'}
-                                                onMouseLeave={e => e.currentTarget.style.background = filters.doctor_id === opt.value ? '#f0f4ff' : '#fff'}
+                                                style={{ padding: '0.75rem 1.25rem', color: '#000000', fontWeight: filters.doctor_id === opt.value ? 900 : 600, fontSize: '0.95rem', background: filters.doctor_id === opt.value ? '#f0f4ff' : '#ffffff', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}
+                                                onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                                                onMouseLeave={e => e.currentTarget.style.background = filters.doctor_id === opt.value ? '#f0f4ff' : '#ffffff'}
                                             >{opt.label}</div>
                                         ))}
                                     </div>
@@ -366,7 +366,7 @@ const Appointments = () => {
                             {/* Custom Status Dropdown */}
                             <div className="filter-item-v3" style={{ position: 'relative', cursor: 'pointer', minWidth: '150px' }} onClick={() => { setStatusDropOpen(o => !o); setDocDropOpen(false); }}>
                                 <Activity size={18} className="f-icon" />
-                                <span style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.9rem', flex: 1 }}>
+                                <span style={{ fontWeight: 800, color: '#000000', fontSize: '1rem', flex: 1 }}>
                                     {filters.status ? filters.status.charAt(0) + filters.status.slice(1).toLowerCase().replace('_', ' ') : 'All Status'}
                                 </span>
                                 <span style={{ marginLeft: '0.5rem', color: '#94a3b8', fontSize: '0.8rem' }}>▾</span>
@@ -374,9 +374,9 @@ const Appointments = () => {
                                     <div style={{ position: 'absolute', top: '110%', left: 0, zIndex: 9999, background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: '14px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', minWidth: '180px', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
                                         {[{ label: 'All Status', value: '' }, { label: 'Confirmed', value: 'CONFIRMED' }, { label: 'Completed', value: 'COMPLETED' }, { label: 'Cancelled', value: 'CANCELLED' }, { label: 'Pending', value: 'PENDING' }, { label: 'No Show', value: 'NO_SHOW' }].map(opt => (
                                             <div key={opt.value} onClick={() => { setFilters({ ...filters, status: opt.value }); setStatusDropOpen(false); }}
-                                                style={{ padding: '0.75rem 1.25rem', color: '#1e293b', fontWeight: filters.status === opt.value ? 800 : 500, fontSize: '0.9rem', background: filters.status === opt.value ? '#f0f4ff' : '#fff', cursor: 'pointer' }}
-                                                onMouseEnter={e => e.currentTarget.style.background = '#f8faff'}
-                                                onMouseLeave={e => e.currentTarget.style.background = filters.status === opt.value ? '#f0f4ff' : '#fff'}
+                                                style={{ padding: '0.75rem 1.25rem', color: '#000000', fontWeight: filters.status === opt.value ? 900 : 600, fontSize: '0.95rem', background: filters.status === opt.value ? '#f0f4ff' : '#ffffff', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}
+                                                onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                                                onMouseLeave={e => e.currentTarget.style.background = filters.status === opt.value ? '#f0f4ff' : '#ffffff'}
                                             >{opt.label}</div>
                                         ))}
                                     </div>
@@ -693,10 +693,10 @@ const Appointments = () => {
             )}
 
             <style>{`
-                .appointments-page-v3 { padding: 2.5rem; max-width: 1400px; margin: 0 auto; animation: fade 0.5s ease-out; }
+                .appointments-page-v3 { padding: 1.5rem; max-width: 1400px; margin: 0 auto; animation: fade 0.5s ease-out; }
                 @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-                .page-header-v3 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3.5rem; }
-                .header-h1-v3 { font-size: 2.5rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(135deg, #0f172a 0%, #4338ca 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1.25rem; }
+                .page-header-v3 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+                .header-h1-v3 { font-size: 2.2rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(135deg, #0f172a 0%, #4338ca 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.75rem; }
                 .stats-row-mini-v3 { display: flex; gap: 1rem; }
                 .header-nav-v3 { display: flex; align-items: center; gap: 1rem; background: #f1f5f9; padding: 0.4rem; border-radius: 20px; border: 1px solid #e2e8f0; }
                 .nav-tab-v3 { padding: 0.75rem 1.5rem; border-radius: 16px; border: none; background: transparent; color: #64748b; font-weight: 800; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
