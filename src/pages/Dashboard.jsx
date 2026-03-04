@@ -27,6 +27,7 @@ import {
     getPendingMessages,
     getNotifications
 } from '../api/index';
+import { hasPermission } from '../utils/auth';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, color, loading, trend }) => (
     <div className="stat-card-premium">
@@ -196,8 +197,8 @@ const Dashboard = () => {
             <div className="dashboard-grid-v2">
                 <div className="main-content-v2">
                     <div className="stats-grid-v2">
-                        <StatCard title="Total Patients" value={data.stats.totalPatients} subtitle="Active registry profiles" icon={Users} color="#6366f1" loading={loading} trend={12} />
-                        <StatCard title="Today's Visits" value={data.stats.todayVisits} subtitle="Checked-in today" icon={Calendar} color="#0ea5e9" loading={loading} />
+                        {hasPermission('view_patients') && <StatCard title="Total Patients" value={data.stats.totalPatients} subtitle="Active registry profiles" icon={Users} color="#6366f1" loading={loading} trend={12} />}
+                        {hasPermission('view_appointments') && <StatCard title="Today's Visits" value={data.stats.todayVisits} subtitle="Checked-in today" icon={Calendar} color="#0ea5e9" loading={loading} />}
                         <StatCard title="Completed" value={data.stats.completed} subtitle="Sessions concluded" icon={CheckCircle} color="#10b981" loading={loading} />
                         <StatCard title="Pending" value={data.stats.pending} subtitle="Awaiting consultation" icon={Clock} color="#f59e0b" loading={loading} />
                     </div>
@@ -285,9 +286,9 @@ const Dashboard = () => {
                     <div className="sidebar-section-premium">
                         <h4 className="sidebar-title-premium">Quick Actions</h4>
                         <div className="actions-stack-premium">
-                            <QuickAction label="Enroll Patient" description="Add new medical profile" icon="👶" to="/patients" color="#6366f1" />
-                            <QuickAction label="Book Appointment" description="Schedule a visit slot" icon="📅" to="/appointments" color="#0ea5e9" />
-                            <QuickAction label="Medical Records" description="Access patient history" icon="🗂️" to="/mrd" color="#10b981" />
+                            {hasPermission('view_patients') && <QuickAction label="Enroll Patient" description="Add new medical profile" icon="👶" to="/patients" color="#6366f1" />}
+                            {hasPermission('view_appointments') && <QuickAction label="Book Appointment" description="Schedule a visit slot" icon="📅" to="/appointments" color="#0ea5e9" />}
+                            {hasPermission('view_mrd') && <QuickAction label="Medical Records" description="Access patient history" icon="🗂️" to="/mrd" color="#10b981" />}
                         </div>
                     </div>
 
@@ -297,13 +298,15 @@ const Dashboard = () => {
                             <div className="pulse-indicator"></div>
                         </div>
                         <div className="alerts-stack-premium">
-                            <AlertItem
-                                title="Bot Interactions"
-                                desc={`${data.botInteractions} new unregistered inquiries`}
-                                icon={MessageSquare}
-                                color="#6366f1"
-                                badge={data.botInteractions > 0 ? "New" : null}
-                            />
+                            {hasPermission('view_bot_hub') && (
+                                <AlertItem
+                                    title="Bot Interactions"
+                                    desc={`${data.botInteractions} new unregistered inquiries`}
+                                    icon={MessageSquare}
+                                    color="#6366f1"
+                                    badge={data.botInteractions > 0 ? "New" : null}
+                                />
+                            )}
                             {data.escalations > 0 && (
                                 <AlertItem
                                     title="Urgent Escalations"

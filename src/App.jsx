@@ -38,17 +38,18 @@ import QueueDisplay from './pages/QueueDisplay';
 import Reports from './pages/Reports';
 import Notifications from './pages/Notifications';
 import ClinicDisplay from './pages/ClinicDisplay';
+import { hasPermission } from './utils/auth';
 
 const MobileNav = () => {
     const location = useLocation();
 
     const navItems = [
-        { name: 'Home', path: '/', icon: LayoutDashboard },
-        { name: 'Appts', path: '/appointments', icon: Calendar },
-        { name: 'Slots', path: '/scheduling', icon: Clock },
-        { name: 'Patients', path: '/patients', icon: Users },
-        { name: 'Settings', path: '/settings', icon: SettingsIcon },
-    ];
+        { name: 'Home', path: '/', icon: LayoutDashboard, permission: 'view_dashboard' },
+        { name: 'Appts', path: '/appointments', icon: Calendar, permission: 'view_appointments' },
+        { name: 'Slots', path: '/scheduling', icon: Clock, permission: 'view_scheduling' },
+        { name: 'Patients', path: '/patients', icon: Users, permission: 'view_patients' },
+        { name: 'Settings', path: '/settings', icon: SettingsIcon, permission: 'view_settings' },
+    ].filter(item => hasPermission(item.permission));
 
     return (
         <div className="mobile-bottom-nav">
@@ -66,23 +67,26 @@ const MobileNav = () => {
     );
 };
 
+
 const Sidebar = ({ onLogout, isCollapsed }) => {
     const location = useLocation();
 
-    const navItems = [
-        { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-        { name: 'Appointments', path: '/appointments', icon: Calendar },
-        { name: 'Scheduling', path: '/scheduling', icon: Clock },
-        { name: 'Queue Tokens', path: '/queue', icon: Hash },
-        { name: 'Patients', path: '/patients', icon: Users },
-        { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare },
-        { name: 'Doctors', path: '/doctors', icon: Stethoscope },
-        { name: 'Admin Users', path: '/admins', icon: Shield },
-        { name: 'MRD', path: '/mrd', icon: FileText },
-        { name: 'Reports', path: '/reports', icon: BarChart2 },
-        { name: 'Notifications', path: '/notifications', icon: BellIcon },
-        { name: 'Settings', path: '/settings', icon: SettingsIcon },
+    const allNavItems = [
+        { name: 'Dashboard', path: '/', icon: LayoutDashboard, permission: 'view_dashboard' },
+        { name: 'Appointments', path: '/appointments', icon: Calendar, permission: 'view_appointments' },
+        { name: 'Scheduling', path: '/scheduling', icon: Clock, permission: 'view_scheduling' },
+        { name: 'Queue Tokens', path: '/queue', icon: Hash, permission: 'view_queue' },
+        { name: 'Patients', path: '/patients', icon: Users, permission: 'view_patients' },
+        { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },
+        { name: 'Doctors', path: '/doctors', icon: Stethoscope, permission: 'view_doctors' },
+        { name: 'Admin Users', path: '/admins', icon: Shield, permission: 'view_admins' },
+        { name: 'MRD', path: '/mrd', icon: FileText, permission: 'view_mrd' },
+        { name: 'Reports', path: '/reports', icon: BarChart2, permission: 'view_reports' },
+        { name: 'Notifications', path: '/notifications', icon: BellIcon, permission: 'view_notifications' },
+        { name: 'Settings', path: '/settings', icon: SettingsIcon, permission: 'view_settings' },
     ];
+
+    const navItems = allNavItems.filter(item => hasPermission(item.permission));
 
     return (
         <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -335,6 +339,26 @@ const Header = () => {
     );
 };
 
+const ProtectedRoute = ({ children, permission }) => {
+    const location = useLocation();
+    if (!hasPermission(permission)) {
+        if (location.pathname === '/') {
+            return (
+                <div className="not-authorized-container" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+                    <Shield size={64} style={{ color: '#6366f1', marginBottom: '1.5rem', opacity: 0.8 }} />
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#1e293b' }}>Access Restricted</h2>
+                    <p style={{ color: '#64748b', fontSize: '1.1rem', maxWidth: '400px', margin: '1rem auto 2.5rem' }}>
+                        Your role does not have the required permissions to view the Dashboard hub. Please contact your system administrator.
+                    </p>
+                    <Link to="/login" onClick={() => localStorage.clear()} className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>Sign in as different user</Link>
+                </div>
+            )
+        }
+        return <Navigate to="/" replace />;
+    }
+    return children;
+};
+
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
@@ -374,20 +398,20 @@ const App = () => {
                         <main className="main-content">
                             <Header />
                             <Routes>
-                                <Route path="/" element={<Dashboard />} />
-                                <Route path="/appointments" element={<Appointments />} />
+                                <Route path="/" element={<ProtectedRoute permission="view_dashboard"><Dashboard /></ProtectedRoute>} />
+                                <Route path="/appointments" element={<ProtectedRoute permission="view_appointments"><Appointments /></ProtectedRoute>} />
 
-                                <Route path="/patients" element={<Patients />} />
-                                <Route path="/bot-interactions" element={<BotInteractions />} />
-                                <Route path="/doctors" element={<Doctors />} />
-                                <Route path="/admins" element={<Admins />} />
-                                <Route path="/mrd" element={<MRD />} />
-                                <Route path="/scheduling" element={<Scheduling />} />
-                                <Route path="/queue" element={<QueueDisplay />} />
-                                <Route path="/reports" element={<Reports />} />
-                                <Route path="/notifications" element={<Notifications />} />
+                                <Route path="/patients" element={<ProtectedRoute permission="view_patients"><Patients /></ProtectedRoute>} />
+                                <Route path="/bot-interactions" element={<ProtectedRoute permission="view_bot_hub"><BotInteractions /></ProtectedRoute>} />
+                                <Route path="/doctors" element={<ProtectedRoute permission="view_doctors"><Doctors /></ProtectedRoute>} />
+                                <Route path="/admins" element={<ProtectedRoute permission="view_admins"><Admins /></ProtectedRoute>} />
+                                <Route path="/mrd" element={<ProtectedRoute permission="view_mrd"><MRD /></ProtectedRoute>} />
+                                <Route path="/scheduling" element={<ProtectedRoute permission="view_scheduling"><Scheduling /></ProtectedRoute>} />
+                                <Route path="/queue" element={<ProtectedRoute permission="view_queue"><QueueDisplay /></ProtectedRoute>} />
+                                <Route path="/reports" element={<ProtectedRoute permission="view_reports"><Reports /></ProtectedRoute>} />
+                                <Route path="/notifications" element={<ProtectedRoute permission="view_notifications"><Notifications /></ProtectedRoute>} />
                                 <Route path="/clinic-display" element={<ClinicDisplay />} />
-                                <Route path="/settings" element={<Settings />} />
+                                <Route path="/settings" element={<ProtectedRoute permission="view_settings"><Settings /></ProtectedRoute>} />
                                 <Route path="/login" element={<Navigate to="/" replace />} />
                             </Routes>
                         </main>

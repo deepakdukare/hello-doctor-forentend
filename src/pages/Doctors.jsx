@@ -73,7 +73,19 @@ const Doctors = () => {
         setError('');
         try {
             const res = await getDoctors();
-            setDoctors(res.data?.data || []);
+            let allDocs = res.data?.data || [];
+
+            // Filter if character is a doctor
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.role === 'doctor') {
+                allDocs = allDocs.filter(d =>
+                    d.doctor_id === user.doctor_id ||
+                    d.name === user.full_name ||
+                    d.name === user.username
+                );
+            }
+
+            setDoctors(allDocs);
         } catch (e) {
             setError(e.response?.data?.message || e.message || 'Failed to load doctors');
         } finally {
