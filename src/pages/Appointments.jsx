@@ -16,7 +16,8 @@ import {
     Phone,
     ArrowRight,
     Clipboard,
-    Clock
+    Clock,
+    Edit2
 } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import AppointmentRow from '../components/AppointmentRow';
@@ -45,6 +46,15 @@ const STATUS_ICONS = {
 const SALUTATIONS = ['Master', 'Baby', 'Mr.', 'Mrs.', 'Ms.'];
 
 const getDoctorDisplayName = (doctor) => doctor?.full_name || doctor?.name || doctor?.doctor_name || doctor?.doctor_id || 'Unknown Doctor';
+
+// Format "09:00" -> "9:00 AM"
+const formatTime12h = (t) => {
+    if (!t) return '--';
+    const [h, m] = String(t).split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+};
 
 const getApiErrorMessage = (err, fallback = 'Operation failed.') => {
     const message = err?.response?.data?.message;
@@ -513,50 +523,123 @@ const Appointments = () => {
                                 <form onSubmit={handleFormSubmit} className="booking-form-v3">
                                     <div className="selected-patient-v3">
                                         <div className="p-banner">
-                                            <div className="p-info"><User size={20} /><strong>{selectedPatient?.child_name}</strong><span>({selectedPatient?.patient_id})</span></div>
-                                            {!editMode && <button type="button" onClick={() => setActiveTab('patient')}>Modify</button>}
+                                            <div className="p-info">
+                                                <div className="p-avatar-circle">
+                                                    <User size={24} />
+                                                </div>
+                                                <div>
+                                                    <div className="p-name-premium">{selectedPatient?.child_name}</div>
+                                                    <div className="p-id-premium">Patient ID: {selectedPatient?.patient_id}</div>
+                                                </div>
+                                            </div>
+                                            {!editMode && (
+                                                <button type="button" className="modify-btn-v3" onClick={() => setActiveTab('patient')}>
+                                                    <Edit2 size={14} />
+                                                    <span>Change Patient</span>
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
 
                                     <div className="form-grid-v3">
-                                        <div className="form-group-v3">
-                                            <label>Assign Doctor</label>
-                                            <select value={form.doctor_name} onChange={e => setForm({ ...form, doctor_name: e.target.value })} className="input-v3">
-                                                {doctors.map(doc => <option key={doc._id} value={getDoctorDisplayName(doc)}>{getDoctorDisplayName(doc)}</option>)}
-                                            </select>
-                                        </div>
-                                        <div className="form-group-v3">
-                                            <label>Visit Date</label>
-                                            <input type="date" value={form.appointment_date} onChange={e => setForm({ ...form, appointment_date: e.target.value })} className="input-v3" />
-                                        </div>
-                                        <div className="form-group-v3 full-span">
-                                            <label>Slot Selection {slotsLoading && <RefreshCw size={14} className="animate-spin" />}</label>
-                                            <div className="slot-grid-v3">
-                                                {availableSlots.map(slot => (
-                                                    <div key={slot.slot_id} className={`slot-pill-v3 ${form.slot_id === slot.slot_id ? 'active' : ''}`} onClick={() => setForm({ ...form, slot_id: slot.slot_id })}>
-                                                        <div className="slot-time">{slot.time}</div>
-                                                        <div className="slot-session">{slot.session}</div>
-                                                    </div>
-                                                ))}
-                                                {availableSlots.length === 0 && !slotsLoading && <div className="no-slots-v3">No active slots for this itinerary.</div>}
+                                        <div className="field-v3">
+                                            <span>Assign Clinician</span>
+                                            <div className="input-with-icon">
+                                                <Stethoscope size={18} className="input-icon" />
+                                                <select
+                                                    value={form.doctor_name}
+                                                    onChange={e => setForm({ ...form, doctor_name: e.target.value })}
+                                                    className="select-v3"
+                                                    style={{ paddingLeft: '3rem' }}
+                                                >
+                                                    {doctors.map(doc => <option key={doc._id} value={getDoctorDisplayName(doc)}>{getDoctorDisplayName(doc)}</option>)}
+                                                </select>
                                             </div>
                                         </div>
-                                        <div className="form-group-v3">
-                                            <label>Visit Category</label>
-                                            <select value={form.visit_type} onChange={e => setForm({ ...form, visit_type: e.target.value })} className="input-v3">
-                                                <option value="CONSULTATION">Consultation</option>
-                                                <option value="FOLLOW_UP">Follow-up</option>
-                                                <option value="VACCINATION">Vaccination</option>
-                                            </select>
+
+                                        <div className="field-v3">
+                                            <span>Visit Date</span>
+                                            <div className="input-with-icon">
+                                                <CalendarIcon size={18} className="input-icon" />
+                                                <input
+                                                    type="date"
+                                                    value={form.appointment_date}
+                                                    onChange={e => setForm({ ...form, appointment_date: e.target.value })}
+                                                    className="input-v3"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="form-group-v3">
-                                            <label>Clinical Reason</label>
-                                            <input placeholder="Chief complaint..." value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} className="input-v3" />
+
+                                        <div className="field-v3 full-span" style={{ marginTop: '0.5rem' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                    Available Time Slots
+                                                </span>
+                                                {slotsLoading && <RefreshCw size={14} className="animate-spin text-primary" />}
+                                            </div>
+
+                                            <div className="slot-grid-v3">
+                                                {[...availableSlots]
+                                                    .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
+                                                    .map(slot => (
+                                                        <div
+                                                            key={slot.slot_id}
+                                                            className={`slot-pill-v3 ${form.slot_id === slot.slot_id ? 'active' : ''}`}
+                                                            onClick={() => setForm({ ...form, slot_id: slot.slot_id })}
+                                                        >
+                                                            <div className="slot-time">{formatTime12h(slot.start_time)}</div>
+                                                            <div className="slot-range">– {formatTime12h(slot.end_time)}</div>
+                                                            <div className="slot-session">{slot.session}</div>
+                                                        </div>
+                                                    ))}
+                                                {availableSlots.length === 0 && !slotsLoading && (
+                                                    <div className="no-slots-v3">
+                                                        <Clock size={18} />
+                                                        <span>No active slots found for this itinerary. Please check the date or doctor selection.</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="field-v3">
+                                            <span>Visit Category</span>
+                                            <div className="input-with-icon">
+                                                <Activity size={18} className="input-icon" />
+                                                <select
+                                                    value={form.visit_type}
+                                                    onChange={e => setForm({ ...form, visit_type: e.target.value })}
+                                                    className="select-v3"
+                                                    style={{ paddingLeft: '3rem' }}
+                                                >
+                                                    <option value="CONSULTATION">Regular Consultation</option>
+                                                    <option value="FOLLOW_UP">Follow-up Visit</option>
+                                                    <option value="VACCINATION">Vaccination / Immunization</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="field-v3">
+                                            <span>Clinical Reason</span>
+                                            <div className="input-with-icon">
+                                                <Clipboard size={18} className="input-icon" />
+                                                <input
+                                                    placeholder="e.g. Fever, routine checkup..."
+                                                    value={form.reason}
+                                                    onChange={e => setForm({ ...form, reason: e.target.value })}
+                                                    className="input-v3"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
+
                                     <div className="modal-footer-v3">
-                                        <button type="button" className="btn-cancel" onClick={() => setActiveView('queue')}>Abort</button>
-                                        <button type="submit" className="btn-save" disabled={submitting}>{editMode ? 'Update Appointment' : 'Confirm Authorization'}</button>
+                                        <button type="button" className="btn-outline-v3" style={{ flex: 1 }} onClick={() => setActiveView('queue')}>
+                                            Discard
+                                        </button>
+                                        <button type="submit" className="btn-primary-v3" style={{ flex: 2, padding: '1rem' }} disabled={submitting}>
+                                            {submitting ? <RefreshCw size={20} className="animate-spin" /> : <CheckCircle2 size={20} />}
+                                            <span>{editMode ? 'Update Appointment' : 'Confirm Authorization'}</span>
+                                        </button>
                                     </div>
                                 </form>
                             )}
@@ -568,12 +651,30 @@ const Appointments = () => {
             {cancelModal.show && (
                 <div className="modal-overlay-v3">
                     <div className="modal-content-sm-v3">
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '1rem' }}>Purge Record</h2>
-                        <p style={{ color: '#64748b', marginBottom: '2rem' }}>Are you sure you want to cancel appointment {cancelModal.id}?</p>
-                        <input placeholder="Reason for cancellation..." className="input-v3" style={{ marginBottom: '2rem' }} value={cancelModal.reason} onChange={e => setCancelModal({ ...cancelModal, reason: e.target.value })} />
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                            <div style={{ width: '64px', height: '64px', borderRadius: '20px', background: '#fef2f2', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <AlertTriangle size={32} />
+                            </div>
+                        </div>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '0.75rem', color: '#1e293b' }}>Purge Record</h2>
+                        <p style={{ color: '#64748b', marginBottom: '2rem', fontWeight: 500, lineHeight: 1.5 }}>
+                            Are you sure you want to cancel appointment <span style={{ color: '#0f172a', fontWeight: 800 }}>{cancelModal.id}</span>? This action cannot be undone.
+                        </p>
+                        <div className="field-v3" style={{ textAlign: 'left', marginBottom: '2rem' }}>
+                            <span>Reason for Cancellation</span>
+                            <div className="input-with-icon">
+                                <XCircle size={18} className="input-icon" />
+                                <input
+                                    placeholder="Enter reason..."
+                                    className="input-v3"
+                                    value={cancelModal.reason}
+                                    onChange={e => setCancelModal({ ...cancelModal, reason: e.target.value })}
+                                />
+                            </div>
+                        </div>
                         <div style={{ display: 'flex', gap: '1rem' }}>
-                            <button className="btn-cancel" onClick={() => setCancelModal({ show: false, id: null, reason: '' })}>Keep Record</button>
-                            <button className="btn-purge" onClick={handleCancel}>Confirm Cancellation</button>
+                            <button className="btn-outline-v3" style={{ flex: 1 }} onClick={() => setCancelModal({ show: false, id: null, reason: '' })}>Keep Record</button>
+                            <button className="btn-primary-v3" style={{ flex: 1, background: '#ef4444' }} onClick={handleCancel}>Confirm Cancellation</button>
                         </div>
                     </div>
                 </div>
@@ -641,16 +742,32 @@ const Appointments = () => {
                 .full-span { grid-column: 1 / -1; }
                 .form-group-v3 { display: flex; flex-direction: column; gap: 0.75rem; }
                 .form-group-v3 label { font-size: 0.8rem; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; }
-                .slot-grid-v3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem; }
-                .slot-pill-v3 { padding: 1.25rem; border-radius: 18px; border: 2px solid #f1f5f9; background: #fff; cursor: pointer; transition: 0.2s; }
-                .slot-pill-v3.active { border-color: #6366f1; background: #f5f8ff; box-shadow: 0 8px 16px rgba(99,102,241,0.1); }
-                .slot-time { font-size: 1.1rem; font-weight: 900; color: #1e293b; }
-                .slot-session { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-top: 0.25rem; }
+                
+                /* Selection Banner Styles */
+                .selected-patient-v3 { margin-bottom: 2.5rem; }
+                .p-banner { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 24px; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; }
+                .p-info { display: flex; align-items: center; gap: 1.25rem; }
+                .p-avatar-circle { width: 52px; height: 52px; background: #fff; color: #6366f1; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+                .p-name-premium { font-size: 1.35rem; font-weight: 900; color: #0f172a; letter-spacing: -0.02em; }
+                .p-id-premium { font-size: 0.85rem; color: #64748b; font-weight: 700; margin-top: 0.1rem; text-transform: uppercase; letter-spacing: 0.04em; }
+                .modify-btn-v3 { background: #fff; border: 1.5px solid #e2e8f0; padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem; font-weight: 800; color: #64748b; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.6rem; }
+                .modify-btn-v3:hover { border-color: #6366f1; color: #6366f1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
+
+                .slot-grid-v3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.75rem; }
+                .slot-pill-v3 { padding: 0.9rem 1rem; border-radius: 16px; border: 2px solid #e5e7eb; background: #fff; cursor: pointer; transition: all 0.2s; text-align: center; }
+                .slot-pill-v3:hover { border-color: #6366f1; background: #fafbff; transform: translateY(-2px); }
+                .slot-pill-v3.active { border-color: #6366f1; background: #eef2ff; box-shadow: 0 6px 14px rgba(99,102,241,0.12); transform: translateY(-2px); }
+                .slot-time { font-size: 1rem; font-weight: 900; color: #1e293b; letter-spacing: -0.01em; }
+                .slot-range { font-size: 0.7rem; font-weight: 700; color: #64748b; margin-top: 0.1rem; }
+                .slot-session { font-size: 0.6rem; font-weight: 800; color: #6366f1; text-transform: uppercase; letter-spacing: 0.07em; margin-top: 0.3rem; background: #e0e7ff; padding: 0.15rem 0.4rem; border-radius: 4px; display: inline-block; }
+                .slot-pill-v3.active .slot-session { background: #c7d2fe; }
+                .no-slots-v3 { grid-column: 1 / -1; padding: 2.5rem; border-radius: 18px; background: #fef2f2; color: #b91c1c; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.75rem; justify-content: center; border: 1px solid #fecaca; }
+
                 .modal-footer-v3 { display: flex; gap: 1.5rem; margin-top: 3.5rem; }
                 .btn-cancel { flex: 1; height: 60px; border-radius: 20px; border: none; background: #f1f5f9; color: #64748b; font-weight: 800; cursor: pointer; transition: 0.2s; }
                 .btn-save { flex: 2; height: 60px; border-radius: 20px; border: none; background: #0f172a; color: #fff; font-weight: 800; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
                 .modal-overlay-v3 { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-                .modal-content-sm-v3 { background: #fff; width: 480px; padding: 3.5rem; border-radius: 40px; text-align: center; }
+                .modal-content-sm-v3 { background: #fff; width: 480px; padding: 3rem; border-radius: 32px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
                 .btn-purge { background: #ef4444; color: #fff; flex: 1; height: 60px; border-radius: 20px; border: none; font-weight: 800; cursor: pointer; }
                 .animate-spin { animation: spin 1s linear infinite; }
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

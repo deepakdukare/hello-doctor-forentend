@@ -8,6 +8,18 @@ import {
     RefreshCw,
     Trash2,
     X,
+    Search,
+    Filter,
+    Users,
+    Activity,
+    ChevronLeft,
+    ChevronRight,
+    Stethoscope,
+    Shield,
+    Clock,
+    CheckCircle2,
+    Settings,
+    Layout
 } from 'lucide-react';
 import {
     createSlot,
@@ -37,6 +49,12 @@ const getDoctorDisplayName = (doc) => {
     const name = doc.full_name || doc.name || doc.doctor_name || doc.doctor_id || '';
     const spec = doc.speciality || doc.specialization;
     return spec ? `${name} (${spec})` : name;
+};
+
+// Returns just the base name (no speciality) for API calls like /slots/available
+const getRawDoctorName = (doc) => {
+    if (!doc) return '';
+    return doc.full_name || doc.name || doc.doctor_name || doc.doctor_id || '';
 };
 
 const formatTime12h = (time) => {
@@ -140,6 +158,16 @@ const Scheduling = () => {
         sort_order: 0,
     });
 
+    const [editingSlot, setEditingSlot] = useState(null);
+    const [editForm, setEditForm] = useState({
+        slot_label: '',
+        start_time: '',
+        end_time: '',
+        session: 'MORNING',
+        sort_order: 0,
+        active_days: [],
+    });
+
     const [weekStart, setWeekStart] = useState(() => toIsoDate(getSunday(new Date())));
     const [dailyGrid, setDailyGrid] = useState({});
     const [weeklyDirty, setWeeklyDirty] = useState(false);
@@ -177,9 +205,7 @@ const Scheduling = () => {
             const normalized = normalizeSlotConfigResponse(rawSlotData);
             let docData = docRes.data?.data || [];
 
-            // Build days_by_doctor from each doctor's available_slots profile.
-            // available_slots format: { "0": ["S1","S2"], "1": ["S1"] } (day index → slot IDs)
-            const daysByDoctor = {}; // { slotId: { doctorName: [dayNums] } }
+            const daysByDoctor = {};
             docData.forEach((doc) => {
                 const docName = getDoctorDisplayName(doc);
                 const avail = doc.available_slots || {};
@@ -222,9 +248,11 @@ const Scheduling = () => {
         setSyncing(true);
         setError('');
         try {
+            // Use raw doctor name (without speciality) for /slots/available
+            const rawName = getRawDoctorName(selectedDoctor);
             const results = await Promise.all(
                 weekDates.map((date) =>
-                    getDailyStatus(selectedDoctorName || selectedDoctor.doctor_id, date, {
+                    getDailyStatus(rawName || selectedDoctor.doctor_id, date, {
                         doctor_id: selectedDoctor.doctor_id,
                     }).catch(() => ({ data: { data: [] } }))
                 )
@@ -232,9 +260,15 @@ const Scheduling = () => {
             const grid = {};
             results.forEach((res, idx) => {
                 const date = weekDates[idx];
+                // The /slots/available response returns slots that ARE available on that date
                 (res.data?.data || []).forEach((cell) => {
                     if (!grid[cell.slot_id]) grid[cell.slot_id] = {};
-                    grid[cell.slot_id][date] = cell;
+                    grid[cell.slot_id][date] = {
+                        ...cell,
+                        is_available: true,
+                        is_booked: !!cell.is_booked,
+                        blocked_by_admin: !!cell.blocked_by_admin,
+                    };
                 });
             });
             setDailyGrid(grid);
@@ -243,7 +277,7 @@ const Scheduling = () => {
         } finally {
             setSyncing(false);
         }
-    }, [selectedDoctor, selectedDoctorName, weekDates]);
+    }, [selectedDoctor, weekDates]);
 
     useEffect(() => {
         loadBase();
@@ -256,6 +290,59 @@ const Scheduling = () => {
     const withToast = (msg) => {
         setSuccess(msg);
         window.setTimeout(() => setSuccess(''), 2200);
+    };
+
+    const handleEditClick = (templateName, slot) => {
+        setEditingSlot({ templateName, ...slot });
+        setEditForm({
+            slot_label: slot.display_label || slot.slot_label,
+            start_time: slot.start_time,
+            end_time: slot.end_time,
+            session: slot.session,
+            sort_order: slot.sort_order || 0,
+            active_days: slot.active_days || [],
+        });
+    };
+
+    const toggleEditDay = (dayNum) => {
+        setEditForm((prev) => ({
+            ...prev,
+            active_days: prev.active_days.includes(dayNum)
+                ? prev.active_days.filter((d) => d !== dayNum)
+                : [...prev.active_days, dayNum].sort((a, b) => a - b),
+        }));
+    };
+
+    const handleUpdateSlot = async (e) => {
+        e.preventDefault();
+        setError('');
+        try {
+            const updatedSlot = {
+                ...editingSlot,
+                label: editForm.slot_label,
+                display_label: editForm.slot_label,
+                slot_label: editForm.slot_label,
+                start_time: editForm.start_time,
+                end_time: editForm.end_time,
+                session: editForm.session,
+                sort_order: Number(editForm.sort_order),
+                active_days: editForm.active_days,
+            };
+
+            setSlots(prev => prev.map(s => s.slot_id === updatedSlot.slot_id ? { ...s, ...updatedSlot } : s));
+            setSlotTemplates(prev => prev.map(t => {
+                if (t.name !== editingSlot.templateName) return t;
+                return {
+                    ...t,
+                    slots: t.slots.map(s => s.slot_id === updatedSlot.slot_id ? updatedSlot : s)
+                };
+            }));
+
+            setEditingSlot(null);
+            withToast('Slot configuration updated successfully.');
+        } catch (e) {
+            setError('Update failed. Please try again.');
+        }
     };
 
     const handleCreateSlot = async (e) => {
@@ -272,21 +359,26 @@ const Scheduling = () => {
             setAddForm({ slot_label: '', start_time: '', end_time: '', session: 'MORNING', sort_order: 0 });
             setShowAdd(false);
             await loadBase();
-            withToast('Slot added successfully.');
+            withToast('New master slot deployed.');
         } catch (e2) {
-            setError(e2.response?.data?.message || 'Failed to create slot.');
+            setError(e2.response?.data?.message || 'Failed to create master slot.');
         }
     };
 
     const handleDeleteSlot = async (slotId) => {
-        if (!window.confirm('Delete this slot template?')) return;
+        if (!window.confirm('Are you sure you want to delete this master slot? This will affect all future schedules.')) return;
         setError('');
         try {
             await deleteSlot(slotId);
             setSlots((prev) => prev.filter((s) => s.slot_id !== slotId));
-            withToast('Slot deleted.');
+            setSlotTemplates(prev => prev.map(t => ({
+                ...t,
+                slots: t.slots.filter(s => s.slot_id !== slotId),
+                slot_count: t.slots.filter(s => s.slot_id !== slotId).length
+            })));
+            withToast('Slot purged from registry.');
         } catch (e) {
-            setError(e.response?.data?.message || 'Failed to delete slot.');
+            setError(e.response?.data?.message || 'Failed to delete slot configuration.');
         }
     };
 
@@ -335,7 +427,6 @@ const Scheduling = () => {
         if (!selectedDoctor) return;
         setError('');
         try {
-            // Build available_slots: { "dayNum": ["S1", "S2", ...] } for the selected doctor
             const availableSlots = {};
             slots.forEach((slot) => {
                 const byDoctor = slot.days_by_doctor || {};
@@ -350,9 +441,9 @@ const Scheduling = () => {
             });
             await updateDoctor(selectedDoctor.doctor_id, { available_slots: availableSlots });
             setWeeklyDirty(false);
-            withToast('Weekly template updated.');
+            withToast('Clinical template synchronized.');
         } catch (e) {
-            setError(e.response?.data?.message || 'Failed to save weekly template.');
+            setError(e.response?.data?.message || 'Failed to save roster template.');
         }
     };
 
@@ -367,9 +458,15 @@ const Scheduling = () => {
         setWeekStart(toIsoDate(getSunday(d)));
     };
 
+
     const getCellState = (slotId, date) => {
         const cell = dailyGrid[slotId]?.[date];
-        if (!cell) return { label: '--', cls: 'off', clickable: false };
+        // Cell exists in the grid = the slot is scheduled for this doctor on this day
+        // /slots/available returns only slots that are available (active template days)
+        if (!cell) {
+            // Not in template for this doctor/day
+            return { label: 'Off', cls: 'off', clickable: false };
+        }
         if (cell.is_booked) return { label: 'Booked', cls: 'booked', clickable: false };
         if (cell.blocked_by_admin) return { label: 'Blocked', cls: 'blocked', clickable: true, action: 'unblock' };
         return { label: 'Free', cls: 'free', clickable: true, action: 'block' };
@@ -381,16 +478,18 @@ const Scheduling = () => {
         if (!state.clickable) return;
         setError('');
         try {
+            // API: POST /api/slots/daily-update with slot_id, slot_date, doctor_name, custom_label
+            const rawName = getRawDoctorName(selectedDoctor);
             await updateDailySlot({
                 slot_id: slotId,
                 date,
                 action: state.action,
                 doctor_id: selectedDoctor.doctor_id,
-                doctor_name: selectedDoctorName,
+                doctor_name: rawName,
             });
             await loadDailyGrid();
         } catch (e) {
-            setError(e.response?.data?.message || 'Failed to update daily slot status.');
+            setError(e.response?.data?.message || 'Failed to update slot status.');
         }
     };
 
@@ -401,97 +500,53 @@ const Scheduling = () => {
                 : slotTemplates.filter((t) => t.name === masterFilter);
 
             return filtered.map((template) => (
-                <div key={template.name} className="sch-card">
-                    <div className="sch-section-title" style={{ color: template.is_doctor ? '#4f46e5' : '#64748b' }}>
-                        <span className="sch-dot" style={{ background: template.is_doctor ? '#4f46e5' : '#94a3b8' }} />
-                        {template.name} - {template.slot_count} SLOTS
+                <div key={template.name} className="card-premium-v3 shadow-premium session-card-v3">
+                    <div className="card-header-v3">
+                        <div className="header-icon-wrap" style={{ background: template.is_doctor ? '#eef2ff' : '#f8fafc', color: template.is_doctor ? '#6366f1' : '#94a3b8' }}>
+                            {template.is_doctor ? <Stethoscope size={20} /> : <Settings size={20} />}
+                        </div>
+                        <div>
+                            <h3 className="card-title-v3">{template.name}</h3>
+                            <span className="card-subtitle-v3">{template.slot_count} Clinical Slots Defined</span>
+                        </div>
                     </div>
-                    <table className="sch-table">
-                        <thead>
-                            <tr>
-                                <th>SLOT ID</th>
-                                <th>LABEL</th>
-                                <th>TIME</th>
-                                <th>SESSION</th>
-                                <th>ACTIVE DAYS</th>
-                                <th>ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {template.slots.map((slot) => (
-                                <tr key={`${template.name}-${slot.slot_id}`}>
-                                    <td className="mono">{slot.slot_id}</td>
-                                    <td>{slot.display_label || slot.slot_label}</td>
-                                    <td>{formatTime12h(slot.start_time)} - {formatTime12h(slot.end_time)}</td>
-                                    <td>{slot.session || 'N/A'}</td>
-                                    <td>{(slot.active_days || []).map((d) => DAY_NAMES[d] || d).join(', ') || '-'}</td>
-                                    <td>
-                                        <div className="actions">
-                                            <button className="icon-btn" title="Edit (coming soon)">
-                                                <Pencil size={14} />
-                                            </button>
-                                            <button className="icon-btn danger" title="Delete" onClick={() => handleDeleteSlot(slot.slot_id)}>
-                                                <Trash2 size={14} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            ));
-        }
-
-        const sections = [
-            { key: 'MORNING', dot: '#f59e0b', title: 'MORNING' },
-            { key: 'AFTERNOON', dot: '#0ea5e9', title: 'AFTERNOON' },
-            { key: 'EVENING', dot: '#8b5cf6', title: 'EVENING' },
-        ];
-
-        return sections.map(({ key, dot, title }) => {
-            const data = groupedSlots[key] || [];
-            if (!data.length) return null;
-            return (
-                <div key={key} className="sch-card">
-                    <div className="sch-section-title" style={{ color: dot }}>
-                        <span className="sch-dot" style={{ background: dot }} />
-                        {title} - {data.length} SLOTS
-                    </div>
-
-                    {mode === 'master' && (
-                        <table className="sch-table">
+                    <div className="table-responsive-v3">
+                        <table className="table-v3">
                             <thead>
                                 <tr>
-                                    <th>SLOT ID</th>
-                                    <th>LABEL</th>
-                                    <th>START</th>
-                                    <th>END</th>
-                                    <th>ORDER</th>
-                                    <th>STATUS</th>
-                                    <th>ACTIONS</th>
+                                    <th>Registry ID</th>
+                                    <th>Identity</th>
+                                    <th>Time Range</th>
+                                    <th>Active Days</th>
+                                    <th style={{ textAlign: 'right' }}>Management</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.map((slot) => (
-                                    <tr key={slot.slot_id}>
+                                {template.slots.map((slot) => (
+                                    <tr key={`${template.name}-${slot.slot_id}`}>
                                         <td className="mono">{slot.slot_id}</td>
-                                        <td>{slot.display_label || slot.slot_label}</td>
-                                        <td>{formatTime12h(slot.start_time)}</td>
-                                        <td>{formatTime12h(slot.end_time)}</td>
-                                        <td>{slot.sort_order ?? 0}</td>
+                                        <td className="bold">{slot.display_label || slot.slot_label}</td>
                                         <td>
-                                            <span className={`badge ${slot.is_active ? 'ok' : 'bad'}`}>
-                                                {slot.is_active ? 'Active' : 'Inactive'}
-                                            </span>
+                                            <div className="time-badge">
+                                                <Clock size={14} />
+                                                <span>{formatTime12h(slot.start_time)} - {formatTime12h(slot.end_time)}</span>
+                                            </div>
                                         </td>
                                         <td>
-                                            <div className="actions">
-                                                <button className="icon-btn" title="Edit (coming soon)">
-                                                    <Pencil size={14} />
+                                            <div className="days-list">
+                                                {(slot.active_days || []).map((d) => (
+                                                    <span key={d} className="tiny-day-tag">{DAY_NAMES[d]}</span>
+                                                ))}
+                                                {!(slot.active_days?.length) && <span className="no-days-alert">No days assigned</span>}
+                                            </div>
+                                        </td>
+                                        <td style={{ textAlign: 'right' }}>
+                                            <div className="actions-cluster">
+                                                <button className="hub-btn-v3 edit" title="Modify Config" onClick={() => handleEditClick(template.name, slot)}>
+                                                    <Pencil size={16} />
                                                 </button>
-                                                <button className="icon-btn danger" title="Delete" onClick={() => handleDeleteSlot(slot.slot_id)}>
-                                                    <Trash2 size={14} />
+                                                <button className="hub-btn-v3 delete" title="Purge Record" onClick={() => handleDeleteSlot(slot.slot_id)}>
+                                                    <Trash2 size={16} />
                                                 </button>
                                             </div>
                                         </td>
@@ -499,286 +554,555 @@ const Scheduling = () => {
                                 ))}
                             </tbody>
                         </table>
-                    )}
+                    </div>
+                </div>
+            ));
+        }
 
-                    {mode === 'weekly' && (
-                        <table className="sch-table">
-                            <thead>
-                                <tr>
-                                    <th>SLOT</th>
-                                    <th>TIME</th>
-                                    {DAY_NAMES.map((d) => <th key={d}>{d}</th>)}
-                                    <th>ALL</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.map((slot) => (
-                                    <tr key={slot.slot_id}>
-                                        <td>
-                                            <div>{slot.display_label || slot.slot_label}</div>
-                                            <div className="mono sub">{slot.slot_id}</div>
-                                        </td>
-                                        <td>{formatTime12h(slot.start_time)}</td>
-                                        {DAY_NUMS.map((dayNum) => (
-                                            <td key={`${slot.slot_id}-${dayNum}`}>
-                                                <input type="checkbox" checked={isDayChecked(slot, dayNum)} onChange={() => toggleWeekDay(slot.slot_id, dayNum)} />
-                                            </td>
-                                        ))}
-                                        <td>
-                                            <button className="all-btn" onClick={() => toggleAllDays(slot.slot_id)}>All</button>
-                                        </td>
+        const sections = [
+            { key: 'MORNING', icon: <Clock3 size={18} />, color: '#f59e0b', title: 'Morning Roster' },
+            { key: 'AFTERNOON', icon: <Activity size={18} />, color: '#0ea5e9', title: 'Mid-Day Session' },
+            { key: 'EVENING', icon: <Clock size={18} />, color: '#8b5cf6', title: 'Evening Clinic' },
+        ];
+
+        return sections.map(({ key, icon, color, title }) => {
+            const data = groupedSlots[key] || [];
+            if (!data.length) return null;
+            return (
+                <div key={key} className="card-premium-v3 shadow-premium session-card-v3">
+                    <div className="card-header-v3">
+                        <div className="header-icon-wrap" style={{ background: `${color}10`, color: color }}>
+                            {icon}
+                        </div>
+                        <div>
+                            <h3 className="card-title-v3">{title}</h3>
+                            <span className="card-subtitle-v3">{data.length} Slots Operating</span>
+                        </div>
+                    </div>
+
+                    <div className="table-responsive-v3">
+                        {mode === 'weekly' && (
+                            <table className="table-v3 roster-table-v3">
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: '220px' }}>Slot Identity</th>
+                                        <th style={{ width: '150px' }}>Time</th>
+                                        {DAY_NAMES.map((d) => <th key={d} className="center-th">{d}</th>)}
+                                        <th style={{ textAlign: 'right' }}>Global</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
-
-                    {mode === 'daily' && (
-                        <table className="sch-table">
-                            <thead>
-                                <tr>
-                                    <th>SLOT</th>
-                                    <th>TIME</th>
-                                    {weekDates.map((d) => {
-                                        const head = formatDayHeading(d);
-                                        return (
-                                            <th key={d}>
-                                                <div>{head.dow}</div>
-                                                <div className="sub">{head.dm}</div>
-                                            </th>
-                                        );
-                                    })}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.map((slot) => (
-                                    <tr key={slot.slot_id}>
-                                        <td>
-                                            <div>{slot.display_label || slot.slot_label}</div>
-                                            <div className="mono sub">{slot.slot_id}</div>
-                                        </td>
-                                        <td>{formatTime12h(slot.start_time)}</td>
-                                        {weekDates.map((date) => {
-                                            const state = getCellState(slot.slot_id, date);
-                                            return (
-                                                <td key={`${slot.slot_id}-${date}`}>
-                                                    <button
-                                                        className={`cell ${state.cls}`}
-                                                        onClick={() => handleDailyCellClick(slot.slot_id, date)}
-                                                        disabled={!state.clickable}
-                                                    >
-                                                        {state.label}
-                                                    </button>
+                                </thead>
+                                <tbody>
+                                    {data.map((slot) => (
+                                        <tr key={slot.slot_id}>
+                                            <td>
+                                                <div className="slot-identity">
+                                                    <span className="s-name">{slot.display_label || slot.slot_label}</span>
+                                                    <span className="s-id mono">{slot.slot_id}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className="time-val-v3">{formatTime12h(slot.start_time)}</span>
+                                            </td>
+                                            {DAY_NUMS.map((dayNum) => (
+                                                <td key={`${slot.slot_id}-${dayNum}`} className="center-td">
+                                                    <label className="checkbox-v3">
+                                                        <input type="checkbox" checked={isDayChecked(slot, dayNum)} onChange={() => toggleWeekDay(slot.slot_id, dayNum)} />
+                                                        <span className="checkmark" />
+                                                    </label>
                                                 </td>
+                                            ))}
+                                            <td style={{ textAlign: 'right' }}>
+                                                <button className="pill-btn-v3" onClick={() => toggleAllDays(slot.slot_id)}>Toggle All</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+
+                        {mode === 'daily' && (
+                            <table className="table-v3 availability-grid-v3">
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: '220px' }}>Slot Info</th>
+                                        <th style={{ width: '150px' }}>Log Time</th>
+                                        {weekDates.map((d) => {
+                                            const head = formatDayHeading(d);
+                                            return (
+                                                <th key={d} className="center-th date-th">
+                                                    <div className="date-stack">
+                                                        <span className="d-dow">{head.dow}</span>
+                                                        <span className="d-dm">{head.dm}</span>
+                                                    </div>
+                                                </th>
                                             );
                                         })}
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
+                                </thead>
+                                <tbody>
+                                    {data.map((slot) => (
+                                        <tr key={slot.slot_id}>
+                                            <td>
+                                                <div className="slot-identity">
+                                                    <span className="s-name">{slot.display_label || slot.slot_label}</span>
+                                                    <span className="s-id mono">{slot.slot_id}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className="time-val-v3">{formatTime12h(slot.start_time)}</span>
+                                            </td>
+                                            {weekDates.map((date) => {
+                                                const state = getCellState(slot.slot_id, date);
+                                                return (
+                                                    <td key={`${slot.slot_id}-${date}`} className="center-td">
+                                                        <button
+                                                            className={`grid-cell-v3 ${state.cls}`}
+                                                            onClick={() => handleDailyCellClick(slot.slot_id, date)}
+                                                            disabled={!state.clickable}
+                                                        >
+                                                            <span>{state.label === 'Available' ? 'Free' : state.label}</span>
+                                                        </button>
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
                 </div>
             );
         });
     };
 
-    if (loading) return <div className="sch-page"><div className="sch-card">Loading scheduling...</div></div>;
+    if (loading) return (
+        <div className="sch-page-v3">
+            <div className="skeleton-container-v3">
+                <RefreshCw size={48} className="animate-spin text-primary" />
+                <p>Synchronizing Clinical Rosters...</p>
+            </div>
+        </div>
+    );
 
     return (
-        <div className="sch-page">
-            <div className="sch-top-search"><input type="text" placeholder="Quick search patients..." readOnly /></div>
-
-            <div className="sch-header-row">
-                <div>
-                    <h1>Scheduling</h1>
-                    <p>Manage clinic time slots and daily availability.</p>
-                    <small>{slotTemplates.length ? `${slotTemplates.length} template groups defined` : `${slots.length} slot templates defined`}</small>
-                </div>
-                <div className="tab-wrap">
-                    <button className={activeTab === TABS.MASTER ? 'tab active' : 'tab'} onClick={() => setActiveTab(TABS.MASTER)}><Clock3 size={14} /> Slot Master</button>
-                    <button className={activeTab === TABS.WEEKLY ? 'tab active' : 'tab'} onClick={() => setActiveTab(TABS.WEEKLY)}><Calendar size={14} /> Weekly Template</button>
-                    <button className={activeTab === TABS.DAILY ? 'tab active' : 'tab'} onClick={() => setActiveTab(TABS.DAILY)}><Calendar size={14} /> Daily View</button>
+        <div className="sch-page-v3">
+            <div className="search-shelf-v3">
+                <div className="search-pill-v3">
+                    <Search size={18} />
+                    <input type="text" placeholder="Quick search clinical registry..." readOnly />
                 </div>
             </div>
 
-            {error ? <div className="alert error">{error}</div> : null}
-            {success ? <div className="alert success">{success}</div> : null}
+            <header className="page-header-v3">
+                <div className="header-meta-group">
+                    <h1 className="header-h1-v3">Scheduling</h1>
+                    <p className="header-sub-v3">Manage clinic time slots, professional rosters, and real-time availability.</p>
+                </div>
 
-            {activeTab === TABS.MASTER && (
-                <>
-                    <div className="action-row">
-                        <div className="master-filter">
-                            <label>Show Template:</label>
-                            <select value={masterFilter} onChange={(e) => setMasterFilter(e.target.value)}>
-                                <option value="ALL">All Templates</option>
-                                {slotTemplates.map((t) => (
-                                    <option key={t.name} value={t.name}>{t.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="master-btns">
-                            <button className="btn light" onClick={loadBase}><RefreshCw size={14} /> Refresh</button>
-                            {showAdd
-                                ? <button className="btn primary" onClick={() => setShowAdd(false)}><X size={14} /> Cancel</button>
-                                : <button className="btn primary" onClick={() => setShowAdd(true)}><Plus size={14} /> Add Slot</button>}
-                        </div>
-                    </div>
+                <div className="header-nav-v3">
+                    <button className={`nav-tab-v3 ${activeTab === TABS.MASTER ? 'active' : ''}`} onClick={() => setActiveTab(TABS.MASTER)}>
+                        <Shield size={18} />
+                        <span>Slot Master</span>
+                    </button>
+                    <button className={`nav-tab-v3 ${activeTab === TABS.WEEKLY ? 'active' : ''}`} onClick={() => setActiveTab(TABS.WEEKLY)}>
+                        <Calendar size={18} />
+                        <span>Weekly Template</span>
+                    </button>
+                    <button className={`nav-tab-v3 ${activeTab === TABS.DAILY ? 'active' : ''}`} onClick={() => setActiveTab(TABS.DAILY)}>
+                        <Activity size={18} />
+                        <span>Daily View</span>
+                    </button>
+                </div>
+            </header>
 
-                    {showAdd && (
-                        <form className="sch-card add-card" onSubmit={handleCreateSlot}>
-                            <h3>Add New Slot</h3>
-                            <div className="form-grid">
-                                <div><label>Label *</label><input value={addForm.slot_label} onChange={(e) => setAddForm((p) => ({ ...p, slot_label: e.target.value }))} placeholder="e.g. 10:00 - 10:30 AM" required /></div>
-                                <div><label>Start *</label><input type="time" value={addForm.start_time} onChange={(e) => setAddForm((p) => ({ ...p, start_time: e.target.value }))} required /></div>
-                                <div><label>End *</label><input type="time" value={addForm.end_time} onChange={(e) => setAddForm((p) => ({ ...p, end_time: e.target.value }))} required /></div>
-                                <div>
-                                    <label>Session *</label>
-                                    <select value={addForm.session} onChange={(e) => setAddForm((p) => ({ ...p, session: e.target.value }))}>
-                                        <option value="MORNING">MORNING</option>
-                                        <option value="AFTERNOON">AFTERNOON</option>
-                                        <option value="EVENING">EVENING</option>
+            {error && (
+                <div className="alert-v3 error shadow-premium">
+                    <X size={20} />
+                    <span>{error}</span>
+                </div>
+            )}
+            {success && (
+                <div className="alert-v3 success shadow-premium">
+                    <CheckCircle2 size={20} />
+                    <span>{success}</span>
+                </div>
+            )}
+
+            <div className="view-content-v3">
+                {activeTab === TABS.MASTER && (
+                    <>
+                        <div className="filter-shelf-premium">
+                            <div className="filter-group-v3">
+                                <div className="filter-item-v3">
+                                    <Filter size={18} className="f-icon" />
+                                    <span className="f-label">Filter Registry:</span>
+                                    <select value={masterFilter} onChange={(e) => setMasterFilter(e.target.value)} className="f-select">
+                                        <option value="ALL">All Active Templates</option>
+                                        {slotTemplates.map((t) => (
+                                            <option key={t.name} value={t.name}>{t.name}</option>
+                                        ))}
                                     </select>
                                 </div>
-                                <div><label>Order</label><input type="number" value={addForm.sort_order} onChange={(e) => setAddForm((p) => ({ ...p, sort_order: Number(e.target.value || 0) }))} /></div>
                             </div>
-                            <div className="form-actions">
-                                <button type="button" className="btn light" onClick={() => setShowAdd(false)}>Cancel</button>
-                                <button type="submit" className="btn primary"><Plus size={14} /> Add Slot</button>
+                            <div className="action-hub-v3">
+                                <button className="hub-btn-v3 secondary" onClick={loadBase} title="Sync Config">
+                                    <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                                </button>
+                                <button className={`hub-btn-v3 ${showAdd ? 'danger' : 'primary'}`} onClick={() => setShowAdd(!showAdd)}>
+                                    {showAdd ? <X size={20} /> : <Plus size={20} />}
+                                    <span>{showAdd ? 'Cancel Registration' : 'Register New Master Slot'}</span>
+                                </button>
                             </div>
-                        </form>
-                    )}
-                    {renderSessionTables('master')}
-                </>
-            )}
+                        </div>
 
-            {activeTab === TABS.WEEKLY && (
-                <>
-                    <div className="sch-card weekly-head">
-                        <div>
-                            <label>DOCTOR</label>
-                            <select value={selectedDoctorId} onChange={(e) => setSelectedDoctorId(e.target.value)}>
-                                {doctors.map((doc) => <option key={doc.doctor_id} value={doc.doctor_id}>{getDoctorDisplayName(doc)}</option>)}
-                            </select>
-                        </div>
-                        <div className="weekly-actions">
-                            <button className="btn light" onClick={resetWeeklyTemplate}><RefreshCw size={14} /> Reset</button>
-                            <button className={weeklyDirty ? 'btn primary' : 'btn light'} onClick={saveWeeklyTemplate}><Check size={14} /> {weeklyDirty ? 'Save Changes' : 'No Changes'}</button>
-                        </div>
-                    </div>
-                    {renderSessionTables('weekly')}
-                </>
-            )}
-
-            {activeTab === TABS.DAILY && (
-                <>
-                    <div className="sch-card daily-head">
-                        <div className="daily-left">
-                            <label>Doctor</label>
-                            <select value={selectedDoctorId} onChange={(e) => setSelectedDoctorId(e.target.value)}>
-                                {doctors.map((doc) => <option key={doc.doctor_id} value={doc.doctor_id}>{getDoctorDisplayName(doc)}</option>)}
-                            </select>
-                        </div>
-                        <div className="daily-right">
-                            <button className="btn light" onClick={() => shiftWeek(-1)}>Prev</button>
-                            <div className="week-label">
-                                {new Date(weekDates[0]).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                                {' - '}
-                                {new Date(weekDates[6]).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {showAdd && (
+                            <div className="card-premium-v3 shadow-premium registration-card-v3">
+                                <div className="reg-header-v3">
+                                    <Layout size={24} className="reg-icon" />
+                                    <div>
+                                        <h3>Register New Slot</h3>
+                                        <p>Define a new time block for the clinical registry.</p>
+                                    </div>
+                                </div>
+                                <form className="reg-form-v3" onSubmit={handleCreateSlot}>
+                                    <div className="form-grid-v3">
+                                        <div className="field-v3">
+                                            <span>Display Label</span>
+                                            <input value={addForm.slot_label} onChange={(e) => setAddForm((p) => ({ ...p, slot_label: e.target.value }))} placeholder="e.g. 10:00 - 10:30 AM" required className="input-v3" />
+                                        </div>
+                                        <div className="field-v3">
+                                            <span>Session Mapping</span>
+                                            <select value={addForm.session} onChange={(e) => setAddForm((p) => ({ ...p, session: e.target.value }))} className="select-v3">
+                                                <option value="MORNING">MORNING SESSION</option>
+                                                <option value="AFTERNOON">AFTERNOON SESSION</option>
+                                                <option value="EVENING">EVENING SESSION</option>
+                                            </select>
+                                        </div>
+                                        <div className="field-v3">
+                                            <span>Start Time (24h)</span>
+                                            <input type="time" value={addForm.start_time} onChange={(e) => setAddForm((p) => ({ ...p, start_time: e.target.value }))} required className="input-v3" />
+                                        </div>
+                                        <div className="field-v3">
+                                            <span>End Time (24h)</span>
+                                            <input type="time" value={addForm.end_time} onChange={(e) => setAddForm((p) => ({ ...p, end_time: e.target.value }))} required className="input-v3" />
+                                        </div>
+                                        <div className="field-v3">
+                                            <span>Lexical Weight (Sort Order)</span>
+                                            <input type="number" value={addForm.sort_order} onChange={(e) => setAddForm((p) => ({ ...p, sort_order: Number(e.target.value || 0) }))} className="input-v3" />
+                                        </div>
+                                    </div>
+                                    <div className="reg-footer-v3">
+                                        <button type="button" className="btn-outline-v3" onClick={() => setShowAdd(false)}>Abort Registration</button>
+                                        <button type="submit" className="btn-primary-v3">Deploy to Registry</button>
+                                    </div>
+                                </form>
                             </div>
-                            <button className="btn light" onClick={() => shiftWeek(1)}>Next</button>
-                            <button className="btn light" onClick={loadDailyGrid} disabled={syncing}>
-                                <RefreshCw size={14} className={syncing ? 'spin' : ''} />
+                        )}
+
+                        {editingSlot && (
+                            <div className="modal-overlay-v3">
+                                <div className="modal-content-v3 auth-panel-premium">
+                                    <div className="modal-inner-v3">
+                                        <div className="m-header-v3">
+                                            <div className="m-title-icon">
+                                                <Pencil size={24} />
+                                            </div>
+                                            <div>
+                                                <h3>Configuring Slot: {editingSlot.slot_id}</h3>
+                                                <p>Adjusting parameters for professional schedules.</p>
+                                            </div>
+                                            <button className="m-close-v3" onClick={() => setEditingSlot(null)}><X size={24} /></button>
+                                        </div>
+
+                                        <form className="m-body-v3" onSubmit={handleUpdateSlot}>
+                                            <div className="form-grid-v3">
+                                                <div className="field-v3">
+                                                    <span>Identity Label</span>
+                                                    <input value={editForm.slot_label} onChange={(e) => setEditForm((p) => ({ ...p, slot_label: e.target.value }))} required className="input-v3" />
+                                                </div>
+                                                <div className="field-v3">
+                                                    <span>Session Category</span>
+                                                    <select value={editForm.session} onChange={(e) => setEditForm((p) => ({ ...p, session: e.target.value }))} className="select-v3">
+                                                        <option value="MORNING">MORNING</option>
+                                                        <option value="AFTERNOON">AFTERNOON</option>
+                                                        <option value="EVENING">EVENING</option>
+                                                    </select>
+                                                </div>
+                                                <div className="field-v3">
+                                                    <span>Start Time</span>
+                                                    <input type="time" value={editForm.start_time} onChange={(e) => setEditForm((p) => ({ ...p, start_time: e.target.value }))} required className="input-v3" />
+                                                </div>
+                                                <div className="field-v3">
+                                                    <span>End Time</span>
+                                                    <input type="time" value={editForm.end_time} onChange={(e) => setEditForm((p) => ({ ...p, end_time: e.target.value }))} required className="input-v3" />
+                                                </div>
+                                                <div className="field-v3">
+                                                    <span>Sort Order</span>
+                                                    <input type="number" value={editForm.sort_order} onChange={(e) => setEditForm((p) => ({ ...p, sort_order: Number(e.target.value || 0) }))} className="input-v3" />
+                                                </div>
+                                            </div>
+
+                                            <div className="roster-template-v3">
+                                                <label className="roster-label-v3">Recurring Weekly Cycle (Active Template)</label>
+                                                <div className="roster-days-v3">
+                                                    {DAY_NAMES.map((name, idx) => (
+                                                        <div
+                                                            key={name}
+                                                            className={`roster-day-pill-v3 ${editForm.active_days.includes(idx) ? 'active' : ''}`}
+                                                            onClick={() => toggleEditDay(idx)}
+                                                        >
+                                                            {name}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="modal-footer-v3">
+                                                <button type="button" className="btn-outline-v3" onClick={() => setEditingSlot(null)}>Discard Changes</button>
+                                                <button type="submit" className="btn-primary-v3">Apply Adjustments</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="session-grid-v3">
+                            {renderSessionTables('master')}
+                        </div>
+                    </>
+                )}
+
+                {activeTab === TABS.WEEKLY && (
+                    <>
+                        <div className="doctor-shelf-v3 card-premium-v3 shadow-premium">
+                            <div className="d-shelf-group">
+                                <Users size={20} className="d-icon" />
+                                <div className="d-info">
+                                    <span className="d-label">Clinical Practitioner</span>
+                                    <select value={selectedDoctorId} onChange={(e) => setSelectedDoctorId(e.target.value)} className="d-select">
+                                        {doctors.map((doc) => <option key={doc.doctor_id} value={doc.doctor_id}>{getDoctorDisplayName(doc)}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="d-actions-v3">
+                                <button className="hub-btn-v3 secondary" onClick={resetWeeklyTemplate} title="Reset Roster">
+                                    <RefreshCw size={18} />
+                                </button>
+                                <button className={`hub-btn-v3 ${weeklyDirty ? 'primary' : 'secondary disabled'}`} onClick={saveWeeklyTemplate} disabled={!weeklyDirty}>
+                                    <CheckCircle2 size={18} />
+                                    <span>{weeklyDirty ? 'Commit Template' : 'Template Synchronized'}</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div className="session-grid-v3">
+                            {renderSessionTables('weekly')}
+                        </div>
+                    </>
+                )}
+
+                {activeTab === TABS.DAILY && (
+                    <>
+                        <div className="daily-navigation-v3 card-premium-v3 shadow-premium">
+                            <div className="nav-doctor-v3">
+                                <Stethoscope size={20} />
+                                <select value={selectedDoctorId} onChange={(e) => setSelectedDoctorId(e.target.value)}>
+                                    {doctors.map((doc) => <option key={doc.doctor_id} value={doc.doctor_id}>{getDoctorDisplayName(doc)}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="nav-range-v3">
+                                <button className="range-btn-v3" onClick={() => shiftWeek(-1)}><ChevronLeft size={20} /></button>
+                                <div className="range-label-v3">
+                                    <Calendar size={18} />
+                                    <span>
+                                        {new Date(weekDates[0]).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                        {' — '}
+                                        {new Date(weekDates[6]).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    </span>
+                                </div>
+                                <button className="range-btn-v3" onClick={() => shiftWeek(1)}><ChevronRight size={20} /></button>
+                            </div>
+
+                            <button className="hub-btn-v3 secondary" onClick={loadDailyGrid} disabled={syncing}>
+                                <RefreshCw size={18} className={syncing ? 'animate-spin' : ''} />
                             </button>
                         </div>
-                    </div>
-                    <div className="legend">
-                        <span><i className="lg free" /> Available</span>
-                        <span><i className="lg blocked" /> Blocked</span>
-                        <span><i className="lg booked" /> Booked</span>
-                        <span><i className="lg off" /> Off (template)</span>
-                    </div>
-                    {renderSessionTables('daily')}
-                </>
-            )}
+
+                        <div className="legend-shelf-v3">
+                            <div className="legend-item-v3"><span className="dot free" /> Available</div>
+                            <div className="legend-item-v3"><span className="dot blocked" /> Admin-Blocked</div>
+                            <div className="legend-item-v3"><span className="dot booked" /> Patient Booked</div>
+                            <div className="legend-item-v3"><span className="dot off" /> Template Off</div>
+                        </div>
+
+                        <div className="session-grid-v3">
+                            {renderSessionTables('daily')}
+                        </div>
+                    </>
+                )}
+            </div>
 
             <style>{`
-                .sch-page { padding: 1.5rem 2rem 2rem; background: #f6f7fb; min-height: 100vh; }
-                .sch-top-search input { width: 360px; max-width: 100%; height: 42px; border-radius: 14px; border: 1px solid #e2e8f0; background: #fff; padding: 0 1rem; font-weight: 600; color: #64748b; }
-                .sch-header-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-top: 1rem; margin-bottom: 1rem; }
-                .sch-header-row h1 { font-size: 3rem; line-height: 1; margin: 0; font-family: Outfit, sans-serif; color: #0f172a; }
-                .sch-header-row p { margin: 0.5rem 0 0; color: #64748b; font-weight: 600; }
-                .sch-header-row small { color: #94a3b8; font-weight: 600; }
+                .sch-page-v3 { padding: 2rem 4rem; background: var(--bg-main, #f3f4f6); min-height: 100vh; font-family: 'Inter', sans-serif; }
 
-                .tab-wrap { display: flex; gap: 0.5rem; }
-                .tab { height: 44px; border: 1px solid #e2e8f0; background: #fff; color: #475569; padding: 0 1rem; border-radius: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; }
-                .tab.active { background: linear-gradient(135deg, #5b5ce2, #3f46d7); color: #fff; border-color: transparent; box-shadow: 0 8px 18px -12px rgba(67, 70, 217, 0.9); }
+                .search-shelf-v3 { margin-bottom: 2rem; }
+                .search-pill-v3 { display: flex; align-items: center; gap: 1rem; background: #fff; width: 450px; height: 52px; padding: 0 1.5rem; border-radius: 16px; border: 1px solid var(--border-color, #e5e7eb); color: #94a3b8; box-shadow: var(--shadow-sm); }
+                .search-pill-v3 input { border: none; outline: none; width: 100%; font-weight: 600; font-size: 0.95rem; color: #1e293b; background: transparent; }
 
-                .alert { border-radius: 12px; padding: 0.65rem 0.9rem; font-weight: 700; margin: 0.6rem 0 1rem; }
-                .alert.error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
-                .alert.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+                .page-header-v3 { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; }
+                .header-h1-v3 { font-size: 2.75rem; font-weight: 900; color: #0f172a; margin-bottom: 0.4rem; letter-spacing: -0.04em; font-family: 'Outfit', sans-serif; }
+                .header-sub-v3 { font-size: 1rem; color: #64748b; font-weight: 500; }
 
-                .action-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; gap: 1rem; }
-                .master-filter { display: flex; flex-direction: column; gap: 4px; }
-                .master-filter label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
-                .master-filter select { height: 42px; padding: 0 1rem; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; font-weight: 600; color: #475569; min-width: 200px; }
-                .master-btns { display: flex; gap: 0.75rem; }
-                .btn { border: none; border-radius: 14px; height: 42px; padding: 0 1rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; }
-                .btn.light { border: 1px solid #e2e8f0; background: #fff; color: #334155; }
-                .btn.primary { background: linear-gradient(135deg, #5b5ce2, #3f46d7); color: #fff; }
+                .header-nav-v3 { display: flex; background: #fff; padding: 0.4rem; border-radius: 18px; border: 1px solid var(--border-color, #e5e7eb); box-shadow: var(--shadow-sm); }
+                .nav-tab-v3 { display: flex; align-items: center; gap: 0.65rem; padding: 0.85rem 1.4rem; border: none; background: transparent; color: #64748b; font-weight: 700; cursor: pointer; border-radius: 12px; transition: all 0.2s; white-space: nowrap; font-size: 0.9rem; }
+                .nav-tab-v3.active { background: var(--primary, #6366f1); color: #fff; box-shadow: 0 4px 14px rgba(99,102,241,0.35); }
+                .nav-tab-v3:hover:not(.active) { background: var(--primary-light, #e0e7ff); color: var(--primary, #6366f1); }
 
-                .sch-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; margin-bottom: 1rem; overflow: hidden; }
-                .add-card { padding: 1rem; }
-                .add-card h3 { margin: 0 0 1rem; color: #3f46d7; font-family: Outfit, sans-serif; }
-                .form-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 0.8fr; gap: 0.8rem; }
-                .form-grid label { font-size: 0.8rem; font-weight: 700; color: #64748b; display: block; margin-bottom: 0.35rem; }
-                .form-grid input, .form-grid select { width: 100%; height: 40px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0 0.7rem; font-weight: 600; }
-                .form-actions { margin-top: 0.9rem; display: flex; justify-content: flex-end; gap: 0.5rem; }
+                .alert-v3 { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border-radius: 16px; margin-bottom: 1.5rem; font-weight: 700; max-width: 800px; }
+                .alert-v3.error { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
+                .alert-v3.success { background: #f0fdf4; color: #10b981; border: 1px solid #dcfce7; }
 
-                .sch-section-title { padding: 0.9rem 1rem; font-weight: 900; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; }
-                .sch-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+                .filter-shelf-premium { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color, #e5e7eb); }
+                .filter-group-v3 { display: flex; gap: 1.5rem; }
+                .filter-item-v3 { display: flex; align-items: center; gap: 0.75rem; background: #fff; padding: 0.5rem 1.25rem; border-radius: 14px; border: 1px solid var(--border-color, #e5e7eb); height: 48px; }
+                .f-icon { color: var(--primary, #6366f1); }
+                .f-label { font-size: 0.72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+                .f-select { border: none; background: transparent; font-weight: 700; color: #1e293b; padding: 0.25rem 0; cursor: pointer; min-width: 180px; outline: none; font-size: 0.9rem; }
 
-                .sch-table { width: 100%; border-collapse: collapse; }
-                .sch-table th { text-align: left; font-size: 0.78rem; letter-spacing: 0.06em; color: #64748b; padding: 0.75rem 1rem; border-top: 1px solid #eef2f7; border-bottom: 1px solid #eef2f7; }
-                .sch-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; color: #334155; font-weight: 600; }
-                .sch-table tr:last-child td { border-bottom: none; }
-                .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #64748b; }
-                .sub { font-size: 0.72rem; color: #94a3b8; font-weight: 700; }
+                .action-hub-v3 { display: flex; gap: 0.75rem; }
+                .hub-btn-v3 { display: flex; align-items: center; gap: 0.6rem; border: none; height: 48px; border-radius: 14px; font-weight: 800; cursor: pointer; padding: 0 1.25rem; transition: all 0.2s; font-size: 0.9rem; }
+                .hub-btn-v3.primary { background: var(--primary, #6366f1); color: #fff; box-shadow: 0 4px 14px rgba(99,102,241,0.3); }
+                .hub-btn-v3.primary:hover { background: var(--primary-hover, #4f46e5); }
+                .hub-btn-v3.secondary { background: #fff; color: #64748b; border: 1.5px solid var(--border-color, #e5e7eb); }
+                .hub-btn-v3.secondary:hover { border-color: var(--primary, #6366f1); color: var(--primary, #6366f1); }
+                .hub-btn-v3.danger { background: #ef4444; color: #fff; }
+                .hub-btn-v3:hover:not(.disabled) { transform: translateY(-1px); box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.12); }
+                .hub-btn-v3.disabled { opacity: 0.5; cursor: not-allowed; }
 
-                .badge { padding: 0.22rem 0.55rem; border-radius: 999px; font-size: 0.78rem; font-weight: 800; }
-                .badge.ok { background: #dcfce7; color: #15803d; }
-                .badge.bad { background: #fee2e2; color: #b91c1c; }
-                .actions { display: flex; gap: 0.35rem; }
-                .icon-btn { width: 28px; height: 28px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; color: #6366f1; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-                .icon-btn.danger { color: #ef4444; }
+                .session-grid-v3 { display: grid; gap: 2rem; }
+                .card-header-v3 { display: flex; align-items: center; gap: 1.25rem; padding: 1.5rem 2rem; background: #fff; border-bottom: 1px solid var(--border-color, #e5e7eb); }
+                .header-icon-wrap { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+                .card-title-v3 { font-size: 1.1rem; font-weight: 900; color: #1e293b; margin: 0; font-family: 'Outfit', sans-serif; }
+                .card-subtitle-v3 { font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; }
 
-                .weekly-head, .daily-head { padding: 0.9rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-                .weekly-head label, .daily-head label { font-size: 0.75rem; font-weight: 800; color: #64748b; display: block; margin-bottom: 0.25rem; }
-                .weekly-head select, .daily-head select { height: 38px; border-radius: 10px; border: 1px solid #e2e8f0; padding: 0 0.6rem; font-weight: 700; min-width: 220px; }
-                .weekly-actions, .daily-right { display: flex; align-items: center; gap: 0.5rem; }
-                .week-label { font-weight: 800; color: #334155; min-width: 200px; text-align: center; }
-                .all-btn { height: 30px; padding: 0 0.65rem; border-radius: 8px; border: 1px solid #c7d2fe; color: #4f46e5; background: #eef2ff; font-weight: 800; cursor: pointer; }
+                .table-responsive-v3 { overflow-x: auto; }
+                .table-v3 { width: 100%; border-collapse: collapse; }
+                .table-v3 th { text-align: left; padding: 0.85rem 1.5rem; background: #f8fafc; color: #94a3b8; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid var(--border-color, #e5e7eb); white-space: nowrap; }
+                .table-v3 td { padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; font-weight: 600; color: #334155; vertical-align: middle; }
+                .table-v3 tr:last-child td { border-bottom: none; }
+                .table-v3 tr:hover td { background: #fafbff; }
+                .mono { font-family: ui-monospace, 'JetBrains Mono', monospace; color: #94a3b8; font-size: 0.8rem; }
+                .bold { font-weight: 800; color: #0f172a; }
 
-                .legend { margin: 0.4rem 0 0.8rem; display: flex; gap: 1rem; color: #64748b; font-size: 0.8rem; font-weight: 700; }
-                .legend .lg { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 0.35rem; }
-                .lg.free { background: #dcfce7; }
-                .lg.blocked { background: #fee2e2; }
-                .lg.booked { background: #fef3c7; }
-                .lg.off { background: #e2e8f0; }
+                .time-badge { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--primary, #6366f1); font-weight: 700; font-size: 0.875rem; background: var(--primary-light, #e0e7ff); padding: 0.35rem 0.8rem; border-radius: 8px; }
+                .days-list { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+                .tiny-day-tag { font-size: 0.65rem; font-weight: 900; background: #e0e7ff; color: #6366f1; padding: 0.2rem 0.5rem; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+                .no-days-alert { font-size: 0.75rem; color: #94a3b8; font-style: italic; }
+                
+                .actions-cluster { display: flex; gap: 0.5rem; justify-content: flex-end; }
+                .hub-btn-v3.edit, .hub-btn-v3.delete { width: 38px; height: 38px; padding: 0; border-radius: 10px; flex-shrink: 0; }
+                .hub-btn-v3.edit { background: #ede9fe; color: #6366f1; border: none; height: 38px; }
+                .hub-btn-v3.delete { background: #fef2f2; color: #ef4444; border: none; height: 38px; }
+                .hub-btn-v3.edit:hover { background: var(--primary, #6366f1); color: #fff; transform: none; box-shadow: none; }
+                .hub-btn-v3.delete:hover { background: #ef4444; color: #fff; transform: none; box-shadow: none; }
 
-                .cell { min-width: 74px; height: 28px; border-radius: 8px; border: 1px solid; font-weight: 800; font-size: 0.75rem; cursor: pointer; }
-                .cell.free { background: #ecfdf3; border-color: #bbf7d0; color: #15803d; }
-                .cell.blocked { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
-                .cell.booked { background: #fffbeb; border-color: #fde68a; color: #a16207; cursor: not-allowed; }
-                .cell.off { background: #f8fafc; border-color: #e2e8f0; color: #94a3b8; cursor: not-allowed; }
+                .registration-card-v3 { margin-bottom: 2rem; border: 2px solid var(--primary-light, #e0e7ff); background: #fafbff; }
+                .reg-header-v3 { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color, #e5e7eb); display: flex; align-items: center; gap: 1.25rem; }
+                .reg-icon { color: var(--primary, #6366f1); }
+                .reg-header-v3 h3 { font-size: 1.15rem; font-weight: 900; color: #1e293b; margin: 0; font-family: 'Outfit', sans-serif; }
+                .reg-header-v3 p { color: #64748b; font-size: 0.85rem; margin-top: 0.2rem; }
+                .reg-form-v3 { padding: 2rem; }
+                .form-grid-v3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; }
+                .reg-footer-v3 { display: flex; gap: 1rem; margin-top: 2rem; border-top: 1px solid var(--border-color, #e5e7eb); padding-top: 1.5rem; }
+                .reg-footer-v3 button { flex: 1; height: 48px; border-radius: 14px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
 
-                .spin { animation: spin 1s linear infinite; }
+                .modal-overlay-v3 { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 2rem; }
+                .modal-content-v3 { background: #fff; width: 720px; max-width: 100%; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25); }
+                .m-header-v3 { display: flex; align-items: center; gap: 1.25rem; padding: 2rem 2.5rem; background: #fafbff; border-bottom: 1px solid var(--border-color, #e5e7eb); position: relative; }
+                .m-title-icon { width: 48px; height: 48px; background: var(--primary-light, #e0e7ff); color: var(--primary, #6366f1); border-radius: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+                .m-header-v3 h3 { font-size: 1.25rem; font-weight: 900; color: #1e293b; margin: 0; font-family: 'Outfit', sans-serif; }
+                .m-header-v3 p { font-size: 0.8rem; color: #64748b; margin-top: 0.2rem; }
+                .m-close-v3 { position: absolute; top: 1.5rem; right: 1.5rem; border: none; background: #f1f5f9; color: #64748b; cursor: pointer; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+                .m-close-v3:hover { background: #fee2e2; color: #ef4444; }
+                .m-body-v3 { padding: 2rem 2.5rem; }
+                
+                .roster-template-v3 { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color, #e5e7eb); }
+                .roster-label-v3 { font-size: 0.72rem; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 1rem; }
+                .roster-days-v3 { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+                .roster-day-pill-v3 { padding: 0.65rem 1.25rem; border-radius: 12px; border: 2px solid var(--border-color, #e5e7eb); font-weight: 800; color: #64748b; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; }
+                .roster-day-pill-v3.active { background: var(--primary, #6366f1); color: #fff; border-color: var(--primary, #6366f1); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25); }
+                .roster-day-pill-v3:hover:not(.active) { border-color: var(--primary, #6366f1); color: var(--primary, #6366f1); }
+
+                .doctor-shelf-v3 { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; margin-bottom: 2rem; }
+                .d-shelf-group { display: flex; align-items: center; gap: 1.25rem; }
+                .d-icon { color: var(--primary, #6366f1); }
+                .d-info { display: flex; flex-direction: column; }
+                .d-label { font-size: 0.7rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; }
+                .d-select { border: none; background: transparent; font-size: 1.2rem; font-weight: 900; color: #0f172a; outline: none; cursor: pointer; padding: 0.2rem 0; letter-spacing: -0.02em; font-family: 'Outfit', sans-serif; }
+                .d-actions-v3 { display: flex; gap: 0.75rem; }
+
+                .roster-table-v3 .center-th, .availability-grid-v3 .center-th { text-align: center; }
+                .center-td { text-align: center; vertical-align: middle; }
+                .checkbox-v3 { display: block; position: relative; width: 22px; height: 22px; cursor: pointer; margin: 0 auto; user-select: none; }
+                .checkbox-v3 input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+                .checkmark { position: absolute; top: 0; left: 0; height: 22px; width: 22px; background-color: #f1f5f9; border-radius: 7px; border: 1.5px solid #e2e8f0; transition: all 0.2s; }
+                .checkbox-v3:hover input ~ .checkmark { border-color: var(--primary, #6366f1); }
+                .checkbox-v3 input:checked ~ .checkmark { background-color: var(--primary, #6366f1); border-color: var(--primary, #6366f1); }
+                .checkmark:after { content: ""; position: absolute; display: none; left: 7px; top: 3px; width: 5px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+                .checkbox-v3 input:checked ~ .checkmark:after { display: block; }
+                .pill-btn-v3 { background: #f8fafc; border: 1.5px solid var(--border-color, #e5e7eb); color: #64748b; padding: 0.35rem 0.75rem; border-radius: 8px; font-size: 0.72rem; font-weight: 800; cursor: pointer; transition: all 0.2s; text-transform: uppercase; white-space: nowrap; }
+                .pill-btn-v3:hover { border-color: var(--primary, #6366f1); color: var(--primary, #6366f1); background: var(--primary-light, #e0e7ff); }
+
+                /* Slot identity stack — CRITICAL: must be column direction */
+                .slot-identity { display: flex; flex-direction: column; gap: 0.25rem; }
+                .s-name { font-weight: 700; color: #1e293b; font-size: 0.875rem; white-space: nowrap; }
+                .s-id { font-size: 0.72rem; color: #94a3b8; font-weight: 600; white-space: nowrap; }
+                .time-val-v3 { font-weight: 700; color: #475569; font-size: 0.875rem; white-space: nowrap; }
+
+                .daily-navigation-v3 { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 2rem; margin-bottom: 1.5rem; }
+                .nav-doctor-v3 { display: flex; align-items: center; gap: 0.75rem; color: var(--primary, #6366f1); }
+                .nav-doctor-v3 select { border: none; font-size: 1rem; font-weight: 800; color: #1e293b; cursor: pointer; outline: none; background: transparent; font-family: 'Outfit', sans-serif; }
+                .nav-range-v3 { display: flex; align-items: center; gap: 1.5rem; background: #f8fafc; padding: 0.4rem 0.75rem; border-radius: 14px; border: 1px solid var(--border-color, #e5e7eb); }
+                .range-btn-v3 { background: #fff; border: 1px solid var(--border-color, #e5e7eb); color: #1e293b; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+                .range-btn-v3:hover { color: var(--primary, #6366f1); border-color: var(--primary, #6366f1); }
+                .range-label-v3 { display: flex; align-items: center; gap: 0.75rem; font-weight: 800; color: #1e293b; font-size: 0.95rem; min-width: 220px; justify-content: center; }
+                .range-label-v3 svg { color: var(--primary, #6366f1); }
+
+                .legend-shelf-v3 { display: flex; gap: 2rem; justify-content: center; margin-bottom: 1.5rem; padding: 0.75rem 1.5rem; background: #fff; border: 1px solid var(--border-color, #e5e7eb); border-radius: 14px; width: fit-content; margin-left: auto; margin-right: auto; }
+                .legend-item-v3 { display: flex; align-items: center; gap: 0.5rem; font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+                .legend-item-v3 .dot { width: 10px; height: 10px; border-radius: 3px; }
+                .dot.free { background: #10b981; }
+                .dot.blocked { background: #ef4444; }
+                .dot.booked { background: #f59e0b; }
+                .dot.off { background: #cbd5e1; }
+
+                /* Date header fix — stack DOW + date properly */
+                .date-th { min-width: 100px; }
+                .date-stack { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+                .d-dow { font-size: 0.72rem; font-weight: 900; letter-spacing: 0.08em; color: #64748b; }
+                .d-dm { font-size: 0.65rem; font-weight: 700; color: #94a3b8; white-space: nowrap; }
+
+                .grid-cell-v3 { min-width: 80px; height: 34px; border-radius: 8px; border: 1.5px solid; font-weight: 800; font-size: 0.72rem; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; text-transform: uppercase; letter-spacing: 0.04em; }
+                .grid-cell-v3.free { background: #ecfdf5; border-color: #6ee7b7; color: #059669; }
+                .grid-cell-v3.free:hover:not(:disabled) { background: #10b981; color: #fff; border-color: #10b981; }
+                .grid-cell-v3.blocked { background: #fff1f2; border-color: #fca5a5; color: #ef4444; }
+                .grid-cell-v3.blocked:hover:not(:disabled) { background: #ef4444; color: #fff; }
+                .grid-cell-v3.booked { background: #fffbeb; border-color: #fcd34d; color: #d97706; cursor: not-allowed; opacity: 0.8; }
+                .grid-cell-v3.off { background: #f8fafc; border-color: #e2e8f0; color: #cbd5e1; cursor: not-allowed; }
+
+                .skeleton-container-v3 { min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem; color: #64748b; font-weight: 700; }
+                
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                .animate-spin { animation: spin 1s linear infinite; }
 
-                @media (max-width: 1100px) {
-                    .sch-header-row { flex-direction: column; }
-                    .form-grid { grid-template-columns: 1fr 1fr; }
-                    .sch-card { overflow-x: auto; }
-                    .sch-table { min-width: 900px; }
+                @media (max-width: 1400px) { .sch-page-v3 { padding: 1.5rem 2rem; } }
+                @media (max-width: 1000px) {
+                    .page-header-v3 { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+                    .header-nav-v3 { width: 100%; overflow-x: auto; }
+                    .search-pill-v3 { width: 100%; }
+                    .filter-shelf-premium { flex-direction: column; align-items: flex-start; gap: 1rem; }
                 }
             `}</style>
         </div>

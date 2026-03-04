@@ -53,13 +53,11 @@ const Admins = () => {
         current_password: '',
         new_password: ''
     });
-    const [profileLookup, setProfileLookup] = useState({
-        mode: 'username',
-        user_id: '',
-        username: '',
-        password: ''
-    });
     const [profileLookupLoading, setProfileLookupLoading] = useState(false);
+
+    const localUser = useMemo(() => JSON.parse(localStorage.getItem('user') || '{}'), []);
+    const isDoctor = localUser?.role === 'doctor';
+    const isSuperAdmin = localUser?.role === 'super_admin';
 
     const loadAdminData = useCallback(async () => {
         setLoading(true);
@@ -99,11 +97,6 @@ const Admins = () => {
                     current_password: '',
                     new_password: ''
                 });
-                setProfileLookup((prev) => ({
-                    ...prev,
-                    user_id: profileData?.id || '',
-                    username: profileData?.username || ''
-                }));
             }
 
             if (profileRes.status === 'rejected' && overviewRes.status === 'fulfilled') {
@@ -251,46 +244,6 @@ const Admins = () => {
         }
     };
 
-    const handleFetchProfileByQuery = async (e) => {
-        e.preventDefault();
-        setProfileLookupLoading(true);
-        setError('');
-        try {
-            const params = {};
-            if (profileLookup.mode === 'user_id') {
-                if (!profileLookup.user_id.trim()) {
-                    setError('Please enter user_id.');
-                    return;
-                }
-                params.user_id = profileLookup.user_id.trim();
-            } else {
-                if (!profileLookup.username.trim()) {
-                    setError('Please enter username.');
-                    return;
-                }
-                params.username = profileLookup.username.trim();
-            }
-            if (profileLookup.password.trim()) {
-                params.password = profileLookup.password.trim();
-            }
-
-            const res = await getAdminProfile(params);
-            const profileData = res.data?.data || null;
-            setProfile(profileData);
-            setProfileForm({
-                full_name: profileData?.full_name || '',
-                email: profileData?.email || '',
-                current_password: '',
-                new_password: ''
-            });
-            setSuccess('Profile fetched successfully.');
-        } catch (e) {
-            setError(e.response?.data?.message || 'Failed to fetch profile.');
-        } finally {
-            setProfileLookupLoading(false);
-        }
-    };
-
     const formatDate = (dateString) => {
         if (!dateString) return 'Never';
         return new Date(dateString).toLocaleString('en-IN', {
@@ -317,10 +270,12 @@ const Admins = () => {
                             <RefreshCw size={16} className={refreshing || loading ? 'animate-spin' : ''} />
                             Refresh
                         </button>
-                        <button className="btn btn-primary" onClick={handleCreateClick}>
-                            <Plus size={16} />
-                            New Admin User
-                        </button>
+                        {!isDoctor && (
+                            <button className="btn btn-primary" onClick={handleCreateClick}>
+                                <Plus size={16} />
+                                New Admin User
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -375,9 +330,6 @@ const Admins = () => {
                     profile={profile}
                     profileForm={profileForm}
                     setProfileForm={setProfileForm}
-                    profileLookup={profileLookup}
-                    setProfileLookup={setProfileLookup}
-                    onFetchProfile={handleFetchProfileByQuery}
                     onSaveProfile={handleSaveProfile}
                     loading={profileLookupLoading}
                     submitting={submittingProfile}
@@ -397,139 +349,141 @@ const Admins = () => {
                 )}
             </div>
 
-            <div className="card shadow-premium" style={{ marginTop: '2.5rem', padding: '0', borderRadius: '24px', overflow: 'hidden' }}>
-                <div className="card-header" style={{ padding: '1.75rem 2rem', borderBottom: '1px solid #f1f5f9' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                        <div>
-                            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>Admin User Directory</h3>
-                            <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#64748b' }}>Manage system access for staff, doctors, and operators.</p>
+            {!isDoctor && (
+                <div className="card shadow-premium" style={{ marginTop: '2.5rem', padding: '0', borderRadius: '24px', overflow: 'hidden' }}>
+                    <div className="card-header" style={{ padding: '1.75rem 2rem', borderBottom: '1px solid #f1f5f9' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                            <div>
+                                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>Admin User Directory</h3>
+                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#64748b' }}>Manage system access for staff, doctors, and operators.</p>
+                            </div>
+                            <span className="badge-v3" style={{ background: '#f1f5f9', color: '#475569', padding: '0.5rem 1rem' }}>
+                                {filteredUsers.length} Logged Identities
+                            </span>
                         </div>
-                        <span className="badge-v3" style={{ background: '#f1f5f9', color: '#475569', padding: '0.5rem 1rem' }}>
-                            {filteredUsers.length} Logged Identities
-                        </span>
                     </div>
-                </div>
 
-                <div className="admin-filters" style={{ padding: '1.5rem 2rem', background: '#fcfdfe', borderBottom: '1px solid #f1f5f9' }}>
-                    <div className="search-box-v3" style={{ flex: 1, minWidth: '300px' }}>
-                        <Search size={20} color="#94a3b8" />
-                        <input
-                            type="text"
-                            placeholder="Search identities by name, username, or role..."
-                            style={{ background: 'transparent', border: 'none', width: '100%', outline: 'none', padding: '0.85rem 0', fontWeight: 600, fontSize: '0.95rem', color: '#1e293b' }}
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                        />
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <select className="select-v3" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-                            <option value="all">Every Role</option>
-                            {roles.map((r) => (
-                                <option key={r.id} value={r.id}>{r.label}</option>
-                            ))}
-                        </select>
-                        <select className="select-v3" value={permissionFilter} onChange={(e) => setPermissionFilter(e.target.value)}>
-                            <option value="all">Any Permission</option>
-                            {permissionTags.map((tag) => (
-                                <option key={tag} value={tag}>{tag}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                <div style={{ padding: '1rem 2rem 2rem' }}>
-                    {loading ? (
-                        <div style={{ padding: '4rem', textAlign: 'center' }}>
-                            <RefreshCw size={32} className="animate-spin text-primary" style={{ marginBottom: '1rem' }} />
-                            <p style={{ fontWeight: 700, color: '#64748b' }}>Syncing user registry...</p>
+                    <div className="admin-filters" style={{ padding: '1.5rem 2rem', background: '#fcfdfe', borderBottom: '1px solid #f1f5f9' }}>
+                        <div className="search-box-v3" style={{ flex: 1, minWidth: '300px' }}>
+                            <Search size={20} color="#94a3b8" />
+                            <input
+                                type="text"
+                                placeholder="Search identities by name, username, or role..."
+                                style={{ background: 'transparent', border: 'none', width: '100%', outline: 'none', padding: '0.85rem 0', fontWeight: 600, fontSize: '0.95rem', color: '#1e293b' }}
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />
                         </div>
-                    ) : (
-                        <table className="admin-table-premium">
-                            <thead>
-                                <tr>
-                                    <th>Identity Profile</th>
-                                    <th>Access level</th>
-                                    <th>Authorized Pages</th>
-                                    <th>Status</th>
-                                    <th>Safety Check</th>
-                                    <th style={{ textAlign: 'right' }}>Management</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredUsers.map((user) => (
-                                    <tr key={user._id}>
-                                        <td>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                <div className="user-avatar" style={{ background: 'linear-gradient(135deg, #6366f1, #4338ca)', width: '48px', height: '48px', borderRadius: '15px' }}>
-                                                    {(user.full_name || user.username || 'U').charAt(0).toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '1rem' }}>{user.full_name || user.username}</div>
-                                                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.15rem' }}>
-                                                        <Mail size={12} /> {user.email || 'No email attached'}
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                            <select className="select-v3" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                                <option value="all">Every Role</option>
+                                {roles.map((r) => (
+                                    <option key={r.id} value={r.id}>{r.label}</option>
+                                ))}
+                            </select>
+                            <select className="select-v3" value={permissionFilter} onChange={(e) => setPermissionFilter(e.target.value)}>
+                                <option value="all">Any Permission</option>
+                                {permissionTags.map((tag) => (
+                                    <option key={tag} value={tag}>{tag}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style={{ padding: '1rem 2rem 2rem' }}>
+                        {loading ? (
+                            <div style={{ padding: '4rem', textAlign: 'center' }}>
+                                <RefreshCw size={32} className="animate-spin text-primary" style={{ marginBottom: '1rem' }} />
+                                <p style={{ fontWeight: 700, color: '#64748b' }}>Syncing user registry...</p>
+                            </div>
+                        ) : (
+                            <table className="admin-table-premium">
+                                <thead>
+                                    <tr>
+                                        <th>Identity Profile</th>
+                                        <th>Access level</th>
+                                        <th>Authorized Pages</th>
+                                        <th>Status</th>
+                                        <th>Safety Check</th>
+                                        <th style={{ textAlign: 'right' }}>Management</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredUsers.map((user) => (
+                                        <tr key={user._id}>
+                                            <td>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                    <div className="user-avatar" style={{ background: 'linear-gradient(135deg, #6366f1, #4338ca)', width: '48px', height: '48px', borderRadius: '15px' }}>
+                                                        {(user.full_name || user.username || 'U').charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '1rem' }}>{user.full_name || user.username}</div>
+                                                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.15rem' }}>
+                                                            <Mail size={12} /> {user.email || 'No email attached'}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span className="role-badge-v3" style={{
-                                                background: user.role === 'super_admin' ? '#fef2f2' : user.role === 'doctor' ? '#ecfdf5' : '#eff6ff',
-                                                color: user.role === 'super_admin' ? '#ef4444' : user.role === 'doctor' ? '#10b981' : '#3b82f6',
-                                                border: `1px solid ${user.role === 'super_admin' ? '#fee2e2' : user.role === 'doctor' ? '#d1fae5' : '#dbeafe'}`
-                                            }}>
-                                                {String(user.role || 'User').replace('_', ' ')}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div className="permission-list" style={{ display: 'flex', gap: '0.35rem' }}>
-                                                {(user.permissions || []).slice(0, 3).map((p) => (
-                                                    <span key={p} className="tag-badge-v3">{p}</span>
-                                                ))}
-                                                {(user.permissions || []).length > 3 && (
-                                                    <span className="tag-badge-v3" style={{ background: '#fff' }}>+{(user.permissions || []).length - 3} more</span>
-                                                )}
-                                                {!(user.permissions || []).length && (
-                                                    <span style={{ color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 600 }}>Standard Default</span>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {user.is_active ? (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#10b981', fontWeight: 800, fontSize: '0.75rem' }}>
-                                                    <div style={{ width: '6px', height: '6px', background: '#10b981', borderRadius: '50%', boxShadow: '0 0 8px #10b981' }}></div>
-                                                    ACTIVE
+                                            </td>
+                                            <td>
+                                                <span className="role-badge-v3" style={{
+                                                    background: user.role === 'super_admin' ? '#fef2f2' : user.role === 'doctor' ? '#ecfdf5' : '#eff6ff',
+                                                    color: user.role === 'super_admin' ? '#ef4444' : user.role === 'doctor' ? '#10b981' : '#3b82f6',
+                                                    border: `1px solid ${user.role === 'super_admin' ? '#fee2e2' : user.role === 'doctor' ? '#d1fae5' : '#dbeafe'}`
+                                                }}>
+                                                    {String(user.role || 'User').replace('_', ' ')}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className="permission-list" style={{ display: 'flex', gap: '0.35rem' }}>
+                                                    {(user.permissions || []).slice(0, 3).map((p) => (
+                                                        <span key={p} className="tag-badge-v3">{p}</span>
+                                                    ))}
+                                                    {(user.permissions || []).length > 3 && (
+                                                        <span className="tag-badge-v3" style={{ background: '#fff' }}>+{(user.permissions || []).length - 3} more</span>
+                                                    )}
+                                                    {!(user.permissions || []).length && (
+                                                        <span style={{ color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 600 }}>Standard Default</span>
+                                                    )}
                                                 </div>
-                                            ) : (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#f43f5e', fontWeight: 800, fontSize: '0.75rem' }}>
-                                                    <div style={{ width: '6px', height: '6px', background: '#f43f5e', borderRadius: '50%' }}></div>
-                                                    RESTRICTED
+                                            </td>
+                                            <td>
+                                                {user.is_active ? (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#10b981', fontWeight: 800, fontSize: '0.75rem' }}>
+                                                        <div style={{ width: '6px', height: '6px', background: '#10b981', borderRadius: '50%', boxShadow: '0 0 8px #10b981' }}></div>
+                                                        ACTIVE
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#f43f5e', fontWeight: 800, fontSize: '0.75rem' }}>
+                                                        <div style={{ width: '6px', height: '6px', background: '#f43f5e', borderRadius: '50%' }}></div>
+                                                        RESTRICTED
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td>
+                                                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>
+                                                    Last seen: <span style={{ color: '#1e293b' }}>{formatDate(user.last_login_at)}</span>
                                                 </div>
-                                            )}
-                                        </td>
-                                        <td>
-                                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>
-                                                Last seen: <span style={{ color: '#1e293b' }}>{formatDate(user.last_login_at)}</span>
-                                            </div>
-                                        </td>
-                                        <td style={{ textAlign: 'right' }}>
-                                            <div style={{ display: 'inline-flex', gap: '0.6rem' }}>
-                                                <button className="btn-action" onClick={() => handleEditClick(user)} title="Configure Access">
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                {user.role !== 'super_admin' && (
-                                                    <button className="btn-action btn-danger" onClick={() => handleDeactivate(user)} title="Revoke Access">
-                                                        <Trash2 size={16} />
+                                            </td>
+                                            <td style={{ textAlign: 'right' }}>
+                                                <div style={{ display: 'inline-flex', gap: '0.6rem' }}>
+                                                    <button className="btn-action" onClick={() => handleEditClick(user)} title="Configure Access">
+                                                        <Edit2 size={16} />
                                                     </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
+                                                    {user.role !== 'super_admin' && (
+                                                        <button className="btn-action btn-danger" onClick={() => handleDeactivate(user)} title="Revoke Access">
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             <style>{`
                 .admins-page { animation: fadeIn 0.35s ease-out; padding: 2.5rem; max-width: 1400px; margin: 0 auto; }
@@ -568,30 +522,7 @@ const Admins = () => {
                 }
                 .role-chip-title { font-weight: 700; color: #0f172a; font-size: 0.95rem; }
                 .role-chip-desc { color: #64748b; font-size: 0.8rem; margin-top: 0.2rem; }
-                .profile-lookup-header {
-                    font-size: 0.76rem;
-                    font-weight: 800;
-                    color: #334155;
-                    letter-spacing: 0.04em;
-                    text-transform: uppercase;
-                }
-                .lookup-mode { display: flex; gap: 0.45rem; margin-bottom: 0.25rem; }
-                .lookup-chip {
-                    border: 1px solid #cbd5e1;
-                    background: #fff;
-                    color: #475569;
-                    border-radius: 999px;
-                    padding: 0.45rem 1rem;
-                    font-size: 0.8rem;
-                    font-weight: 700;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .lookup-chip.active {
-                    border-color: #6366f1;
-                    color: #4338ca;
-                    background: #eef2ff;
-                }
+                
                 .profile-summary {
                     border: 1px solid #f1f5f9;
                     border-radius: 18px;
@@ -599,7 +530,7 @@ const Admins = () => {
                     display: flex;
                     gap: 1.25rem;
                     align-items: center;
-                    margin-bottom: 1rem;
+                    margin-bottom: 1.5rem;
                     background: linear-gradient(135deg, #ffffff, #f8fbff);
                 }
                 .profile-avatar {
@@ -653,22 +584,21 @@ const Admins = () => {
                 }
                 .admin-filters select:focus { border-color: #6366f1; }
                 .user-avatar {
-                    width: 42px;
-                    height: 42px;
-                    border-radius: 12px;
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 15px;
                     background: linear-gradient(135deg, #4338ca, #6366f1);
                     color: #fff;
-                    font-weight: 700;
+                    font-weight: 800;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 1.1rem;
+                    font-size: 1.25rem;
                 }
                 .permission-list {
                     display: flex;
                     gap: 0.4rem;
                     flex-wrap: wrap;
-                    max-width: 280px;
                 }
                 .btn-action {
                     border: 1px solid #e2e8f0;
@@ -707,6 +637,7 @@ const Admins = () => {
                 .alert-premium.success { background: #f0fdf4; border-color: #dcfce7; color: #166534; }
                 .alert-premium.error { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
             `}</style>
+
         </div>
     );
 };
