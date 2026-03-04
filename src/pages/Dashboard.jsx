@@ -654,6 +654,12 @@ const Dashboard = () => {
                     margin-top: 0.15rem;
                 }
 
+                .doctor-name-premium {
+                    font-weight: 700;
+                    color: #7c3aed;
+                    font-size: 0.9rem;
+                }
+
                 .category-pill-premium {
                     background: #f8fafc;
                     padding: 0.35rem 0.75rem;

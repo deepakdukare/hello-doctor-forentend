@@ -309,10 +309,34 @@ const Appointments = () => {
             <header className="page-header-v3">
                 <div className="header-meta-group">
                     <h1 className="header-h1-v3">Appointments</h1>
-                    <div className="stats-row-mini-v3">
-                        <StatCard label="Today" value={stats?.total_today || 0} icon={Users} color="#6366f1" className="stat-pill-premium-v3" />
-                        <StatCard label="Confirmed" value={stats?.confirmed || 0} icon={CheckCircle2} color="#10b981" className="stat-pill-premium-v3" />
-                        <StatCard label="Cancelled" value={stats?.cancelled || 0} icon={XCircle} color="#ef4444" className="stat-pill-premium-v3" />
+                    <div className="stats-row-mini-v3" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                        <div className="stat-card-improved" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)', borderRadius: '20px', padding: '1.25rem 1.75rem', minWidth: '140px', color: '#fff', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Users size={24} color="#fff" />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1 }}>{stats?.total_today || 0}</div>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Today</div>
+                            </div>
+                        </div>
+                        <div className="stat-card-improved" style={{ background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)', borderRadius: '20px', padding: '1.25rem 1.75rem', minWidth: '140px', color: '#fff', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <CheckCircle2 size={24} color="#fff" />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1 }}>{stats?.confirmed || 0}</div>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Confirmed</div>
+                            </div>
+                        </div>
+                        <div className="stat-card-improved" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)', borderRadius: '20px', padding: '1.25rem 1.75rem', minWidth: '140px', color: '#fff', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <XCircle size={24} color="#fff" />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: '2rem', fontWeight: 900, lineHeight: 1 }}>{stats?.cancelled || 0}</div>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cancelled</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -334,6 +358,15 @@ const Appointments = () => {
             {activeView === 'queue' ? (
                 <div className="view-content-v3">
                     <div className="filter-shelf-premium">
+                        <div className="search-pill-v3">
+                            <Search size={18} />
+                            <input
+                                type="text"
+                                placeholder="Patient Search..."
+                                value={queueSearch}
+                                onChange={(e) => setQueueSearch(e.target.value)}
+                            />
+                        </div>
                         <div className="filter-group-v3">
                             <div className="filter-item-v3">
                                 <CalendarIcon size={18} className="f-icon" />
@@ -383,15 +416,6 @@ const Appointments = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="search-pill-v3">
-                            <Search size={18} />
-                            <input
-                                type="text"
-                                placeholder="Patient Search..."
-                                value={queueSearch}
-                                onChange={(e) => setQueueSearch(e.target.value)}
-                            />
-                        </div>
                     </div>
 
                     <div className="repository-card-v3">
@@ -400,10 +424,10 @@ const Appointments = () => {
                                 <thead>
                                     <tr>
                                         <th>Schedule & Slot</th>
-                                        <th>Patient File</th>
-                                        <th>Medical Assignment</th>
-                                        <th>Real-time Status</th>
-                                        <th>Ingress</th>
+                                        <th>Patient Name</th>
+                                        <th>Doctors Assign</th>
+                                        <th>Status</th>
+                                        <th>Registration Type</th>
                                         <th style={{ textAlign: 'center' }}>Management</th>
                                     </tr>
                                 </thead>
@@ -753,9 +777,20 @@ const Appointments = () => {
                 .p-id-sub { font-size: 0.95rem; color: #64748b; font-weight: 600; }
                 .form-grid-v3 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
                 .full-span { grid-column: 1 / -1; }
-                .form-group-v3 { display: flex; flex-direction: column; gap: 0.75rem; }
+.form-group-v3 { display: flex; flex-direction: column; gap: 0.75rem; }
                 .form-group-v3 label { font-size: 0.8rem; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; }
                 
+                /* Field V3 Styles - for Consultation Config */
+                .field-v3 { display: flex; flex-direction: column; gap: 0.75rem; }
+                .field-v3 > span { font-size: 0.8rem; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; }
+                .input-with-icon { position: relative; display: flex; align-items: center; }
+                .input-icon { position: absolute; left: 1.25rem; color: #6366f1; opacity: 0.6; z-index: 1; pointer-events: none; }
+                .input-v3 { width: 100%; height: 56px; border-radius: 16px; border: 2px solid #f1f5f9; padding: 0 1.25rem; font-size: 1rem; font-weight: 600; outline: none; transition: 0.2s; background: #fff; color: #1e293b; }
+                .input-v3:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,0.08); }
+                .input-v3::placeholder { color: #94a3b8; }
+                .select-v3 { width: 100%; height: 56px; border-radius: 16px; border: 2px solid #f1f5f9; padding: 0 1.25rem; font-size: 1rem; font-weight: 600; outline: none; transition: 0.2s; background: #fff; color: #1e293b; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.25rem; }
+                .select-v3:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,0.08); }
+
                 /* Selection Banner Styles */
                 .selected-patient-v3 { margin-bottom: 2.5rem; }
                 .p-banner { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 24px; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; }
