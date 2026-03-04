@@ -169,17 +169,6 @@ const Dashboard = () => {
                     </div>
                 </div>
                 <div className="header-actions-premium">
-                    <div className="filter-group-premium">
-                        {['Today', 'Week', 'Month'].map(tab => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                className={`filter-tab-premium ${activeTab === tab ? 'active' : ''}`}
-                            >
-                                {tab}
-                            </button>
-                        ))}
-                    </div>
                     <button onClick={fetchData} className="refresh-btn-premium" title="Refresh Data">
                         <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
                     </button>
@@ -197,7 +186,7 @@ const Dashboard = () => {
             <div className="dashboard-grid-v2">
                 <div className="main-content-v2">
                     <div className="stats-grid-v2">
-                        {hasPermission('view_patients') && <StatCard title="Total Patients" value={data.stats.totalPatients} subtitle="Active registry profiles" icon={Users} color="#6366f1" loading={loading} trend={12} />}
+                        {hasPermission('view_patients') && <StatCard title="Total Patients" value={data.stats.totalPatients} subtitle="Active registry profiles" icon={Users} color="#6366f1" loading={loading} />}
                         {hasPermission('view_appointments') && <StatCard title="Today's Visits" value={data.stats.todayVisits} subtitle="Checked-in today" icon={Calendar} color="#0ea5e9" loading={loading} />}
                         <StatCard title="Completed" value={data.stats.completed} subtitle="Sessions concluded" icon={CheckCircle} color="#10b981" loading={loading} />
                         <StatCard title="Pending" value={data.stats.pending} subtitle="Awaiting consultation" icon={Clock} color="#f59e0b" loading={loading} />
@@ -247,6 +236,7 @@ const Dashboard = () => {
                                         <tr>
                                             <th>Time Slot</th>
                                             <th>Patient Name</th>
+                                            <th>Doctor</th>
                                             <th>Category</th>
                                             <th>Source</th>
                                             <th>Status</th>
@@ -261,6 +251,9 @@ const Dashboard = () => {
                                                 <td>
                                                     <div className="patient-name-premium">{appt.child_name || 'Walk-in'}</div>
                                                     <div className="patient-id-premium">{appt.patient_id || 'TEMP-ID'}</div>
+                                                </td>
+                                                <td>
+                                                    <div className="doctor-name-premium">{appt.doctor_name || 'Not Assigned'}</div>
                                                 </td>
                                                 <td>
                                                     <span className="category-pill-premium">{appt.visit_type}</span>
@@ -349,7 +342,7 @@ const Dashboard = () => {
 
             <style>{`
                 .dashboard-page-v2 {
-                    padding: 2.5rem;
+                    padding: 1.5rem;
                     max-width: 1600px;
                     margin: 0 auto;
                     animation: pageFadeIn 0.6s ease-out;
@@ -364,7 +357,7 @@ const Dashboard = () => {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-bottom: 3.5rem;
+                    margin-bottom: 2rem;
                 }
 
                 .header-title-premium {
@@ -467,19 +460,19 @@ const Dashboard = () => {
                 .dashboard-grid-v2 {
                     display: grid;
                     grid-template-columns: 1fr 380px;
-                    gap: 2.5rem;
+                    gap: 1.5rem;
                 }
 
                 .stats-grid-v2 {
                     display: grid;
                     grid-template-columns: repeat(4, 1fr);
-                    gap: 1.75rem;
-                    margin-bottom: 2.5rem;
+                    gap: 1rem;
+                    margin-bottom: 1.5rem;
                 }
 
                 .stat-card-premium {
                     background: #fff;
-                    padding: 1.5rem;
+                    padding: 1.25rem;
                     border-radius: 28px;
                     border: 1px solid #f1f5f9;
                     box-shadow: 0 4px 20px rgba(0,0,0,0.02);
@@ -659,6 +652,12 @@ const Dashboard = () => {
                     color: #94a3b8;
                     font-weight: 600;
                     margin-top: 0.15rem;
+                }
+
+                .doctor-name-premium {
+                    font-weight: 700;
+                    color: #7c3aed;
+                    font-size: 0.9rem;
                 }
 
                 .category-pill-premium {

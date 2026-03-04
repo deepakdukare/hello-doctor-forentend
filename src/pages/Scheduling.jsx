@@ -687,17 +687,11 @@ const Scheduling = () => {
 
     return (
         <div className="sch-page-v3">
-            <div className="search-shelf-v3">
-                <div className="search-pill-v3">
-                    <Search size={18} />
-                    <input type="text" placeholder="Quick search clinical registry..." readOnly />
-                </div>
-            </div>
+
 
             <header className="page-header-v3">
                 <div className="header-meta-group">
                     <h1 className="header-h1-v3">Scheduling</h1>
-                    <p className="header-sub-v3">Manage clinic time slots, professional rosters, and real-time availability.</p>
                 </div>
 
                 <div className="header-nav-v3">
@@ -945,11 +939,9 @@ const Scheduling = () => {
             </div>
 
             <style>{`
-                .sch-page-v3 { padding: 2rem 4rem; background: var(--bg-main, #f3f4f6); min-height: 100vh; font-family: 'Inter', sans-serif; }
+                .sch-page-v3 { padding: 1rem 1.5rem; background: var(--bg-main, #f3f4f6); min-height: 100vh; font-family: 'Inter', sans-serif; }
 
-                .search-shelf-v3 { margin-bottom: 2rem; }
-                .search-pill-v3 { display: flex; align-items: center; gap: 1rem; background: #fff; width: 450px; height: 52px; padding: 0 1.5rem; border-radius: 16px; border: 1px solid var(--border-color, #e5e7eb); color: #94a3b8; box-shadow: var(--shadow-sm); }
-                .search-pill-v3 input { border: none; outline: none; width: 100%; font-weight: 600; font-size: 0.95rem; color: #1e293b; background: transparent; }
+
 
                 .page-header-v3 { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; }
                 .header-h1-v3 { font-size: 2.75rem; font-weight: 900; color: #0f172a; margin-bottom: 0.4rem; letter-spacing: -0.04em; font-family: 'Outfit', sans-serif; }

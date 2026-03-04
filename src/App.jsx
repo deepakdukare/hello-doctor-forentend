@@ -70,6 +70,9 @@ const MobileNav = () => {
 
 const Sidebar = ({ onLogout, isCollapsed }) => {
     const location = useLocation();
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const displayName = user.full_name || user.username || 'Admin';
+    const initial = displayName.charAt(0).toUpperCase();
 
     const allNavItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard, permission: 'view_dashboard' },
@@ -79,7 +82,6 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
         { name: 'Patients', path: '/patients', icon: Users, permission: 'view_patients' },
         { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },
         { name: 'Doctors', path: '/doctors', icon: Stethoscope, permission: 'view_doctors' },
-        { name: 'Admin Users', path: '/admins', icon: Shield, permission: 'view_admins' },
         { name: 'MRD', path: '/mrd', icon: FileText, permission: 'view_mrd' },
         { name: 'Reports', path: '/reports', icon: BarChart2, permission: 'view_reports' },
         { name: 'Notifications', path: '/notifications', icon: BellIcon, permission: 'view_notifications' },
@@ -90,9 +92,9 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
 
     return (
         <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-            <div className="logo" style={{ flexDirection: 'column', gap: '1rem', padding: '1.5rem 0', paddingLeft: 0, marginBottom: '2rem', justifyContent: 'center' }}>
-                <img src="/logo.jpg" alt="Logo" style={{ width: '120px', height: '120px', borderRadius: '24px', objectFit: 'cover', boxShadow: '0 10px 25px rgba(99, 102, 241, 0.15)' }} />
-                <span style={{ fontSize: '1.25rem', textAlign: 'center', width: '100%' }}>Dr. Indu Child Care</span>
+            <div className="logo" style={{ flexDirection: 'column', gap: '0.75rem', padding: '0.5rem 0', paddingLeft: 0, marginBottom: '0.75rem', justifyContent: 'center' }}>
+                <img src="/logo.jpg" alt="Logo" style={{ width: '100px', height: '100px', borderRadius: '20px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(99, 102, 241, 0.12)' }} />
+                <span style={{ fontSize: '1.1rem', textAlign: 'center', width: '100%', fontWeight: 800 }}>Dr. Indu Child Care</span>
             </div>
             <ul className="nav-links">
                 {navItems.map((item) => (
@@ -107,12 +109,10 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
                                         ? "Configure session timings and clinical capacity matrix."
                                         : item.name === 'Patients'
                                             ? "Manage patient records and registrations."
-                                            : item.name === 'Bot Hub'
-                                                ? "Track interactions from people who Haven't registered as patients yet."
-                                                : item.name === 'Doctors'
-                                                    ? "Manage clinic practitioners and specialities."
-                                                    : item.name === 'Admin Users'
-                                                        ? "Manage dashboard access for clinic staff."
+                                        : item.name === 'Bot Hub'
+                                            ? "Track interactions from people who Haven't registered as patients yet."
+                                            : item.name === 'Doctors'
+                                                ? "Manage clinic practitioners and specialities."
                                                         : item.name === 'MRD'
                                                             ? "Search a patient to view or update their longitudinal health file."
                                                             : ""
@@ -124,7 +124,12 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
                     </li>
                 ))}
             </ul>
-            <div style={{ marginTop: 'auto', padding: '0.5rem' }}>
+            <div className="sidebar-admin-card">
+                <div className="sidebar-admin-row">
+                    <div className="sidebar-admin-avatar">{initial}</div>
+                </div>
+            </div>
+            <div style={{ marginTop: '0.5rem', padding: '0.5rem' }}>
                 <button
                     onClick={onLogout}
                     className="nav-item"

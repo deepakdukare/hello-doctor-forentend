@@ -17,6 +17,57 @@ import {
     updateAdminUser
 } from '../api/index';
 
+const ROLE_PRESETS = [
+    { id: 'super_admin', label: 'Super Admin', description: 'Full system access' },
+    { id: 'admin', label: 'Admin', description: 'Clinic management access' },
+    { id: 'staff', label: 'Staff', description: 'Appointment and patient access' },
+    { id: 'secretary', label: 'Secretary', description: 'Reception and scheduling' },
+    { id: 'doctor', label: 'Doctor', description: 'Clinical and MRD access' }
+];
+
+const PERMISSION_LABELS = {
+    view_dashboard: 'Dashboard',
+    view_patients: 'Patients',
+    view_appointments: 'Appointments',
+    edit_appointments: 'Appointments Edit',
+    view_scheduling: 'Scheduling',
+    view_queue: 'Queue Tokens',
+    view_mrd: 'MRD',
+    view_bot_hub: 'Bot Hub',
+    view_doctors: 'Doctors',
+    view_admins: 'Admin Control',
+    view_reports: 'Reports',
+    view_notifications: 'Notifications',
+    view_settings: 'Settings'
+};
+
+const normalizeRole = (role) => {
+    const normalized = String(role || '').trim().toLowerCase().replace(/\s+/g, '_');
+    return normalized === 'superadmin' ? 'super_admin' : normalized;
+};
+
+const toRoleLabel = (role) => {
+    const key = normalizeRole(role);
+    const preset = ROLE_PRESETS.find((r) => r.id === key);
+    if (preset) return preset.label;
+    if (!key) return 'User';
+    return key
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+};
+
+const toPermissionLabel = (permission) => {
+    const key = String(permission || '').trim();
+    if (!key) return '';
+    if (PERMISSION_LABELS[key]) return PERMISSION_LABELS[key];
+    return key
+        .replace(/^view_/, '')
+        .replace(/^edit_/, '')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (ch) => ch.toUpperCase());
+};
+
 const emptyUserForm = {
     username: '',
     email: '',
@@ -57,7 +108,6 @@ const Admins = () => {
 
     const localUser = useMemo(() => JSON.parse(localStorage.getItem('user') || '{}'), []);
     const isDoctor = localUser?.role === 'doctor';
-    const isSuperAdmin = localUser?.role === 'super_admin';
 
     const loadAdminData = useCallback(async () => {
         setLoading(true);
@@ -131,10 +181,29 @@ const Admins = () => {
         return [...tags];
     }, [users]);
 
+    const roleCards = useMemo(() => {
+        const presetMap = new Map(ROLE_PRESETS.map((role) => [role.id, role]));
+        const dynamicRoles = (roles || []).map((role) => {
+            const roleId = normalizeRole(role.id || role.role);
+            return {
+                id: roleId,
+                label: role.label || toRoleLabel(roleId),
+                description: role.description || presetMap.get(roleId)?.description || 'System role'
+            };
+        });
+        const merged = [...ROLE_PRESETS];
+        dynamicRoles.forEach((role) => {
+            if (!merged.some((preset) => preset.id === role.id)) {
+                merged.push(role);
+            }
+        });
+        return merged;
+    }, [roles]);
+
     const filteredUsers = useMemo(() => {
         const q = query.trim().toLowerCase();
         return users.filter((u) => {
-            const roleOk = roleFilter === 'all' || String(u.role || '').toLowerCase() === roleFilter;
+            const roleOk = roleFilter === 'all' || normalizeRole(u.role) === normalizeRole(roleFilter);
             const permissionOk =
                 permissionFilter === 'all' || (u.permissions || []).includes(permissionFilter);
             const textOk =
@@ -309,13 +378,15 @@ const Admins = () => {
                     <h3>Role Distribution</h3>
                 </div>
                 <div className="roles-grid">
-                    {(roles.length ? roles : [{ id: 'admin', label: 'Admin' }]).map((role) => {
-                        const roleId = role.id || role.role;
-                        const roleCount = overview?.roles?.[roleId] ?? 0;
+                    {roleCards.map((role) => {
+                        const roleId = normalizeRole(role.id || role.role);
+                        const roleCount = overview?.roles?.[roleId]
+                            ?? (roleId === 'super_admin' ? overview?.roles?.superadmin : undefined)
+                            ?? 0;
                         return (
                             <div key={roleId} className="role-chip">
                                 <div>
-                                    <div className="role-chip-title">{role.label || roleId}</div>
+                                    <div className="role-chip-title">{role.label || toRoleLabel(roleId)}</div>
                                     <div className="role-chip-desc">{role.description || 'System role'}</div>
                                 </div>
                                 <span className="badge badge-primary">{roleCount}</span>
@@ -358,7 +429,7 @@ const Admins = () => {
                                 <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#64748b' }}>Manage system access for staff, doctors, and operators.</p>
                             </div>
                             <span className="badge-v3" style={{ background: '#f1f5f9', color: '#475569', padding: '0.5rem 1rem' }}>
-                                {filteredUsers.length} Logged Identities
+                                {filteredUsers.length} Total Identities
                             </span>
                         </div>
                     </div>
@@ -377,14 +448,14 @@ const Admins = () => {
                         <div style={{ display: 'flex', gap: '0.75rem' }}>
                             <select className="select-v3" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
                                 <option value="all">Every Role</option>
-                                {roles.map((r) => (
+                                {roleCards.map((r) => (
                                     <option key={r.id} value={r.id}>{r.label}</option>
                                 ))}
                             </select>
                             <select className="select-v3" value={permissionFilter} onChange={(e) => setPermissionFilter(e.target.value)}>
                                 <option value="all">Any Permission</option>
                                 {permissionTags.map((tag) => (
-                                    <option key={tag} value={tag}>{tag}</option>
+                                    <option key={tag} value={tag}>{toPermissionLabel(tag)}</option>
                                 ))}
                             </select>
                         </div>
@@ -397,11 +468,12 @@ const Admins = () => {
                                 <p style={{ fontWeight: 700, color: '#64748b' }}>Syncing user registry...</p>
                             </div>
                         ) : (
-                            <table className="admin-table-premium">
+                            <div className="admin-table-wrap">
+                                <table className="admin-table-premium">
                                 <thead>
                                     <tr>
                                         <th>Identity Profile</th>
-                                        <th>Access level</th>
+                                        <th>Access Level</th>
                                         <th>Authorized Pages</th>
                                         <th>Status</th>
                                         <th>Safety Check</th>
@@ -409,7 +481,11 @@ const Admins = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredUsers.map((user) => (
+                                    {filteredUsers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={6} className="admin-empty-cell">No matching users found for current filters.</td>
+                                        </tr>
+                                    ) : filteredUsers.map((user) => (
                                         <tr key={user._id}>
                                             <td>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -425,18 +501,25 @@ const Admins = () => {
                                                 </div>
                                             </td>
                                             <td>
+                                                {(() => {
+                                                    const roleKey = normalizeRole(user.role);
+                                                    const isSuperAdminRole = roleKey === 'super_admin';
+                                                    const isDoctorRole = roleKey === 'doctor';
+                                                    return (
                                                 <span className="role-badge-v3" style={{
-                                                    background: user.role === 'super_admin' ? '#fef2f2' : user.role === 'doctor' ? '#ecfdf5' : '#eff6ff',
-                                                    color: user.role === 'super_admin' ? '#ef4444' : user.role === 'doctor' ? '#10b981' : '#3b82f6',
-                                                    border: `1px solid ${user.role === 'super_admin' ? '#fee2e2' : user.role === 'doctor' ? '#d1fae5' : '#dbeafe'}`
+                                                    background: isSuperAdminRole ? '#fef2f2' : isDoctorRole ? '#ecfdf5' : '#eff6ff',
+                                                    color: isSuperAdminRole ? '#ef4444' : isDoctorRole ? '#10b981' : '#3b82f6',
+                                                    border: `1px solid ${isSuperAdminRole ? '#fee2e2' : isDoctorRole ? '#d1fae5' : '#dbeafe'}`
                                                 }}>
-                                                    {String(user.role || 'User').replace('_', ' ')}
+                                                    {toRoleLabel(user.role)}
                                                 </span>
+                                                    );
+                                                })()}
                                             </td>
                                             <td>
                                                 <div className="permission-list" style={{ display: 'flex', gap: '0.35rem' }}>
                                                     {(user.permissions || []).slice(0, 3).map((p) => (
-                                                        <span key={p} className="tag-badge-v3">{p}</span>
+                                                        <span key={p} className="tag-badge-v3">{toPermissionLabel(p)}</span>
                                                     ))}
                                                     {(user.permissions || []).length > 3 && (
                                                         <span className="tag-badge-v3" style={{ background: '#fff' }}>+{(user.permissions || []).length - 3} more</span>
@@ -469,7 +552,7 @@ const Admins = () => {
                                                     <button className="btn-action" onClick={() => handleEditClick(user)} title="Configure Access">
                                                         <Edit2 size={16} />
                                                     </button>
-                                                    {user.role !== 'super_admin' && (
+                                                    {normalizeRole(user.role) !== 'super_admin' && (
                                                         <button className="btn-action btn-danger" onClick={() => handleDeactivate(user)} title="Revoke Access">
                                                             <Trash2 size={16} />
                                                         </button>
@@ -479,7 +562,8 @@ const Admins = () => {
                                         </tr>
                                     ))}
                                 </tbody>
-                            </table>
+                                </table>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -583,6 +667,14 @@ const Admins = () => {
                     outline: none;
                 }
                 .admin-filters select:focus { border-color: #6366f1; }
+                .admin-table-wrap { width: 100%; overflow-x: auto; }
+                .admin-empty-cell {
+                    text-align: center;
+                    color: #94a3b8;
+                    font-weight: 700;
+                    font-size: 0.82rem;
+                    padding: 2.2rem 1rem !important;
+                }
                 .user-avatar {
                     width: 48px;
                     height: 48px;

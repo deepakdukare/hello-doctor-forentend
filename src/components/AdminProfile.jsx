@@ -1,5 +1,15 @@
 import React from 'react';
-import { RefreshCw, Search, ShieldCheck, ShieldX, KeyRound, User as UserIcon, Mail, Fingerprint } from 'lucide-react';
+import { RefreshCw, ShieldCheck, ShieldX, KeyRound, User as UserIcon, Mail, Fingerprint } from 'lucide-react';
+
+const toRoleLabel = (role) => {
+    const key = String(role || '').trim().toLowerCase().replace(/\s+/g, '_');
+    const normalized = key === 'superadmin' ? 'super_admin' : key;
+    if (!normalized) return 'Admin';
+    return normalized
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+};
 
 const AdminProfile = ({
     profile,
@@ -29,7 +39,7 @@ const AdminProfile = ({
                         <div className="profile-name">{profile?.full_name || 'System Admin'}</div>
                         <div className="profile-meta">
                             <span className="badge-v3" style={{ background: '#6366f1', color: '#fff' }}>
-                                {String(profile?.role || 'Admin').toUpperCase()}
+                                {toRoleLabel(profile?.role).toUpperCase()}
                             </span>
                             {profile?.is_active ? (
                                 <span className="status-pill confirmed">
@@ -103,7 +113,7 @@ const AdminProfile = ({
                                     type="password"
                                     value={profileForm.current_password}
                                     onChange={(e) => setProfileForm((p) => ({ ...p, current_password: e.target.value }))}
-                                    placeholder="••••••••"
+                                    placeholder="********"
                                 />
                             </div>
                         </div>
@@ -132,3 +142,4 @@ const AdminProfile = ({
 };
 
 export default AdminProfile;
+

@@ -141,7 +141,7 @@ const AdminUserForm = ({
                             { id: 'view_mrd', label: 'MRD' },
                             { id: 'view_bot_hub', label: 'Bot Hub' },
                             { id: 'view_doctors', label: 'Doctors' },
-                            { id: 'view_admins', label: 'Admin Users' },
+                            { id: 'view_admins', label: 'Admin Control' },
                             { id: 'view_reports', label: 'Reports' },
                             { id: 'view_notifications', label: 'Notifications' },
                             { id: 'view_settings', label: 'Settings' }
