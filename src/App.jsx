@@ -44,9 +44,8 @@ const MobileNav = () => {
     const location = useLocation();
 
     const navItems = [
-        { name: 'Home', path: '/', icon: LayoutDashboard, permission: 'view_dashboard' },
-        { name: 'Appts', path: '/appointments', icon: Calendar, permission: 'view_appointments' },
-        { name: 'Slots', path: '/scheduling', icon: Clock, permission: 'view_scheduling' },
+        { name: 'Appointment', path: '/appointments', icon: Calendar, permission: 'view_appointments' },
+        { name: 'Scheduling', path: '/scheduling', icon: Clock, permission: 'view_scheduling' },
         { name: 'Patients', path: '/patients', icon: Users, permission: 'view_patients' },
         { name: 'Settings', path: '/settings', icon: SettingsIcon, permission: 'view_settings' },
     ].filter(item => hasPermission(item.permission));
@@ -75,15 +74,14 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
     const initial = displayName.charAt(0).toUpperCase();
 
     const allNavItems = [
-        { name: 'Dashboard', path: '/', icon: LayoutDashboard, permission: 'view_dashboard' },
-        { name: 'Appointments', path: '/appointments', icon: Calendar, permission: 'view_appointments' },
+        { name: 'Appointment', path: '/appointments', icon: Calendar, permission: 'view_appointments' },
         { name: 'Scheduling', path: '/scheduling', icon: Clock, permission: 'view_scheduling' },
         { name: 'Queue Tokens', path: '/queue', icon: Hash, permission: 'view_queue' },
         { name: 'Patients', path: '/patients', icon: Users, permission: 'view_patients' },
         { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },
         { name: 'Doctors', path: '/doctors', icon: Stethoscope, permission: 'view_doctors' },
         { name: 'Medical Documentation', path: '/mrd', icon: FileText, permission: 'view_mrd' },
-        { name: 'Reports', path: '/reports', icon: BarChart2, permission: 'view_reports' },
+        { name: 'Reports & Analytics', path: '/reports', icon: BarChart2, permission: 'view_reports' },
         { name: 'Notifications', path: '/notifications', icon: BellIcon, permission: 'view_notifications' },
         { name: 'Settings', path: '/settings', icon: SettingsIcon, permission: 'view_settings' },
     ];
@@ -92,10 +90,20 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
 
     return (
         <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-            <div className="logo" style={{ flexDirection: 'column', gap: '0.75rem', padding: '0.5rem 0', paddingLeft: 0, marginBottom: '0.75rem', justifyContent: 'center' }}>
+            <Link to="/" className="logo" style={{ textDecoration: 'none', flexDirection: 'column', gap: '0.75rem', padding: '0.5rem 0', paddingLeft: 0, marginBottom: '0.75rem', justifyContent: 'center' }}>
                 <img src="/logo.jpg" alt="Logo" style={{ width: '100px', height: '100px', borderRadius: '20px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(99, 102, 241, 0.12)' }} />
-                <span style={{ fontSize: '1.1rem', textAlign: 'center', width: '100%', fontWeight: 800 }}>Dr. Indu Child Care</span>
-            </div>
+                <span style={{
+                    fontSize: '1.6rem',
+                    textAlign: 'center',
+                    width: '100%',
+                    fontWeight: 900,
+                    background: 'linear-gradient(135deg, var(--primary) 0%, #4338ca 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    fontFamily: 'Outfit, sans-serif',
+                    letterSpacing: '-0.02em'
+                }}>Dashboard</span>
+            </Link>
             <ul className="nav-links">
                 {navItems.map((item) => (
                     <li key={item.name}>
@@ -103,7 +111,7 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
                             to={item.path}
                             className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
                             title={
-                                item.name === 'Appointments'
+                                item.name === 'Appointment'
                                     ? "Manage clinic schedule and upcoming visits."
                                     : item.name === 'Scheduling'
                                         ? "Configure session timings and clinical capacity matrix."

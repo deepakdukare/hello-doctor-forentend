@@ -316,7 +316,7 @@ const Appointments = () => {
             <header className="page-header-v3">
                 <div className="header-meta-group">
                     <h1 className={`header-h1-v3 ${activeView === 'authorizer' ? 'compact-title-v3' : ''}`}>
-                        {activeView === 'queue' ? 'Appointment' : 'Add Appoinment'}
+                        {activeView === 'queue' ? 'Appointment' : 'Add Appointment'}
                     </h1>
                     {activeView === 'queue' && (
                         <div className="stats-row-mini-v3">
