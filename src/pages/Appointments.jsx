@@ -15,7 +15,9 @@ import {
     ArrowRight,
     Clipboard,
     Clock,
-    Edit2
+    Edit2,
+    Calendar,
+    UserPlus
 } from 'lucide-react';
 import AppointmentRow from '../components/AppointmentRow';
 import {
@@ -314,72 +316,39 @@ const Appointments = () => {
 
     return (
         <div className="appointments-page-v3">
-            <header className="page-header-v3">
-                <div className="header-meta-group">
-                    <h1 className={`header-h1-v3 ${activeView === 'authorizer' ? 'compact-title-v3' : ''}`}>
-                        {activeView === 'queue' ? 'Appointment' : 'Add Appointment'}
-                    </h1>
-                    {activeView === 'queue' && (
-                        <div className="stats-row-mini-v3">
-                            <div className="stat-card-v4">
-                                <div className="stat-head-v4">
-                                    <div className="stat-icon-v4 load"><Users size={16} /></div>
-                                    <span className="trend-pill-v4 positive">+12%</span>
-                                </div>
-                                <div className="stat-label-row-v4">
-                                    <span>Today's Load</span>
-                                    <small>in last 7 Days</small>
-                                </div>
-                                <div className="stat-value-v4">{stats?.total_today || 0}</div>
-                            </div>
-
-                            <div className="stat-card-v4">
-                                <div className="stat-head-v4">
-                                    <div className="stat-icon-v4 confirm"><CheckCircle2 size={16} /></div>
-                                    <span className="trend-pill-v4 positive">+25%</span>
-                                </div>
-                                <div className="stat-label-row-v4">
-                                    <span>Confirmed</span>
-                                    <small>in last 7 Days</small>
-                                </div>
-                                <div className="stat-value-v4">{stats?.confirmed || 0}</div>
-                            </div>
-
-                            <div className="stat-card-v4">
-                                <div className="stat-head-v4">
-                                    <div className="stat-icon-v4 cancel"><XCircle size={16} /></div>
-                                    <span className="trend-pill-v4 negative">-15%</span>
-                                </div>
-                                <div className="stat-label-row-v4">
-                                    <span>Cancelled</span>
-                                    <small>in last 7 Days</small>
-                                </div>
-                                <div className="stat-value-v4">{stats?.cancelled || 0}</div>
-                            </div>
-                        </div>
-                    )}
+            <div className="header-section-premium">
+                <div className="header-content-premium">
+                    <h1 className="header-title-premium">Appointments</h1>
+                    <div className="live-pill-premium">
+                        <span className="live-dot"></span>
+                        <span className="live-text">{stats?.total_today || 0} Total Today</span>
+                    </div>
                 </div>
 
-                <div className="header-nav-v3">
-                    {activeView === 'queue' ? (
-                        <>
-                            <button type="button" className="new-btn-v4" onClick={() => openBookingModal()}>
-                                <Plus size={14} />
-                                <span>New Appointment</span>
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <button type="button" className="export-btn-v4" onClick={() => setActiveView('queue')}>
-                                Booked Appointment
-                            </button>
-                            <button className="sync-btn-v3" onClick={fetchData}>
-                                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-                            </button>
-                        </>
-                    )}
+                <div className="header-actions-premium">
+                    <button
+                        className={`btn-toggle-v3 ${activeView === 'queue' ? 'active' : ''}`}
+                        onClick={() => setActiveView('queue')}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1.2rem', borderRadius: '12px', border: '1px solid #e2e8f0', background: activeView === 'queue' ? '#6366f1' : '#fff', color: activeView === 'queue' ? '#fff' : '#64748b', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
+                    >
+                        <Calendar size={18} />
+                        <span>Appointment Queue</span>
+                    </button>
+
+                    <button
+                        className={`btn-add-v3 ${activeView === 'authorizer' ? 'active' : ''}`}
+                        onClick={() => setActiveView('authorizer')}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1.2rem', borderRadius: '12px', border: '1px solid #e2e8f0', background: activeView === 'authorizer' ? '#6366f1' : '#fff', color: activeView === 'authorizer' ? '#fff' : '#64748b', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }}
+                    >
+                        <UserPlus size={18} />
+                        <span>Add Appointment</span>
+                    </button>
+
+                    <button className="sync-btn-v3" onClick={fetchData} style={{ width: '44px', height: '44px', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', display: 'flex', alignItems: 'center', justify_content: 'center', color: '#64748b', cursor: 'pointer' }}>
+                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                    </button>
                 </div>
-            </header>
+            </div>
 
             {activeView === 'queue' ? (
                 <div className="view-content-v3">
@@ -708,10 +677,10 @@ const Appointments = () => {
                                     </div>
 
                                     <div className="modal-footer-v3">
-                                        <button type="button" className="btn-outline-v3" style={{ flex: 1 }} onClick={() => setActiveView('queue')}>
+                                        <button type="button" className="btn-cancel" style={{ flex: 1 }} onClick={() => setActiveView('queue')}>
                                             Discard
                                         </button>
-                                        <button type="submit" className="btn-primary-v3" style={{ flex: 2, padding: '1rem' }} disabled={submitting}>
+                                        <button type="submit" className="btn-save" style={{ flex: 2, padding: '1rem' }} disabled={submitting}>
                                             {submitting ? <RefreshCw size={20} className="animate-spin" /> : <CheckCircle2 size={20} />}
                                             <span>{editMode ? 'Update Appointment' : 'Confirm Authorization'}</span>
                                         </button>
@@ -748,8 +717,8 @@ const Appointments = () => {
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '1rem' }}>
-                            <button className="btn-outline-v3" style={{ flex: 1 }} onClick={() => setCancelModal({ show: false, id: null, reason: '' })}>Keep Record</button>
-                            <button className="btn-primary-v3" style={{ flex: 1, background: '#ef4444' }} onClick={handleCancel}>Confirm Cancellation</button>
+                            <button className="btn-cancel" style={{ flex: 1 }} onClick={() => setCancelModal({ show: false, id: null, reason: '' })}>Keep Record</button>
+                            <button className="btn-save" style={{ flex: 1, background: '#ef4444' }} onClick={handleCancel}>Confirm Cancellation</button>
                         </div>
                     </div>
                 </div>
@@ -758,11 +727,7 @@ const Appointments = () => {
             <style>{`
                 .appointments-page-v3 { padding: 1.25rem; max-width: 1400px; margin: 0 auto; animation: fade 0.5s ease-out; background: #f1f3f7; }
                 @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-                .page-header-v3 { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
-                .header-meta-group { flex: 1; }
-                .header-h1-v3 { font-size: 1.8rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(135deg, #0f172a 0%, #4338ca 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 0.75rem; }
-                .header-h1-v3.compact-title-v3 { font-size: 1.25rem; margin-bottom: 0.35rem; }
-
+                
                 .stats-row-mini-v3 { display: flex; gap: 0.85rem; flex-wrap: wrap; }
                 .stat-card-v4 { min-width: 210px; border-radius: 12px; border: 1px solid #e2e8f0; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 0.85rem 1rem; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); }
                 .stat-head-v4 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
@@ -776,11 +741,6 @@ const Appointments = () => {
                 .stat-label-row-v4 { display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.8rem; margin-bottom: 0.45rem; }
                 .stat-label-row-v4 span { color: #475569; font-weight: 700; }
                 .stat-value-v4 { font-size: 1.65rem; line-height: 1; font-weight: 900; color: #0f172a; }
-
-                .header-nav-v3 { display: flex; align-items: center; gap: 0.55rem; }
-                .export-btn-v4 { height: 36px; padding: 0 0.85rem; border-radius: 8px; border: 1px solid #d7deea; background: #fff; display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.75rem; color: #334155; font-weight: 700; cursor: pointer; }
-                .new-btn-v4 { height: 36px; padding: 0 0.9rem; border-radius: 8px; border: none; background: #4f46e5; color: #fff; display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.75rem; font-weight: 700; cursor: pointer; box-shadow: 0 6px 14px rgba(79, 70, 229, 0.25); }
-                .sync-btn-v3 { width: 36px; height: 36px; border-radius: 8px; border: 1px solid #d7deea; background: #fff; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; }
 
                 .filter-shelf-premium { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: 1.5rem 0 1.75rem; }
                 .search-pill-v3 { flex: 1; max-width: 500px; display: flex; align-items: center; gap: 0.8rem; height: 72px; border-radius: 30px; border: 1px solid #e2e8f0; background: #ffffff; padding: 0 1.5rem; color: #6366f1; }
@@ -802,110 +762,37 @@ const Appointments = () => {
                 .main-table-v3 { width: 100%; border-collapse: collapse; min-width: 1020px; }
                 .main-table-v3 th { padding: 1.1rem 1.4rem; font-size: 0.7rem; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; text-align: left; border-bottom: 1px solid #ebeff5; }
                 .main-table-v3 td { padding: 0.95rem 1.4rem; border-bottom: 1px solid #edf2f7; vertical-align: middle; }
-                .row-hover-v3:hover td { background: #ffffff; }
 
-                .slot-id-box { display: flex; align-items: center; gap: 1.15rem; }
-                .slot-pill-tag { background: #6366f1; color: #fff; font-size: 0.62rem; font-weight: 900; padding: 0.3rem 0.6rem; border-radius: 8px; line-height: 1; }
-                .time-stack-v3 { display: flex; flex-direction: column; gap: 0.2rem; }
-                .slot-label-v3 { font-size: 0.9rem; font-weight: 800; line-height: 1.05; color: #0f172a; text-transform: uppercase; }
-                .slot-sub-v3 { font-size: 0.62rem; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; }
-
-                .patient-link-v3 { display: flex; flex-direction: column; gap: 0.5rem; }
-                .p-name-v3 { font-weight: 800; color: #0f172a; font-size: 0.95rem; line-height: 1.1; }
-                .p-meta-v3 { display: flex; align-items: center; gap: 0.45rem; color: #64748b; font-size: 0.66rem; font-weight: 700; }
-                .p-meta-v3 .dot-v3 { margin: 0 0.2rem; color: #94a3b8; font-size: 1.2rem; }
-                .p-meta-v3 .phone-dot-v3 { color: #9bd3c2; }
-
-                .doc-assign-v3 { display: flex; flex-direction: column; gap: 0.55rem; }
-                .d-name-v3 { font-weight: 800; color: #1e293b; font-size: 0.92rem; }
-                .v-tag-v3 { font-size: 0.62rem; font-weight: 900; color: #6366f1; background: #eef2ff; padding: 0.26rem 0.55rem; border-radius: 8px; width: fit-content; text-transform: uppercase; }
-                .reason-text-v3 { color: #475569; font-size: 0.68rem; font-weight: 700; }
-
-                .status-chip-v3 { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.32rem 0.68rem; border-radius: 999px; font-size: 0.62rem; font-weight: 900; text-transform: uppercase; }
-                .source-link-v3 { display: inline-flex; align-items: center; gap: 0.4rem; color: #cbd5e1; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; }
-                .wa-icon { color: #25d366; }
-
-                .action-hub-v3 { display: flex; gap: 0.65rem; justify-content: center; }
-                .hub-btn { width: 38px; height: 38px; border-radius: 12px; border: none; background: #eef2f7; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: 0.2s; }
-                .hub-btn:hover { transform: translateY(-2px); }
-                .hub-btn.edit:hover { background: #e8ecff; color: #4f46e5; }
-                .hub-btn.cancel:hover { background: #fee2e2; color: #dc2626; }
-                .hub-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-                @media (max-width: 1280px) {
-                    .main-table-v3 th { font-size: 0.82rem; padding: 1.2rem 1.5rem; }
-                    .main-table-v3 td { padding: 1.2rem 1.5rem; }
-                    .slot-label-v3 { font-size: 1rem; }
-                    .p-name-v3 { font-size: 1rem; }
-                    .d-name-v3 { font-size: 0.95rem; }
-                    .p-meta-v3, .status-chip-v3, .source-link-v3, .v-tag-v3, .slot-sub-v3, .slot-pill-tag { font-size: 0.68rem; }
-                    .hub-btn { width: 42px; height: 42px; border-radius: 12px; }
-                }
-
-                @media (max-width: 1024px) {
-                    .page-header-v3 { flex-direction: column; align-items: stretch; }
-                    .header-nav-v3 { justify-content: flex-end; }
-                    .filter-shelf-premium { flex-direction: column; align-items: stretch; }
-                    .search-pill-v3 { max-width: none; }
-                    .filter-group-v3 { flex-wrap: wrap; }
-                    .filter-item-v3 { flex: 1; min-width: 200px; }
-                }
-
-                @media (max-width: 640px) {
-                    .appointments-page-v3 { padding: 0.9rem; }
-                    .stats-row-mini-v3 { display: grid; grid-template-columns: 1fr; }
-                    .search-pill-v3, .filter-item-v3 { height: 56px; border-radius: 18px; }
-                }
-                .authorizer-panel-premium { background: #fff; border-radius: 36px; border: 1px solid #f1f5f9; box-shadow: 0 10px 40px rgba(0,0,0,0.04); overflow: hidden; max-width: 1000px; margin: 0 auto; }
-                .authorizer-header-v3 { padding: 3rem; border-bottom: 1px solid #f8fafc; }
-                .modal-title-box { display: flex; align-items: center; gap: 1.5rem; }
-                .modal-icon-wrap { width: 64px; height: 64px; background: #f5f3ff; color: #6366f1; border-radius: 20px; display: flex; align-items: center; justify-content: center; }
-                .modal-stepper-v3 { background: #f8fafc; padding: 1.5rem 3rem; display: flex; align-items: center; gap: 1.5rem; }
-                .step-btn { display: flex; align-items: center; gap: 0.75rem; border: none; background: transparent; cursor: pointer; color: #94a3b8; font-weight: 800; font-size: 0.95rem; }
+                .authorizer-panel-premium { background: #fff; border-radius: 24px; border: 1px solid #f1f5f9; box-shadow: 0 10px 40px rgba(0,0,0,0.04); overflow: hidden; max-width: 920px; margin: 0 auto; }
+                .authorizer-header-v3 { padding: 1.6rem 1.9rem; border-bottom: 1px solid #f8fafc; }
+                .modal-title-box { display: flex; align-items: center; gap: 0.9rem; }
+                .modal-icon-wrap { width: 48px; height: 48px; background: #f5f3ff; color: #6366f1; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+                .modal-stepper-v3 { background: #f8fafc; padding: 0.9rem 1.9rem; display: flex; align-items: center; gap: 0.9rem; }
+                .step-btn { display: flex; align-items: center; gap: 0.75rem; border: none; background: transparent; cursor: pointer; color: #94a3b8; font-weight: 800; font-size: 0.84rem; }
                 .step-btn.active { color: #6366f1; }
-                .step-num { width: 32px; height: 32px; border-radius: 50%; border: 2.5px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+                .step-num { width: 28px; height: 28px; border-radius: 50%; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; }
                 .step-divider { flex: 1; height: 2px; background: #e2e8f0; max-width: 80px; }
-                .modal-body-v3 { padding: 3rem; }
-                .s-input { width: 100%; height: 72px; border-radius: 24px; border: 2px solid #f1f5f9; padding: 0 4rem; font-size: 1.2rem; font-weight: 600; outline: none; transition: 0.2s; }
-                .s-input:focus { border-color: #6366f1; box-shadow: 0 0 0 6px rgba(99,102,241,0.08); }
-                .patient-result-card { display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem; border-radius: 24px; background: #f8fafc; margin-bottom: 1rem; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
-                .patient-result-card:hover { border-color: #6366f1; background: #fff; transform: translateX(10px); }
-                .p-avatar-mini { width: 56px; height: 56px; background: #e0e7ff; color: #6366f1; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.4rem; }
-                .p-name-bold { font-weight: 800; color: #1e293b; font-size: 1.2rem; }
-                .p-id-sub { font-size: 0.95rem; color: #64748b; font-weight: 600; }
-                .form-grid-v3 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-                /* Compact Add Appointment view */
-                .authorizer-panel-premium { max-width: 920px; border-radius: 24px; }
-                .authorizer-header-v3 { padding: 1.6rem 1.9rem; }
-                .modal-title-box { gap: 0.9rem; }
-                .modal-icon-wrap { width: 48px; height: 48px; border-radius: 14px; }
-                .modal-stepper-v3 { padding: 0.9rem 1.9rem; gap: 0.9rem; }
-                .step-btn { font-size: 0.84rem; }
-                .step-num { width: 28px; height: 28px; font-size: 0.82rem; border-width: 2px; }
                 .modal-body-v3 { padding: 1.8rem 1.9rem; }
-                .s-input { height: 56px; border-radius: 16px; font-size: 1rem; padding: 0 3rem; }
-                .patient-result-card { padding: 0.95rem 1rem; border-radius: 16px; gap: 0.9rem; margin-bottom: 0.7rem; }
-                .patient-result-card:hover { transform: translateX(6px); }
-                .p-avatar-mini { width: 42px; height: 42px; border-radius: 12px; font-size: 1rem; }
-                .p-name-bold { font-size: 0.95rem; }
-                .p-id-sub { font-size: 0.76rem; }
-                .form-grid-v3 { gap: 1.2rem; }
+                .s-input { width: 100%; height: 56px; border-radius: 16px; border: 2px solid #f1f5f9; padding: 0 3rem; font-size: 1rem; font-weight: 600; outline: none; transition: 0.2s; }
+                .s-input:focus { border-color: #6366f1; box-shadow: 0 0 0 6px rgba(99,102,241,0.08); }
+                .patient-result-card { display: flex; align-items: center; gap: 0.9rem; padding: 0.95rem 1rem; border-radius: 16px; background: #f8fafc; margin-bottom: 0.7rem; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+                .patient-result-card:hover { border-color: #6366f1; background: #fff; transform: translateX(6px); }
+                .p-avatar-mini { width: 42px; height: 42px; background: #e0e7ff; color: #6366f1; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1rem; }
+                .p-name-bold { font-weight: 800; color: #1e293b; font-size: 0.95rem; }
+                .p-id-sub { font-size: 0.76rem; color: #64748b; font-weight: 600; }
+                .form-grid-v3 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
                 .full-span { grid-column: 1 / -1; }
-.form-group-v3 { display: flex; flex-direction: column; gap: 0.75rem; }
+                .form-group-v3 { display: flex; flex-direction: column; gap: 0.75rem; }
                 .form-group-v3 label { font-size: 0.8rem; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; }
                 
-                /* Field V3 Styles - for Consultation Config */
                 .field-v3 { display: flex; flex-direction: column; gap: 0.75rem; }
                 .field-v3 > span { font-size: 0.8rem; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; }
                 .input-with-icon { position: relative; display: flex; align-items: center; }
                 .input-icon { position: absolute; left: 1.25rem; color: #6366f1; opacity: 0.6; z-index: 1; pointer-events: none; }
                 .input-v3 { width: 100%; height: 56px; border-radius: 16px; border: 2px solid #f1f5f9; padding: 0 1.25rem; font-size: 1rem; font-weight: 600; outline: none; transition: 0.2s; background: #fff; color: #1e293b; }
                 .input-v3:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,0.08); }
-                .input-v3::placeholder { color: #94a3b8; }
                 .select-v3 { width: 100%; height: 56px; border-radius: 16px; border: 2px solid #f1f5f9; padding: 0 1.25rem; font-size: 1rem; font-weight: 600; outline: none; transition: 0.2s; background: #fff; color: #1e293b; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1.25rem; }
-                .select-v3:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,0.08); }
 
-                /* Selection Banner Styles */
                 .selected-patient-v3 { margin-bottom: 2.5rem; }
                 .p-banner { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 24px; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; }
                 .p-info { display: flex; align-items: center; gap: 1.25rem; }
@@ -922,7 +809,6 @@ const Appointments = () => {
                 .slot-time { font-size: 1rem; font-weight: 900; color: #1e293b; letter-spacing: -0.01em; }
                 .slot-range { font-size: 0.7rem; font-weight: 700; color: #64748b; margin-top: 0.1rem; }
                 .slot-session { font-size: 0.6rem; font-weight: 800; color: #6366f1; text-transform: uppercase; letter-spacing: 0.07em; margin-top: 0.3rem; background: #e0e7ff; padding: 0.15rem 0.4rem; border-radius: 4px; display: inline-block; }
-                .slot-pill-v3.active .slot-session { background: #c7d2fe; }
                 .no-slots-v3 { grid-column: 1 / -1; padding: 2.5rem; border-radius: 18px; background: #fef2f2; color: #b91c1c; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.75rem; justify-content: center; border: 1px solid #fecaca; }
 
                 .modal-footer-v3 { display: flex; gap: 1.5rem; margin-top: 3.5rem; }
@@ -930,7 +816,6 @@ const Appointments = () => {
                 .btn-save { flex: 2; height: 60px; border-radius: 20px; border: none; background: #0f172a; color: #fff; font-weight: 800; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
                 .modal-overlay-v3 { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
                 .modal-content-sm-v3 { background: #fff; width: 480px; padding: 3rem; border-radius: 32px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-                .btn-purge { background: #ef4444; color: #fff; flex: 1; height: 60px; border-radius: 20px; border: none; font-weight: 800; cursor: pointer; }
                 .animate-spin { animation: spin 1s linear infinite; }
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
             `}</style>
@@ -939,7 +824,3 @@ const Appointments = () => {
 };
 
 export default Appointments;
-
-
-
-

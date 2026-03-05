@@ -236,32 +236,32 @@ const Patients = () => {
         <div className="patients-page-v2">
             <div className="header-section-premium">
                 <div className="header-content-premium">
-                    <h1 className="header-title-premium-v2">Patients</h1>
-                    <div className="stats-pill-row">
-                        <StatCard label="Total Registry" value={pagination.total} icon={Users} color="#6366f1" />
-                        <StatCard label="Registered Today" value={todayCount} icon={Activity} color="#10b981" />
+                    <h1 className="header-title-premium">Patients</h1>
+                    <div className="live-pill-premium">
+                        <span className="live-dot"></span>
+                        <span className="live-text">{pagination.total} Total Registry</span>
                     </div>
                 </div>
-                <div className="header-actions-premium" style={{ gap: '1.5rem' }}>
-                    <div className="segmented-control-premium">
+
+                <div className="header-actions-premium">
+                    <div className="filter-group-premium">
                         <button
-                            className={`segment-btn ${viewMode === 'list' ? 'active' : ''}`}
+                            className={`filter-tab-premium ${viewMode === 'list' ? 'active' : ''}`}
                             onClick={() => { setViewMode('list'); setShowInlineForm(false); setEditId(null); }}
                         >
                             <Users size={18} />
                             <span>View Patients</span>
                         </button>
                         <button
-                            className={`segment-btn ${viewMode === 'add' ? 'active' : ''}`}
+                            className={`filter-tab-premium ${viewMode === 'add' ? 'active' : ''}`}
                             onClick={() => { setViewMode('add'); setShowInlineForm(true); setEditId(null); setForm(EMPTY_FORM); }}
                         >
                             <UserPlus size={18} />
                             <span>New Enrollment</span>
                         </button>
                     </div>
-                    <button className="btn-share-premium" onClick={copyFormLink}>
-                        <Share2 size={20} />
-                        <span>Public Form</span>
+                    <button className="refresh-btn-premium" onClick={copyFormLink} title="Copy Public Form Link">
+                        <Share2 size={18} />
                     </button>
                 </div>
             </div>

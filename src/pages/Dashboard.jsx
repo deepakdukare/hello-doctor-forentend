@@ -354,62 +354,6 @@ const Dashboard = () => {
                     to { opacity: 1; transform: translateY(0); }
                 }
 
-                .header-section-premium {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 2rem;
-                }
-
-                .header-title-premium {
-                    font-size: 2.2rem;
-                    font-weight: 900;
-                    letter-spacing: -0.03em;
-                    background: linear-gradient(135deg, #0f172a 0%, #4338ca 100%);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                }
-
-                .live-pill-premium {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.6rem;
-                    background: #fff;
-                    padding: 0.4rem 1rem;
-                    border-radius: 50px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-                    border: 1px solid #f1f5f9;
-                    margin-top: 0.75rem;
-                    width: fit-content;
-                }
-
-                .live-dot {
-                    width: 8px;
-                    height: 8px;
-                    background: #10b981;
-                    border-radius: 50%;
-                    box-shadow: 0 0 10px #10b981;
-                    animation: pulse 2s infinite;
-                }
-
-                @keyframes pulse {
-                    0% { transform: scale(1); opacity: 1; }
-                    50% { transform: scale(1.5); opacity: 0.5; }
-                    100% { transform: scale(1); opacity: 1; }
-                }
-
-                .live-text {
-                    font-size: 0.85rem;
-                    font-weight: 700;
-                    color: #64748b;
-                }
-
-                .header-actions-premium {
-                    display: flex;
-                    align-items: center;
-                    gap: 1.5rem;
-                }
-
                 .filter-group-premium {
                     background: #fff;
                     padding: 0.4rem;
@@ -435,27 +379,6 @@ const Dashboard = () => {
                     background: #6366f1;
                     color: #fff;
                     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
-                }
-
-                .refresh-btn-premium {
-                    width: 44px;
-                    height: 44px;
-                    border-radius: 14px;
-                    border: 1px solid #e2e8f0;
-                    background: #fff;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: #64748b;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-                }
-
-                .refresh-btn-premium:hover {
-                    border-color: #6366f1;
-                    color: #6366f1;
-                    transform: rotate(30deg);
                 }
 
                 .dashboard-grid-v2 {

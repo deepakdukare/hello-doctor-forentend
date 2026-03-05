@@ -702,26 +702,31 @@ const Scheduling = () => {
         <div className="sch-page-v3">
 
 
-            <header className="page-header-v3">
-                <div className="header-meta-group">
-                    <h1 className="header-h1-v3">Scheduling</h1>
+            <div className="header-section-premium">
+                <div className="header-content-premium">
+                    <h1 className="header-title-premium">Scheduling</h1>
                 </div>
 
-                <div className="header-nav-v3">
-                    <button className={`nav-tab-v3 ${activeTab === TABS.MASTER ? 'active' : ''}`} onClick={() => setActiveTab(TABS.MASTER)}>
-                        <Shield size={18} />
-                        <span>Slot Master</span>
-                    </button>
-                    <button className={`nav-tab-v3 ${activeTab === TABS.WEEKLY ? 'active' : ''}`} onClick={() => setActiveTab(TABS.WEEKLY)}>
-                        <Calendar size={18} />
-                        <span>Weekly Template</span>
-                    </button>
-                    <button className={`nav-tab-v3 ${activeTab === TABS.DAILY ? 'active' : ''}`} onClick={() => setActiveTab(TABS.DAILY)}>
-                        <Activity size={18} />
-                        <span>Daily View</span>
+                <div className="header-actions-premium">
+                    <div className="filter-group-premium">
+                        <button className={`filter-tab-premium ${activeTab === TABS.MASTER ? 'active' : ''}`} onClick={() => setActiveTab(TABS.MASTER)}>
+                            <Shield size={18} />
+                            <span>Slot Master</span>
+                        </button>
+                        <button className={`filter-tab-premium ${activeTab === TABS.WEEKLY ? 'active' : ''}`} onClick={() => setActiveTab(TABS.WEEKLY)}>
+                            <Calendar size={18} />
+                            <span>Weekly Template</span>
+                        </button>
+                        <button className={`filter-tab-premium ${activeTab === TABS.DAILY ? 'active' : ''}`} onClick={() => setActiveTab(TABS.DAILY)}>
+                            <Activity size={18} />
+                            <span>Daily View</span>
+                        </button>
+                    </div>
+                    <button className="refresh-btn-premium" onClick={loadBase} title="Refresh Configuration">
+                        <RefreshCw size={18} className={syncing ? 'animate-spin' : ''} />
                     </button>
                 </div>
-            </header>
+            </div>
 
             {error && (
                 <div className="alert-v3 error shadow-premium">

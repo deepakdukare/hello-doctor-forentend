@@ -317,47 +317,128 @@ const Doctors = () => {
 
             {showDoctorForm && (
                 <div className="doc-modal-wrap">
-                    <form className="doc-modal card" onSubmit={saveDoctor}>
-                        <div className="doc-modal-head">
-                            <h3>{editingId ? 'Edit Doctor' : 'Create Doctor'}</h3>
-                            <button type="button" onClick={() => setShowDoctorForm(false)}><X size={16} /></button>
+                    <form className="doc-edit-modal" onSubmit={saveDoctor}>
+                        {/* Premium Header */}
+                        <div className="doc-edit-header">
+                            <div className="doc-edit-header-left">
+                                <div className="doc-edit-icon-wrap">
+                                    <User size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="doc-edit-title">{editingId ? 'Edit Doctor Profile' : 'Create Doctor Profile'}</h2>
+                                    <p className="doc-edit-subtitle">{editingId ? `Updating profile for ${doctorForm.name || 'doctor'}` : 'Register a new clinical practitioner'}</p>
+                                </div>
+                            </div>
+                            <button type="button" className="doc-edit-close" onClick={() => setShowDoctorForm(false)}>
+                                <X size={18} />
+                            </button>
                         </div>
 
-                        <div className="doc-form-grid">
-                            <label>
-                                Name *
-                                <input required value={doctorForm.name} onChange={(e) => setDoctorForm({ ...doctorForm, name: e.target.value })} />
-                            </label>
-                            <label>
-                                Speciality *
-                                <input required value={doctorForm.speciality} onChange={(e) => setDoctorForm({ ...doctorForm, speciality: e.target.value })} />
-                            </label>
-                            <label>
-                                Qualification
-                                <input value={doctorForm.qualification} onChange={(e) => setDoctorForm({ ...doctorForm, qualification: e.target.value })} />
-                            </label>
-                            <label>
-                                Experience
-                                <input value={doctorForm.experience} onChange={(e) => setDoctorForm({ ...doctorForm, experience: e.target.value })} />
-                            </label>
-                            <label className="doc-json-field">
-                                Available Slots JSON
-                                <textarea
-                                    rows={5}
-                                    placeholder='{"1":["S1","S2"],"2":["S1"]}'
-                                    value={doctorForm.available_slots_json}
-                                    onChange={(e) => setDoctorForm({ ...doctorForm, available_slots_json: e.target.value })}
-                                />
-                            </label>
-                            <label className="doc-check">
-                                <input type="checkbox" checked={doctorForm.is_active} onChange={(e) => setDoctorForm({ ...doctorForm, is_active: e.target.checked })} />
-                                Active doctor
-                            </label>
+                        {/* Form Body */}
+                        <div className="doc-edit-body">
+                            <div className="doc-edit-section-label">Basic Information</div>
+                            <div className="doc-edit-grid">
+                                <div className="doc-edit-field">
+                                    <label>Full Name <span className="required">*</span></label>
+                                    <div className="doc-field-input-wrap">
+                                        <User size={16} className="doc-field-icon" />
+                                        <input
+                                            required
+                                            placeholder="e.g. Dr. Indu Sharma"
+                                            value={doctorForm.name}
+                                            onChange={(e) => setDoctorForm({ ...doctorForm, name: e.target.value })}
+                                            className="doc-field-input"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="doc-edit-field">
+                                    <label>Speciality <span className="required">*</span></label>
+                                    <div className="doc-field-input-wrap">
+                                        <Activity size={16} className="doc-field-icon" />
+                                        <input
+                                            required
+                                            placeholder="e.g. Pediatrics"
+                                            value={doctorForm.speciality}
+                                            onChange={(e) => setDoctorForm({ ...doctorForm, speciality: e.target.value })}
+                                            className="doc-field-input"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="doc-edit-field">
+                                    <label>Qualification</label>
+                                    <div className="doc-field-input-wrap">
+                                        <Shield size={16} className="doc-field-icon" />
+                                        <input
+                                            placeholder="e.g. MBBS, MD"
+                                            value={doctorForm.qualification}
+                                            onChange={(e) => setDoctorForm({ ...doctorForm, qualification: e.target.value })}
+                                            className="doc-field-input"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="doc-edit-field">
+                                    <label>Experience</label>
+                                    <div className="doc-field-input-wrap">
+                                        <History size={16} className="doc-field-icon" />
+                                        <input
+                                            placeholder="e.g. 10+ Years"
+                                            value={doctorForm.experience}
+                                            onChange={(e) => setDoctorForm({ ...doctorForm, experience: e.target.value })}
+                                            className="doc-field-input"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="doc-edit-section-label" style={{ marginTop: '1.5rem' }}>Slot Configuration</div>
+                            <div className="doc-slots-btn-card">
+                                <div className="doc-slots-btn-info">
+                                    <div className="doc-slots-icon-box">
+                                        <Sliders size={20} />
+                                    </div>
+                                    <div>
+                                        <span className="doc-slots-title">Doctor Availability Slots</span>
+                                        <span className="doc-slots-sub">Configure which time slots this doctor is available on each day of the week</span>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="doc-slots-nav-btn"
+                                    onClick={() => { setShowDoctorForm(false); navigate('/scheduling'); }}
+                                >
+                                    <Settings2 size={16} />
+                                    Manage Slots
+                                </button>
+                            </div>
+
+                            <div className="doc-edit-toggle-row">
+                                <div className="doc-edit-toggle-info">
+                                    <CheckCircle2 size={18} style={{ color: doctorForm.is_active ? '#10b981' : '#cbd5e1' }} />
+                                    <div>
+                                        <span className="doc-toggle-label">Active Doctor</span>
+                                        <span className="doc-toggle-sub">Inactive doctors won't appear in appointment booking</span>
+                                    </div>
+                                </div>
+                                <label className="doc-toggle-switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={doctorForm.is_active}
+                                        onChange={(e) => setDoctorForm({ ...doctorForm, is_active: e.target.checked })}
+                                    />
+                                    <span className="doc-toggle-track"></span>
+                                </label>
+                            </div>
                         </div>
 
-                        <div className="doc-modal-foot">
-                            <button className="btn btn-outline" type="button" onClick={() => setShowDoctorForm(false)}>Cancel</button>
-                            <button className="btn btn-primary" type="submit">{editingId ? 'Update Doctor' : 'Create Doctor'}</button>
+                        {/* Footer */}
+                        <div className="doc-edit-footer">
+                            <button type="button" className="doc-edit-cancel" onClick={() => setShowDoctorForm(false)}>
+                                Discard Changes
+                            </button>
+                            <button type="submit" className="doc-edit-save">
+                                <CheckCircle2 size={18} />
+                                {editingId ? 'Save Changes' : 'Create Doctor'}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -640,6 +721,53 @@ const Doctors = () => {
                 .doc-head { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; }
                 .doc-head h1 { font-size: 2rem; font-weight: 900; letter-spacing: -0.03em; margin: 0; background: linear-gradient(135deg, #0f172a 0%, #4338ca 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
                 .doc-head-actions { display: flex; gap: 0.75rem; }
+
+                /* ── Premium Edit/Create Modal ── */
+                .doc-edit-modal { background: #fff; border-radius: 28px; width: min(680px, 96vw); max-height: 92vh; box-shadow: 0 40px 80px -20px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; animation: modalIn 0.25s ease-out; }
+                @keyframes modalIn { from { opacity: 0; transform: scale(0.97) translateY(10px); } to { opacity: 1; transform: none; } }
+                .doc-edit-header { display: flex; justify-content: space-between; align-items: center; padding: 1.75rem 2rem; background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); flex-shrink: 0; }
+                .doc-edit-header-left { display: flex; align-items: center; gap: 1rem; }
+                .doc-edit-icon-wrap { width: 52px; height: 52px; border-radius: 16px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+                .doc-edit-title { margin: 0; font-size: 1.3rem; font-weight: 900; color: #fff; letter-spacing: -0.02em; }
+                .doc-edit-subtitle { margin: 0.2rem 0 0; font-size: 0.82rem; color: rgba(255,255,255,0.7); font-weight: 500; }
+                .doc-edit-close { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
+                .doc-edit-close:hover { background: rgba(255,255,255,0.25); }
+                .doc-edit-body { flex: 1; overflow-y: auto; padding: 1.75rem 2rem; }
+                .doc-edit-section-label { font-size: 0.72rem; font-weight: 900; color: #6366f1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+                .doc-edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.25rem; }
+                .doc-edit-field { display: flex; flex-direction: column; gap: 0.4rem; }
+                .doc-edit-field label { font-size: 0.72rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; }
+                .required { color: #ef4444; margin-left: 2px; }
+                .doc-field-input-wrap { position: relative; display: flex; align-items: center; }
+                .doc-field-icon { position: absolute; left: 1rem; color: #6366f1; opacity: 0.5; pointer-events: none; z-index: 1; flex-shrink: 0; }
+                .doc-field-input { width: 100%; height: 52px; border-radius: 14px; border: 2px solid #f1f5f9; background: #f8fafc; padding: 0 1rem 0 2.75rem; font-size: 0.95rem; font-weight: 600; color: #0f172a; outline: none; transition: 0.2s; }
+                .doc-field-input:focus { border-color: #6366f1; background: #fff; box-shadow: 0 0 0 4px rgba(99,102,241,0.08); }
+                .doc-field-input::placeholder { color: #cbd5e1; }
+                .doc-full-field { grid-column: 1 / -1; }
+                .doc-json-wrap { position: relative; }
+                .doc-slots-btn-card { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.1rem 1.25rem; background: #f8faff; border: 2px solid #eef2ff; border-radius: 16px; }
+                .doc-slots-btn-info { display: flex; align-items: center; gap: 0.85rem; }
+                .doc-slots-icon-box { width: 44px; height: 44px; border-radius: 12px; background: #eef2ff; color: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+                .doc-slots-title { display: block; font-size: 0.9rem; font-weight: 800; color: #0f172a; }
+                .doc-slots-sub { display: block; font-size: 0.75rem; color: #94a3b8; font-weight: 500; margin-top: 0.15rem; }
+                .doc-slots-nav-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; border-radius: 12px; border: none; background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); color: #fff; font-weight: 800; font-size: 0.82rem; cursor: pointer; white-space: nowrap; box-shadow: 0 4px 10px rgba(99,102,241,0.25); transition: 0.2s; flex-shrink: 0; }
+                .doc-slots-nav-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99,102,241,0.35); }
+                .doc-edit-toggle-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding: 1.1rem 1.25rem; background: #f8fafc; border: 2px solid #f1f5f9; border-radius: 16px; }
+                .doc-edit-toggle-info { display: flex; align-items: center; gap: 0.85rem; }
+                .doc-toggle-label { display: block; font-size: 0.9rem; font-weight: 800; color: #0f172a; }
+                .doc-toggle-sub { display: block; font-size: 0.75rem; color: #94a3b8; font-weight: 500; margin-top: 0.1rem; }
+                .doc-toggle-switch { position: relative; display: inline-flex; align-items: center; cursor: pointer; }
+                .doc-toggle-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+                .doc-toggle-track { display: block; width: 48px; height: 26px; border-radius: 50px; background: #e2e8f0; transition: background 0.2s; position: relative; }
+                .doc-toggle-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.15); transition: transform 0.2s; }
+                .doc-toggle-switch input:checked + .doc-toggle-track { background: #6366f1; }
+                .doc-toggle-switch input:checked + .doc-toggle-track::after { transform: translateX(22px); }
+                .doc-edit-footer { display: flex; gap: 1rem; padding: 1.25rem 2rem; border-top: 1px solid #f1f5f9; background: #fafbfc; flex-shrink: 0; }
+                .doc-edit-cancel { flex: 1; height: 52px; border-radius: 14px; border: 2px solid #e2e8f0; background: #fff; color: #64748b; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+                .doc-edit-cancel:hover { border-color: #94a3b8; color: #334155; }
+                .doc-edit-save { flex: 2; height: 52px; border-radius: 14px; border: none; background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); color: #fff; font-weight: 900; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.6rem; box-shadow: 0 4px 14px rgba(99,102,241,0.3); transition: 0.2s; }
+                .doc-edit-save:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(99,102,241,0.35); }
+                @media (max-width: 580px) { .doc-edit-grid { grid-template-columns: 1fr; } .doc-edit-modal { border-radius: 20px; } }
                 
                 .doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; }
                 .doc-card { border-radius: 20px; padding: 1.25rem; border: 1px solid #e2e8f0; background: #fff; transition: 0.3s; }
