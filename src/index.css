@@ -9,6 +9,7 @@
   --text-main: #1e293b;
   --text-muted: #64748b;
   --border-color: #e5e7eb;
+
   --sidebar-width: 280px;
   --sidebar-collapsed-width: 280px;
   --current-sidebar-width: var(--sidebar-width);
