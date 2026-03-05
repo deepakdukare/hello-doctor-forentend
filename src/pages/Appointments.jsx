@@ -363,10 +363,6 @@ const Appointments = () => {
                 <div className="header-nav-v3">
                     {activeView === 'queue' ? (
                         <>
-                            <button type="button" className="export-btn-v4">
-                                <span>Export</span>
-                                <ChevronDown size={14} />
-                            </button>
                             <button type="button" className="new-btn-v4" onClick={() => openBookingModal()}>
                                 <Plus size={14} />
                                 <span>New Appointment</span>
@@ -764,8 +760,8 @@ const Appointments = () => {
                 @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
                 .page-header-v3 { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
                 .header-meta-group { flex: 1; }
-                .header-h1-v3 { font-size: 2rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(135deg, #0f172a 0%, #4338ca 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 0.75rem; }
-                .header-h1-v3.compact-title-v3 { font-size: 1.35rem; margin-bottom: 0.35rem; }
+                .header-h1-v3 { font-size: 1.8rem; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(135deg, #0f172a 0%, #4338ca 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 0.75rem; }
+                .header-h1-v3.compact-title-v3 { font-size: 1.25rem; margin-bottom: 0.35rem; }
 
                 .stats-row-mini-v3 { display: flex; gap: 0.85rem; flex-wrap: wrap; }
                 .stat-card-v4 { min-width: 210px; border-radius: 12px; border: 1px solid #e2e8f0; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 0.85rem 1rem; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); }
@@ -777,9 +773,9 @@ const Appointments = () => {
                 .trend-pill-v4 { font-size: 0.65rem; font-weight: 800; border-radius: 999px; padding: 0.15rem 0.45rem; }
                 .trend-pill-v4.positive { background: #dcfce7; color: #16a34a; }
                 .trend-pill-v4.negative { background: #fee2e2; color: #dc2626; }
-                .stat-label-row-v4 { display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.72rem; margin-bottom: 0.45rem; }
+                .stat-label-row-v4 { display: flex; justify-content: space-between; align-items: center; color: #64748b; font-size: 0.8rem; margin-bottom: 0.45rem; }
                 .stat-label-row-v4 span { color: #475569; font-weight: 700; }
-                .stat-value-v4 { font-size: 1.9rem; line-height: 1; font-weight: 900; color: #0f172a; }
+                .stat-value-v4 { font-size: 1.65rem; line-height: 1; font-weight: 900; color: #0f172a; }
 
                 .header-nav-v3 { display: flex; align-items: center; gap: 0.55rem; }
                 .export-btn-v4 { height: 36px; padding: 0 0.85rem; border-radius: 8px; border: 1px solid #d7deea; background: #fff; display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.75rem; color: #334155; font-weight: 700; cursor: pointer; }

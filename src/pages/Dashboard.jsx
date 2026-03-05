@@ -362,7 +362,7 @@ const Dashboard = () => {
                 }
 
                 .header-title-premium {
-                    font-size: 2.5rem;
+                    font-size: 2.2rem;
                     font-weight: 900;
                     letter-spacing: -0.03em;
                     background: linear-gradient(135deg, #0f172a 0%, #4338ca 100%);
@@ -505,7 +505,7 @@ const Dashboard = () => {
                 }
 
                 .stat-value-premium {
-                    font-size: 1.75rem;
+                    font-size: 1.6rem;
                     font-weight: 800;
                     color: #0f172a;
                     margin-bottom: 0.15rem;
@@ -513,9 +513,9 @@ const Dashboard = () => {
                 }
 
                 .stat-label-premium {
-                    font-size: 0.85rem;
+                    font-size: 0.82rem;
                     font-weight: 700;
-                    color: #94a3b8;
+                    color: #64748b;
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
                 }

@@ -119,8 +119,8 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
                 <Link to="/" className="logo-compact" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <img src="/logo.jpg" alt="Logo" style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'cover', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.15)' }} />
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>DICC</span>
-                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.2rem' }}>Dr. Indu Child Care</span>
+                        <span style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '-0.025em', lineHeight: 1 }}>DICC</span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: '0.15rem' }}>Dr. Indu Child Care</span>
                     </div>
                 </Link>
             </div>
@@ -131,11 +131,11 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
                             <div className="nav-section-title" style={{
                                 padding: '0 1rem',
                                 marginBottom: '0.65rem',
-                                fontSize: '0.65rem',
+                                fontSize: '0.72rem',
                                 fontWeight: 800,
-                                color: '#94a3b8',
+                                color: '#64748b',
                                 textTransform: 'uppercase',
-                                letterSpacing: '0.1em'
+                                letterSpacing: '0.08em'
                             }}>
                                 {section.title}
                             </div>
