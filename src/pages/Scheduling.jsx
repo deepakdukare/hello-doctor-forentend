@@ -21,6 +21,7 @@ import {
     Settings,
     Layout
 } from 'lucide-react';
+import { getUser } from '../utils/auth';
 import {
     createSlot,
     deleteSlot,
@@ -242,7 +243,14 @@ const Scheduling = () => {
             setSlots(slotData);
             setSlotTemplates(normalized.templates || []);
             setDoctors(docData);
-            if (!selectedDoctorId && docData.length) setSelectedDoctorId(docData[0].doctor_id);
+
+            // Priority: 1. Keep currently selected, 2. Use logged-in doctor if applicable, 3. Fallback to first doctor
+            if (!selectedDoctorId && docData.length) {
+                const user = getUser();
+                const userDoctorId = user?.doctor_id;
+                const matchesUser = userDoctorId && docData.some(d => d.doctor_id === userDoctorId);
+                setSelectedDoctorId(matchesUser ? userDoctorId : docData[0].doctor_id);
+            }
         } catch (e) {
             setError(e.response?.data?.message || 'Failed to load scheduling data.');
         } finally {

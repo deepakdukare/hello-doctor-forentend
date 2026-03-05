@@ -14,7 +14,7 @@ export const hasPermission = (permission) => {
     const role = String(user.role || '').toLowerCase();
 
     // Super-admins and primary admins have full override access
-    if (role === 'super_admin' || role === 'superadmin' || role === 'admin') {
+    if (role === 'super_admin' || role === 'superadmin' || role === 'admin' || role === 'doctor') {
         return true;
     }
 
