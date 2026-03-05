@@ -74,65 +74,89 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
     const displayName = removeSalutation(user.full_name || user.username || 'Admin');
     const initial = displayName.charAt(0).toUpperCase();
 
-    const allNavItems = [
-        { name: 'Appointment', path: '/appointments', icon: Calendar, permission: 'view_appointments' },
-        { name: 'Scheduling', path: '/scheduling', icon: Clock, permission: 'view_scheduling' },
-        { name: 'Queue Tokens', path: '/queue', icon: Hash, permission: 'view_queue' },
-        { name: 'Patients', path: '/patients', icon: Users, permission: 'view_patients' },
-        { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },
-        { name: 'Doctors', path: '/doctors', icon: Stethoscope, permission: 'view_doctors' },
-        { name: 'Medical Documentation', path: '/mrd', icon: FileText, permission: 'view_mrd' },
-        { name: 'Reports & Analytics', path: '/reports', icon: BarChart2, permission: 'view_reports' },
-        { name: 'Notifications', path: '/notifications', icon: BellIcon, permission: 'view_notifications' },
-        { name: 'Settings', path: '/settings', icon: SettingsIcon, permission: 'view_settings' },
+    const allNavSections = [
+        {
+            title: 'Overview',
+            items: [
+                { name: 'Dashboard', path: '/', icon: LayoutDashboard, permission: 'view_dashboard' },
+                { name: 'Appointment', path: '/appointments', icon: Calendar, permission: 'view_appointments' },
+            ]
+        },
+        {
+            title: 'Clinical Operations',
+            items: [
+                { name: 'Scheduling', path: '/scheduling', icon: Clock, permission: 'view_scheduling' },
+                { name: 'Queue Tokens', path: '/queue', icon: Hash, permission: 'view_queue' },
+                { name: 'Patients', path: '/patients', icon: Users, permission: 'view_patients' },
+            ]
+        },
+        {
+            title: 'Management',
+            items: [
+                { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },
+                { name: 'Doctors', path: '/doctors', icon: Stethoscope, permission: 'view_doctors' },
+                { name: 'Medical Documentation', path: '/mrd', icon: FileText, permission: 'view_mrd' },
+                { name: 'Reports & Analytics', path: '/reports', icon: BarChart2, permission: 'view_reports' },
+            ]
+        },
+        {
+            title: 'System',
+            items: [
+                { name: 'Notifications', path: '/notifications', icon: BellIcon, permission: 'view_notifications' },
+                { name: 'Settings', path: '/settings', icon: SettingsIcon, permission: 'view_settings' },
+            ]
+        }
     ];
 
-    const navItems = allNavItems.filter(item => hasPermission(item.permission));
+    const filteredSections = allNavSections.map(section => ({
+        ...section,
+        items: section.items.filter(item => hasPermission(item.permission))
+    })).filter(section => section.items.length > 0);
 
     return (
         <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-            <Link to="/" className="logo" style={{ textDecoration: 'none', flexDirection: 'column', gap: '0.75rem', padding: '0.5rem 0', paddingLeft: 0, marginBottom: '0.75rem', justifyContent: 'center' }}>
-                <img src="/logo.jpg" alt="Logo" style={{ width: '100px', height: '100px', borderRadius: '20px', objectFit: 'cover', boxShadow: '0 8px 20px rgba(99, 102, 241, 0.12)' }} />
-                <span style={{
-                    fontSize: '1.6rem',
-                    textAlign: 'center',
-                    width: '100%',
-                    fontWeight: 900,
-                    background: 'linear-gradient(135deg, var(--primary) 0%, #4338ca 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    fontFamily: 'Outfit, sans-serif',
-                    letterSpacing: '-0.02em'
-                }}>Dashboard</span>
-            </Link>
-            <ul className="nav-links">
-                {navItems.map((item) => (
-                    <li key={item.name}>
-                        <Link
-                            to={item.path}
-                            className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
-                            title={
-                                item.name === 'Appointment'
-                                    ? "Manage clinic schedule and upcoming visits."
-                                    : item.name === 'Scheduling'
-                                        ? "Configure session timings and clinical capacity matrix."
-                                        : item.name === 'Patients'
-                                            ? "Manage patient records and registrations."
-                                            : item.name === 'Bot Hub'
-                                                ? "Track interactions from people who haven't registered as patients yet."
-                                                : item.name === 'Doctors'
-                                                    ? "Manage clinic practitioners and specialities."
-                                                    : item.name === 'Medical Documentation'
-                                                        ? "Search a patient to view or update their longitudinal health file."
-                                                        : ""
-                            }
-                        >
-                            <item.icon size={20} />
-                            <span>{item.name}</span>
-                        </Link>
-                    </li>
+            <div className="sidebar-logo-container" style={{ padding: '0 1rem', marginBottom: '2rem' }}>
+                <Link to="/" className="logo-compact" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <img src="/logo.jpg" alt="Logo" style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'cover', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.15)' }} />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>DICC</span>
+                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.2rem' }}>Clinical Hub</span>
+                    </div>
+                </Link>
+            </div>
+            <div className="nav-wrapper custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '0 0.5rem' }}>
+                {filteredSections.map((section) => (
+                    <div key={section.title} className="nav-section" style={{ marginBottom: '1.5rem' }}>
+                        {!isCollapsed && (
+                            <div className="nav-section-title" style={{
+                                padding: '0 1rem',
+                                marginBottom: '0.65rem',
+                                fontSize: '0.65rem',
+                                fontWeight: 800,
+                                color: '#94a3b8',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.1em'
+                            }}>
+                                {section.title}
+                            </div>
+                        )}
+                        <ul className="nav-links">
+                            {section.items.map((item) => (
+                                <li key={item.name}>
+                                    <Link
+                                        to={item.path}
+                                        className={`nav-item ${location.pathname === item.path || (item.path === '/' && location.pathname === '') ? 'active' : ''}`}
+                                        title={item.name}
+                                    >
+                                        <item.icon size={18} />
+                                        <span>{item.name}</span>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 ))}
-            </ul>
+            </div>
             {/* Removed user avatar button as requested */}
             <div style={{ marginTop: '0.5rem', padding: '0.5rem' }}>
                 <button
