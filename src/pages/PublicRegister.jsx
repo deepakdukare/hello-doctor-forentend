@@ -7,14 +7,12 @@ import {
     ArrowRight, Map, ShieldCheck, ArrowLeft
 } from 'lucide-react';
 import { registerFromForm, bookByForm, getAvailableSlots, getDoctors, getPatientByWa, getAppointmentsByWaId, updateAppointment } from '../api/index';
-import { removeSalutation } from '../utils/formatters';
 
 const SALUTATIONS = ['Master', 'Miss', 'Baby', 'Baby of', 'Mr.', 'Ms.'];
 const GENDERS = ['Male', 'Female', 'Other'];
 const COMM_PREFERENCES = ['WhatsApp', 'SMS', 'Email', 'Phone Call'];
 const ENROLLMENT_OPTIONS = [
-    { value: 'just_enroll', label: 'Just Enroll' },
-    { value: 'book_appointment', label: 'Enroll & Book Now' }
+    { value: 'just_enroll', label: 'Enroll & Book Now' }
 ];
 
 const formatTime12h = (t) => {
@@ -50,6 +48,7 @@ const PublicRegister = () => {
     const [waIdValidation, setWaIdValidation] = useState({ loading: false, error: null });
     const [patientAppointments, setPatientAppointments] = useState([]);
     const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
+    const [regSubmitted, setRegSubmitted] = useState(false);
 
     // Step 1: Detailed Patient Data (Consolidated from Screenshot)
     const [patientForm, setPatientForm] = useState({
@@ -59,26 +58,17 @@ const PublicRegister = () => {
         last_name: '',
         gender: 'Male',
         dob: '',
-        age_years: '',
-        age_months: '',
-        birth_time_hours: '',
-        birth_time_minutes: '',
-        birth_time_ampm: 'AM',
-
+        mother_name: '',
         father_name: '',
         father_mobile: '',
-        father_occupation: '',
-        mother_name: '',
         mother_mobile: '',
-
-        area: '',
+        wa_id: '',
+        email: '',
+        address: '',
         city: 'Mumbai',
         state: 'Maharashtra',
         pin_code: '',
-        full_address: '',
-        wa_id: '',
         comm_preference: 'WhatsApp',
-        email: '',
         preferred_doctor: '',
         notes: '',
         enrollment_option: 'just_enroll',
@@ -99,6 +89,7 @@ const PublicRegister = () => {
     const [availableSlots, setAvailableSlots] = useState([]);
     const [slotsLoading, setSlotsLoading] = useState(false);
     const [registeredPatient, setRegisteredPatient] = useState(null);
+    const todayStr = new Date().toISOString().split('T')[0];
 
     useEffect(() => {
         const fetchDoctors = async () => {
@@ -242,38 +233,96 @@ const PublicRegister = () => {
 
     const handleRegistration = async (e) => {
         e.preventDefault();
+        setRegSubmitted(true);
+        if (!e.currentTarget.checkValidity()) {
+            e.currentTarget.reportValidity();
+            return;
+        }
         setLoading(true);
         setError(null);
         try {
+            const matchedDoc = doctors.find(d => getDoctorDisplayName(d) === patientForm.preferred_doctor);
+            const rawDocName = matchedDoc
+                ? getRawDoctorName(matchedDoc)
+                : (patientForm.preferred_doctor?.replace(/\s*\([^)]*\)\s*$/, '').trim() || patientForm.preferred_doctor);
+
+            const backendSalutations = ['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'Master', 'Miss'];
+            const normalizedSalutation = backendSalutations.includes(patientForm.salutation)
+                ? patientForm.salutation
+                : (patientForm.salutation === 'Miss' || patientForm.salutation === 'Baby' && patientForm.gender === 'Female' ? 'Miss' : 'Master');
+
             const payload = {
-                ...patientForm,
-                age_years: patientForm.age_years ? parseInt(patientForm.age_years) : undefined,
-                age_months: patientForm.age_months ? parseInt(patientForm.age_months) : undefined,
-                birth_time_hours: patientForm.birth_time_hours ? parseInt(patientForm.birth_time_hours) : undefined,
-                birth_time_minutes: patientForm.birth_time_minutes ? parseInt(patientForm.birth_time_minutes) : undefined,
+                salutation: normalizedSalutation,
+                first_name: patientForm.first_name,
+                middle_name: patientForm.middle_name || null,
+                last_name: patientForm.last_name,
+                gender: patientForm.gender,
+                dob: patientForm.dob,
+                mother_name: patientForm.mother_name || null,
+                father_name: patientForm.father_name || null,
+                father_mobile: patientForm.father_mobile || null,
+                mother_mobile: patientForm.mother_mobile || null,
+                parent_mobile: patientForm.wa_id || patientForm.father_mobile || null,
+                wa_id: patientForm.wa_id,
+                email: patientForm.email || null,
+                address: patientForm.address,
+                city: patientForm.city,
+                state: patientForm.state,
+                pin_code: patientForm.pin_code,
+                communication_preference: (patientForm.comm_preference || 'WhatsApp').toLowerCase(),
+                doctor: rawDocName,
+                remarks: patientForm.notes || null,
+                registration_source: patientForm.registration_source,
+                enrollment_option: patientForm.enrollment_option,
             };
             const res = await registerFromForm(payload);
-            const patientData = res.data.data;
-            setRegisteredPatient(patientData);
-            // Strip speciality from preferred_doctor display name before sending to API
-            const rawDocName = doctors.find(d => getDoctorDisplayName(d) === patientForm.preferred_doctor)
-                ? getRawDoctorName(doctors.find(d => getDoctorDisplayName(d) === patientForm.preferred_doctor))
-                : (patientForm.preferred_doctor?.replace(/\s*\([^)]*\)\s*$/, '').trim() || prev.doctor_name);
-            setBookingForm(prev => ({
-                ...prev,
-                wa_id: patientData.wa_id || patientForm.wa_id || patientForm.father_mobile,
-                doctor_name: rawDocName
-            }));
-
-            if (patientForm.enrollment_option === 'book_appointment') {
+            const patientData = res.data?.data;
+            if (res.data?.is_already_registered && patientData) {
+                setRegisteredPatient(patientData);
+                const matchedDoc = doctors.find(d => getDoctorDisplayName(d) === patientForm.preferred_doctor);
+                const rawDocName = matchedDoc
+                    ? getRawDoctorName(matchedDoc)
+                    : (patientForm.preferred_doctor?.replace(/\s*\([^)]*\)\s*$/, '').trim() || bookingForm.doctor_name);
+                setBookingForm(prev => ({
+                    ...prev,
+                    wa_id: patientData.wa_id || patientForm.wa_id || patientForm.father_mobile,
+                    doctor_name: rawDocName
+                }));
                 setStep(2);
-            } else {
-                setStep(3);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+            if (patientData) {
+                setRegisteredPatient(patientData);
+                const matchedDoc = doctors.find(d => getDoctorDisplayName(d) === patientForm.preferred_doctor);
+                const rawDocName = matchedDoc
+                    ? getRawDoctorName(matchedDoc)
+                    : (patientForm.preferred_doctor?.replace(/\s*\([^)]*\)\s*$/, '').trim() || bookingForm.doctor_name);
+                setBookingForm(prev => ({
+                    ...prev,
+                    wa_id: patientData.wa_id || patientForm.wa_id || patientForm.father_mobile,
+                    doctor_name: rawDocName
+                }));
+                setStep(2);
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
             const errorMsg = err.response?.data?.message || err.message;
-            if (err.response?.data?.error_code === 'PATIENT_EXISTS') {
+            if (err.response?.data?.is_already_registered && err.response?.data?.data) {
+                const patientData = err.response.data.data;
+                setRegisteredPatient(patientData);
+                const matchedDoc = doctors.find(d => getDoctorDisplayName(d) === patientForm.preferred_doctor);
+                const rawDocName = matchedDoc
+                    ? getRawDoctorName(matchedDoc)
+                    : (patientForm.preferred_doctor?.replace(/\s*\([^)]*\)\s*$/, '').trim() || bookingForm.doctor_name);
+                setBookingForm(prev => ({
+                    ...prev,
+                    wa_id: patientData.wa_id || patientForm.wa_id || patientForm.father_mobile,
+                    doctor_name: rawDocName
+                }));
+                setStep(2);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (err.response?.data?.error_code === 'PATIENT_EXISTS' || String(errorMsg || '').toLowerCase().includes('already registered')) {
                 setError("Patient already registered. Finding your record...");
                 setTimeout(() => {
                     setSearchWaId(patientForm.wa_id || patientForm.father_mobile);
@@ -313,8 +362,8 @@ const PublicRegister = () => {
     const renderProgress = () => (
         <div className="stepper-v3">
             {[
-                { s: 1, label: 'Identity Verification', num: 1 },
-                { s: 2, label: 'Consultation Config', num: 2 }
+                { s: 1, label: 'Registration', num: 1 },
+                { s: 2, label: 'Booking', num: 2 }
             ].map((item, idx) => (
                 <React.Fragment key={item.s}>
                     <div className={`step-item ${step >= item.s ? 'active' : ''} ${step > item.s ? 'completed' : ''}`}>
@@ -465,12 +514,12 @@ const PublicRegister = () => {
                     )}
 
                     {step === 1 && (
-                        <form onSubmit={handleRegistration} className="premium-form">
+                        <form onSubmit={handleRegistration} className={`premium-form ${regSubmitted ? 'submitted' : ''}`}>
                             {/* Section 1: Child Identification */}
                             <div className="form-section">
                                 <div className="section-header">
                                     <div className="section-num">1</div>
-                                    <h3>Child Identification</h3>
+                                    <h3>Child Details</h3>
                                 </div>
                                 <div className="form-grid">
                                     <div className="field-group col-1">
@@ -494,16 +543,16 @@ const PublicRegister = () => {
 
                                     <div className="field-group col-2">
                                         <label>Gender *</label>
-                                        <select value={patientForm.gender} onChange={e => setPatientForm({ ...patientForm, gender: e.target.value })}>
+                                        <select required value={patientForm.gender} onChange={e => setPatientForm({ ...patientForm, gender: e.target.value })}>
                                             {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
                                         </select>
                                     </div>
                                     <div className="field-group col-4">
                                         <label>Date of Birth</label>
-                                        <input type="date" value={patientForm.dob} onChange={e => {
+                                        <input required type="date" max={todayStr} value={patientForm.dob} onChange={e => {
                                             const dobVal = e.target.value;
                                             if (!dobVal) {
-                                                setPatientForm({ ...patientForm, dob: '', age_years: '', age_months: '' });
+                                                setPatientForm({ ...patientForm, dob: '' });
                                                 return;
                                             }
                                             const birthDate = new Date(dobVal);
@@ -514,28 +563,8 @@ const PublicRegister = () => {
                                                 years--;
                                                 months = 12 + months;
                                             }
-                                            setPatientForm({ ...patientForm, dob: dobVal, age_years: Math.max(0, years).toString(), age_months: Math.max(0, months).toString() });
+                                            setPatientForm({ ...patientForm, dob: dobVal });
                                         }} />
-                                    </div>
-
-                                    <div className="field-group col-2">
-                                        <label>Age (Years)</label>
-                                        <input type="number" placeholder="3" value={patientForm.age_years} onChange={e => setPatientForm({ ...patientForm, age_years: e.target.value })} />
-                                    </div>
-                                    <div className="field-group col-2">
-                                        <label>Age (Months)</label>
-                                        <input type="number" placeholder="9" value={patientForm.age_months} onChange={e => setPatientForm({ ...patientForm, age_months: e.target.value })} />
-                                    </div>
-                                    <div className="field-group col-2">
-                                        <label>Birth Time</label>
-                                        <div className="time-input-group">
-                                            <input type="number" placeholder="HH" value={patientForm.birth_time_hours} onChange={e => setPatientForm({ ...patientForm, birth_time_hours: e.target.value })} />
-                                            <input type="number" placeholder="MM" value={patientForm.birth_time_minutes} onChange={e => setPatientForm({ ...patientForm, birth_time_minutes: e.target.value })} />
-                                            <select value={patientForm.birth_time_ampm} onChange={e => setPatientForm({ ...patientForm, birth_time_ampm: e.target.value })}>
-                                                <option value="AM">AM</option>
-                                                <option value="PM">PM</option>
-                                            </select>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -553,11 +582,7 @@ const PublicRegister = () => {
                                     </div>
                                     <div className="field-group col-3">
                                         <label>Father's Mobile</label>
-                                        <input placeholder="9876543210" value={patientForm.father_mobile} onChange={e => setPatientForm({ ...patientForm, father_mobile: e.target.value.replace(/\D/g, '') })} />
-                                    </div>
-                                    <div className="field-group col-2">
-                                        <label>Occupation</label>
-                                        <input placeholder="Engineer" value={patientForm.father_occupation} onChange={e => setPatientForm({ ...patientForm, father_occupation: e.target.value })} />
+                                        <input placeholder="9876543210" pattern="[0-9]{10}" inputMode="numeric" maxLength={10} value={patientForm.father_mobile} onChange={e => setPatientForm({ ...patientForm, father_mobile: e.target.value.replace(/\D/g, '') })} />
                                     </div>
                                     <div className="field-group col-3">
                                         <label>Mother's Name</label>
@@ -565,7 +590,7 @@ const PublicRegister = () => {
                                     </div>
                                     <div className="field-group col-3">
                                         <label>Mother's Mobile</label>
-                                        <input placeholder="9876543211" value={patientForm.mother_mobile} onChange={e => setPatientForm({ ...patientForm, mother_mobile: e.target.value.replace(/\D/g, '') })} />
+                                        <input placeholder="9876543211" pattern="[0-9]{10}" inputMode="numeric" maxLength={10} value={patientForm.mother_mobile} onChange={e => setPatientForm({ ...patientForm, mother_mobile: e.target.value.replace(/\D/g, '') })} />
                                     </div>
                                 </div>
                             </div>
@@ -578,24 +603,28 @@ const PublicRegister = () => {
                                 </div>
                                 <div className="form-grid">
                                     <div className="field-group col-2">
-                                        <label>Area</label>
-                                        <input placeholder="Bandra" value={patientForm.area} onChange={e => setPatientForm({ ...patientForm, area: e.target.value })} />
-                                    </div>
-                                    <div className="field-group col-2">
                                         <label>City</label>
-                                        <input value={patientForm.city} onChange={e => setPatientForm({ ...patientForm, city: e.target.value })} />
+                                        <input required value={patientForm.city} onChange={e => setPatientForm({ ...patientForm, city: e.target.value })} />
                                     </div>
                                     <div className="field-group col-2">
                                         <label>State</label>
-                                        <input value={patientForm.state} onChange={e => setPatientForm({ ...patientForm, state: e.target.value })} />
+                                        <input required value={patientForm.state} onChange={e => setPatientForm({ ...patientForm, state: e.target.value })} />
                                     </div>
                                     <div className="field-group col-2">
                                         <label>Pin Code</label>
-                                        <input placeholder="400050" value={patientForm.pin_code} onChange={e => setPatientForm({ ...patientForm, pin_code: e.target.value })} />
+                                        <input
+                                            required
+                                            placeholder="400050"
+                                            pattern="[0-9]{6}"
+                                            inputMode="numeric"
+                                            maxLength={6}
+                                            value={patientForm.pin_code}
+                                            onChange={e => setPatientForm({ ...patientForm, pin_code: e.target.value.replace(/\D/g, '') })}
+                                        />
                                     </div>
                                     <div className="field-group col-6">
-                                        <label>Full Address</label>
-                                        <textarea placeholder="Line 1, Line 2..." value={patientForm.full_address} onChange={e => setPatientForm({ ...patientForm, full_address: e.target.value })} />
+                                        <label>Address</label>
+                                        <textarea required placeholder="Line 1, Line 2..." value={patientForm.address} onChange={e => setPatientForm({ ...patientForm, address: e.target.value })} />
                                     </div>
                                     <div className="field-group col-3">
                                         <label>WhatsApp ID / Mobile *</label>
@@ -603,6 +632,9 @@ const PublicRegister = () => {
                                             <Smartphone size={16} />
                                             <input
                                                 required
+                                                pattern="[0-9]{10}"
+                                                inputMode="numeric"
+                                                maxLength={10}
                                                 placeholder="9876543210"
                                                 value={patientForm.wa_id}
                                                 onChange={e => {
@@ -630,8 +662,12 @@ const PublicRegister = () => {
                                     </div>
                                     <div className="field-group col-3">
                                         <label>Preferred Doctor</label>
-                                        <select value={patientForm.preferred_doctor} onChange={e => setPatientForm({ ...patientForm, preferred_doctor: e.target.value })}>
-                                            {doctors.map(doc => <option key={doc._id} value={getDoctorDisplayName(doc)}>{getDoctorDisplayName(doc)}</option>)}
+                                        <select required value={patientForm.preferred_doctor} onChange={e => setPatientForm({ ...patientForm, preferred_doctor: e.target.value })}>
+                                            {doctors.map((doc, idx) => (
+                                                <option key={doc._id || doc.doctor_id || doc.name || doc.full_name || idx} value={getDoctorDisplayName(doc)}>
+                                                    {getDoctorDisplayName(doc)}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div className="field-group col-3">
@@ -687,7 +723,11 @@ const PublicRegister = () => {
                                             onChange={e => setBookingForm({ ...bookingForm, doctor_name: e.target.value })}
                                             className="select-v3"
                                         >
-                                            {doctors.map(doc => <option key={doc._id} value={getRawDoctorName(doc)}>{getDoctorDisplayName(doc)}</option>)}
+                                            {doctors.map((doc, idx) => (
+                                                <option key={doc._id || doc.doctor_id || doc.name || doc.full_name || idx} value={getRawDoctorName(doc)}>
+                                                    {getDoctorDisplayName(doc)}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
                                 </div>
@@ -714,9 +754,9 @@ const PublicRegister = () => {
                                     <div className="slot-grid-v3">
                                         {[...availableSlots]
                                             .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
-                                            .map(slot => (
+                                            .map((slot, idx) => (
                                                 <div
-                                                    key={slot.slot_id}
+                                                    key={slot.slot_id || `${slot.start_time}-${slot.end_time}-${slot.session}-${idx}`}
                                                     className={`slot-pill-v3 ${bookingForm.slot_id === slot.slot_id ? 'active' : ''}`}
                                                     onClick={() => setBookingForm({ ...bookingForm, slot_id: slot.slot_id })}
                                                 >
@@ -781,12 +821,12 @@ const PublicRegister = () => {
                             <div className="selection-header">
                                 <Calendar size={32} className="icon-header" />
                                 <h2>Select Appointment to Reschedule</h2>
-                                <p>We found {patientAppointments.length} upcoming appointments for {removeSalutation(registeredPatient?.child_name) || 'you'}.</p>
+                                <p>We found {patientAppointments.length} upcoming appointments for {registeredPatient?.child_name || 'you'}.</p>
                             </div>
 
                             <div className="appointment-list">
-                                {patientAppointments.map(appt => (
-                                    <div key={appt._id} className="appt-select-card">
+                                {patientAppointments.map((appt, idx) => (
+                                    <div key={appt._id || appt.appointment_id || `${appt.wa_id}-${appt.appointment_date}-${idx}`} className="appt-select-card">
                                         <div className="appt-details">
                                             <div className="appt-meta">
                                                 <span className="appt-date">
@@ -864,315 +904,222 @@ const PublicRegister = () => {
             </div>
 
             <style>{`
-                * { box-sizing: border-box; }
-                /* Top back nav */
-                .top-back-nav {
-                    display: flex; align-items: center; justify-content: space-between;
-                    margin-bottom: 1.25rem; padding-bottom: 1rem;
-                    border-bottom: 1.5px solid #f1f5f9;
+                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+                
+                :root {
+                    --primary: #6366f1;
+                    --primary-dark: #4f46e5;
+                    --primary-light: #eef2ff;
+                    --secondary: #64748b;
+                    --success: #10b981;
+                    --warning: #f59e0b;
+                    --danger: #ef4444;
+                    --bg-page: #f8fafc;
+                    --card-bg: #ffffff;
+                    --text-main: #0f172a;
+                    --text-muted: #64748b;
+                    --border-color: #e2e8f0;
+                    --radius-lg: 24px;
+                    --radius-md: 16px;
+                    --radius-sm: 12px;
+                    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+                    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+                    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+                    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
                 }
-                .top-back-btn {
-                    display: flex; align-items: center; gap: 0.5rem;
-                    background: none; border: none; cursor: pointer;
-                    color: #6366f1; font-weight: 700; font-size: 0.9rem;
-                    padding: 0.5rem 0.75rem 0.5rem 0.5rem;
-                    border-radius: 10px; transition: 0.2s;
-                    min-height: 44px;
-                }
-                .top-back-btn:hover { background: #eef2ff; }
-                .top-step-label {
-                    font-size: 0.75rem; font-weight: 800;
-                    color: #94a3b8; letter-spacing: 0.05em; text-transform: uppercase;
-                }
-                /* Success actions */
-                .success-actions {
-                    display: flex; flex-direction: column; align-items: center; gap: 0.85rem;
-                }
-                .btn-success-back {
-                    display: flex; align-items: center; gap: 0.4rem;
-                    background: none; border: none; cursor: pointer;
-                    color: #64748b; font-weight: 700; font-size: 0.9rem;
-                    padding: 0.5rem 1rem; border-radius: 10px; transition: 0.2s;
-                }
-                .btn-success-back:hover { background: #f1f5f9; color: #334155; }
 
-                .public-reg-container {
+                * { box-sizing: border-box; font-family: 'Outfit', 'Inter', sans-serif; }
+                
+                body { margin: 0; background-color: var(--bg-page); color: var(--text-main); }
+
+                .auth-container {
                     min-height: 100vh;
-                    background: #fdfdfe;
-                    position: relative;
-                    padding: 1rem 0.75rem 3rem;
-                    font-family: 'Inter', sans-serif;
+                    display: flex;
+                    align-items: center; justify-content: center;
+                    background: radial-gradient(circle at top right, #eef2ff 0%, #f8fafc 100%);
+                    padding: 1.5rem;
                 }
-                .gradient-bg {
-                    position: fixed;
-                    top: 0; left: 0; right: 0;
-                    height: 280px;
-                    background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
-                    z-index: -1;
+
+                .auth-form-container {
+                    width: 100%;
+                    max-width: 850px;
+                    margin: 0 auto;
                 }
-                .content-wrapper { max-width: 900px; margin: 0 auto; }
-                .page-header { display: flex; justify-content: center; margin-bottom: 1.25rem; }
-                .logo-section { display: flex; align-items: center; gap: 0.75rem; }
-                .logo-icon-wrap {
-                    width: 100px; height: 100px; background: white;
-                    border-radius: 24px; display: flex; align-items: center; justify-content: center;
-                    box-shadow: 0 12px 30px rgba(99,102,241,0.15); flex-shrink: 0;
-                    padding: 4px; overflow: hidden;
-                }
-                .brand-name { font-size: 1.2rem; font-weight: 900; color: #0f172a; letter-spacing: -0.03em; margin: 0; }
-                .brand-tagline { font-size: 0.75rem; color: #64748b; font-weight: 600; margin: 0.1rem 0 0; }
 
                 .main-card-v3 {
-                    background: #fff; border-radius: 20px;
-                    border: 1px solid #f1f5f9;
-                    box-shadow: 0 20px 60px -10px rgba(0,0,0,0.06);
-                    padding: 1.25rem 1rem;
+                    background: var(--card-bg);
+                    border-radius: var(--radius-lg);
+                    border: 1px solid var(--border-color);
+                    box-shadow: var(--shadow-xl);
+                    padding: 2.5rem;
+                    position: relative;
+                    overflow: hidden;
+                    animation: slideUp 0.5s ease-out;
                 }
 
-                /* Step 0 */
-                .member-check-v3 { text-align: center; }
-                .check-header { margin-bottom: 1.75rem; }
-                .check-header .icon-main { color: #6366f1; margin-bottom: 0.85rem; }
-                .check-header h2 { font-size: 1.35rem; font-weight: 900; color: #0f172a; margin-bottom: 0.35rem; }
-                .check-header p { color: #64748b; font-weight: 600; font-size: 0.875rem; margin: 0; }
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
 
-                .check-options { display: flex; flex-direction: column; gap: 1rem; max-width: 580px; margin: 0 auto; }
-                .choice-card {
-                    display: flex; align-items: flex-start; gap: 0.85rem; padding: 1rem;
-                    background: #f8fafc; border-radius: 16px; border: 2px solid #f1f5f9;
-                    cursor: pointer; transition: 0.25s; text-align: left; position: relative;
-                }
-                .choice-card:hover { border-color: #6366f1; background: #fff; box-shadow: 0 10px 25px rgba(99,102,241,0.1); }
-                .choice-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-                .choice-icon.new { background: #e0e7ff; color: #4338ca; }
-                .choice-icon.existing { background: #fef2f2; color: #ef4444; }
-                .choice-icon.reschedule { background: #f0fdf4; color: #10b981; }
-                .choice-card.reschedule:hover { border-color: #10b981; box-shadow: 0 10px 25px rgba(16,185,129,0.1); }
-                .btn-reschedule { background: #10b981 !important; }
-                .btn-reschedule:hover { background: #059669 !important; }
-                .choice-content { flex: 1; min-width: 0; }
-                .choice-content h3 { font-size: 1rem; font-weight: 800; color: #1e293b; margin-bottom: 0.2rem; }
-                .choice-content p { font-size: 0.82rem; color: #64748b; font-weight: 500; line-height: 1.45; margin: 0; }
-                .choice-card .arrow { color: #cbd5e1; transition: 0.3s; flex-shrink: 0; }
-                .choice-card:hover .arrow { color: #6366f1; transform: translateX(4px); }
-
-                .verify-input-wrap { margin-top: 0.85rem; display: flex; flex-direction: column; gap: 0.6rem; }
-                .verify-input-wrap .input-with-icon { min-width: 0; }
-                .verify-input-wrap .input-with-icon input { width: 100%; padding: 0.85rem 0.9rem 0.85rem 2.5rem; border-radius: 12px; font-size: 1rem; }
-                .btn-verify {
-                    background: #6366f1; color: #fff; border: none; border-radius: 12px;
-                    padding: 0.9rem 1.5rem; font-weight: 800; font-size: 0.95rem;
-                    cursor: pointer; transition: 0.2s; width: 100%; min-height: 50px;
-                }
-                .btn-verify:hover { background: #4f46e5; }
-                .btn-verify:disabled { opacity: 0.6; cursor: not-allowed; }
-                .inline-verify-error {
-                    display: flex; align-items: flex-start; gap: 0.5rem;
-                    margin-top: 0.6rem; padding: 0.65rem 0.9rem;
-                    background: #fef2f2; border: 1px solid #fee2e2;
-                    border-radius: 10px; color: #ef4444;
-                    font-size: 0.8rem; font-weight: 600; line-height: 1.4; text-align: left;
-                }
+                /* Header & Logo */
+                .check-header { text-align: center; margin-bottom: 2.5rem; }
+                .icon-main { color: var(--primary); margin-bottom: 1rem; filter: drop-shadow(0 4px 6px rgba(99,102,241,0.2)); }
+                .check-header h2 { font-size: 2rem; font-weight: 800; color: var(--text-main); margin: 0 0 0.5rem; letter-spacing: -0.02em; }
+                .check-header p { font-size: 1.1rem; color: var(--text-muted); font-weight: 500; }
 
                 /* Stepper */
-                .stepper-v3 { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1.75rem; }
-                .step-item { display: flex; align-items: center; gap: 0.5rem; color: #94a3b8; transition: 0.3s; }
-                .step-item.active { color: #6366f1; }
-                .step-item.completed { color: #10b981; }
-                .step-badge { width: 28px; height: 28px; border-radius: 8px; border: 2px solid currentColor; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem; flex-shrink: 0; }
-                .step-label { font-weight: 800; font-size: 0.72rem; }
-                .step-line { width: 24px; height: 2px; background: #e2e8f0; }
+                .stepper-v3 { display: flex; align-items: center; justify-content: center; gap: 1.5rem; margin-bottom: 3rem; }
+                .step-item { display: flex; align-items: center; gap: 0.75rem; color: var(--text-muted); transition: 0.3s; }
+                .step-item.active { color: var(--primary); }
+                .step-item.completed { color: var(--success); }
+                .step-badge { 
+                    width: 36px; height: 36px; border-radius: 12px; 
+                    border: 2px solid currentColor; display: flex; 
+                    align-items: center; justify-content: center; 
+                    font-weight: 800; font-size: 0.9rem; flex-shrink: 0;
+                    background: var(--card-bg);
+                }
+                .step-label { font-weight: 700; font-size: 0.95rem; }
+                .step-line { width: 50px; height: 2px; background: var(--border-color); border-radius: 2px; }
 
-                /* Alert */
-                .alert-v3 { display: flex; align-items: center; gap: 0.75rem; padding: 0.9rem 1rem; border-radius: 14px; margin-bottom: 1.5rem; font-weight: 600; font-size: 0.875rem; }
-                .alert-v3.error { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
+                /* Choice Cards */
+                .check-options { display: flex; flex-direction: column; gap: 1.25rem; }
+                .choice-card {
+                    display: flex; align-items: flex-start; gap: 1.5rem; padding: 1.75rem;
+                    background: var(--bg-page); border-radius: var(--radius-md); 
+                    border: 2px solid transparent; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    text-align: left;
+                }
+                .choice-card:hover { 
+                    border-color: var(--primary); background: var(--card-bg); 
+                    transform: translateY(-4px); box-shadow: var(--shadow-lg); 
+                }
+                .choice-icon { 
+                    width: 56px; height: 56px; border-radius: var(--radius-sm); 
+                    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+                    transition: 0.3s;
+                }
+                .choice-icon.new { background: #e0e7ff; color: var(--primary); }
+                .choice-icon.existing { background: #fef2f2; color: var(--danger); }
+                .choice-icon.reschedule { background: #f0fdf4; color: var(--success); }
+                .choice-content h3 { font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin: 0 0 0.35rem; }
+                .choice-content p { font-size: 0.95rem; color: var(--text-muted); font-weight: 500; line-height: 1.5; margin: 0; }
+                .choice-card .arrow { color: #cbd5e1; margin-left: auto; transition: 0.3s; }
+                .choice-card:hover .arrow { color: var(--primary); transform: translateX(6px); }
 
-                /* Registration form */
-                .form-section { margin-bottom: 2rem; }
-                .section-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
-                .section-num { width: 26px; height: 26px; background: #6366f1; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 900; flex-shrink: 0; }
-                .section-header h3 { font-size: 1rem; font-weight: 800; color: #1e293b; margin: 0; }
+                /* Forms */
+                .form-section { margin-bottom: 2.5rem; background: #fff; border-radius: var(--radius-md); }
+                .section-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 1px dashed var(--border-color); }
+                .section-num { 
+                    width: 32px; height: 32px; background: var(--primary); color: #fff; 
+                    border-radius: 10px; display: flex; align-items: center; 
+                    justify-content: center; font-size: 1rem; font-weight: 800;
+                    box-shadow: 0 4px 10px rgba(99,102,241,0.3);
+                }
+                .section-header h3 { font-size: 1.2rem; font-weight: 800; color: var(--text-main); margin: 0; }
 
-                .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem 0.7rem; }
-                .field-group { display: flex; flex-direction: column; gap: 0.45rem; }
+                .form-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.5rem 1.25rem; }
+                .field-group { display: flex; flex-direction: column; gap: 0.6rem; }
                 .col-1 { grid-column: span 1; }
-                .col-2, .col-3, .col-4, .col-6 { grid-column: span 2; }
+                .col-2 { grid-column: span 2; }
+                .col-3 { grid-column: span 3; }
+                .col-4 { grid-column: span 4; }
+                .col-6 { grid-column: span 6; }
 
-                label { font-size: 0.68rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+                label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
                 input, select, textarea {
-                    background: #f8fafc; border: 2px solid #f1f5f9; border-radius: 12px;
-                    padding: 0.8rem 0.9rem; font-size: 1rem; font-weight: 600; color: #0f172a;
-                    outline: none; transition: 0.2s; width: 100%; box-sizing: border-box;
-                    -webkit-appearance: none;
+                    background: var(--bg-page); border: 2px solid var(--border-color); border-radius: var(--radius-sm);
+                    padding: 0.9rem 1.1rem; font-size: 1rem; font-weight: 600; color: var(--text-main);
+                    outline: none; transition: all 0.2s; width: 100%;
                 }
-                input:focus, select:focus, textarea:focus { border-color: #6366f1; background: #fff; }
-                textarea { height: 90px; resize: none; }
-
-                .time-input-group { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 0.4rem; }
-                .input-icon-wrap { position: relative; }
-                .input-icon-wrap svg { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-                .input-icon-wrap input { padding-left: 2.5rem; width: 100%; }
-
-                .form-actions { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 2rem; }
-                .btn-cancel { width: 100%; height: 52px; border-radius: 14px; border: 2px solid #f1f5f9; background: #fff; color: #64748b; font-weight: 800; font-size: 0.95rem; cursor: pointer; }
-                .btn-primary-v3 {
-                    width: 100%; height: 54px;
-                    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
-                    color: #fff; border: none; border-radius: 16px; font-size: 1rem; font-weight: 800;
-                    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
-                    box-shadow: 0 8px 20px rgba(99,102,241,0.3); cursor: pointer;
-                }
-
-                /* Booking step */
-                .selected-patient-v3 { margin-bottom: 1.5rem; }
-                .p-banner { background: #f8fafc; border-radius: 16px; padding: 1rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; gap: 0.6rem; flex-wrap: wrap; }
-                .p-info { display: flex; align-items: center; gap: 0.85rem; }
-                .p-avatar-circle { width: 42px; height: 42px; background: #fff; color: #6366f1; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px rgba(0,0,0,0.06); flex-shrink: 0; }
-                .p-name-premium { font-size: 0.95rem; font-weight: 900; color: #0f172a; }
-                .p-id-premium { font-size: 0.75rem; color: #64748b; font-weight: 700; }
-                .modify-btn-v3 { background: #fff; border: 1.5px solid #e2e8f0; padding: 0.45rem 0.85rem; border-radius: 9px; font-size: 0.78rem; font-weight: 800; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
-
-                .form-grid-v3 { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
-                .field-v3 { display: flex; flex-direction: column; gap: 0.6rem; }
-                .field-v3 span, .label-v3 { font-size: 0.7rem; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; }
+                input:focus, select:focus, textarea:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(99,102,241,0.08); }
+                
                 .input-with-icon { position: relative; }
-                .input-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #6366f1; }
-                .input-v3, .select-v3 { width: 100%; border: 2px solid #f1f5f9; border-radius: 14px; padding: 0.9rem 1rem 0.9rem 3.2rem; font-weight: 700; font-size: 1rem; outline: none; background: #fff; box-sizing: border-box; -webkit-appearance: none; }
+                .input-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--primary); }
+                .input-with-icon input, .input-with-icon select { padding-left: 3rem; }
 
-                .slot-grid-v3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.5rem; }
-                .slot-pill-v3 { padding: 0.65rem 0.4rem; border-radius: 12px; border: 2px solid #e5e7eb; background: #fff; cursor: pointer; transition: 0.2s; text-align: center; min-height: 65px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-                .slot-pill-v3.active { border-color: #6366f1; background: #eef2ff; }
-                .slot-time { font-size: 0.85rem; font-weight: 900; color: #1e293b; }
-                .slot-range { font-size: 0.62rem; color: #64748b; font-weight: 600; margin-top: 0.1rem; }
-                .slot-session { font-size: 0.56rem; font-weight: 900; color: #6366f1; background: #e0e7ff; padding: 0.1rem 0.35rem; border-radius: 4px; margin-top: 0.25rem; display: inline-block; }
-                .no-slots-v3 { grid-column: 1 / -1; padding: 1.5rem; background: #fef2f2; color: #ef4444; border-radius: 14px; text-align: center; font-weight: 600; font-size: 0.875rem; }
+                .input-icon-wrap { position: relative; }
+                .input-icon-wrap svg { position: absolute; left: 1.1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); size: 18px; }
+                .input-icon-wrap input { padding-left: 3.2rem; }
 
-                .modal-footer-v3 { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem; }
-                .btn-outline-v3 { width: 100%; height: 50px; border-radius: 14px; border: 2px solid #f1f5f9; background: #fff; color: #64748b; font-weight: 800; cursor: pointer; }
+                /* Buttons */
+                .btn-primary-v3 {
+                    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+                    color: #fff; border: none; border-radius: var(--radius-md); 
+                    padding: 1rem 2rem; font-size: 1.1rem; font-weight: 700;
+                    display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+                    cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    box-shadow: 0 8px 25px rgba(99,102,241,0.3);
+                }
+                .btn-primary-v3:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(99,102,241,0.4); }
+                .btn-primary-v3:disabled { opacity: 0.6; cursor: not-allowed; }
 
-                .success-view { text-align: center; padding: 1.5rem 0; }
-                .success-icon-wrap { width: 64px; height: 64px; background: #f0fdf4; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; }
-                .success-view h2 { font-size: 1.35rem; font-weight: 900; color: #0f172a; margin-bottom: 0.75rem; }
-                .success-view p { color: #64748b; font-size: 0.9rem; line-height: 1.65; margin-bottom: 2rem; }
-                .btn-primary-v3.wide { width: 100%; max-width: 300px; margin: 0 auto; }
+                .btn-cancel {
+                    background: #fff; border: 2px solid var(--border-color); border-radius: var(--radius-md);
+                    padding: 1rem 2rem; font-size: 1.1rem; font-weight: 700; color: var(--text-muted);
+                    cursor: pointer; transition: 0.2s;
+                }
+                .btn-cancel:hover { background: var(--bg-page); color: var(--text-main); border-color: var(--text-muted); }
+
+                /* Top Back Nav */
+                .top-back-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+                .top-back-btn {
+                    display: flex; align-items: center; gap: 0.5rem; background: var(--primary-light);
+                    border: none; border-radius: 12px; padding: 0.65rem 1.25rem; font-weight: 700;
+                    color: var(--primary); cursor: pointer; transition: 0.3s;
+                }
+                .top-back-btn:hover { background: #e0e7ff; transform: translateX(-4px); }
+
+                /* Booking Step Specifics */
+                .p-banner { 
+                    background: linear-gradient(to right, var(--primary-light), #fff); 
+                    border-radius: var(--radius-md); padding: 1.5rem; 
+                    display: flex; justify-content: space-between; align-items: center;
+                    border: 1px solid var(--border-color); margin-bottom: 2.5rem;
+                }
+                .p-avatar-circle { 
+                    width: 50px; height: 50px; background: #fff; color: var(--primary); 
+                    border-radius: 15px; display: flex; align-items: center; 
+                    justify-content: center; box-shadow: var(--shadow-md); 
+                }
+                .p-name-premium { font-size: 1.2rem; font-weight: 800; color: var(--text-main); }
+                .p-id-premium { font-size: 0.9rem; font-weight: 600; color: var(--primary); }
+
+                .slot-grid-v3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.85rem; }
+                .slot-pill-v3 {
+                    padding: 1rem 0.5rem; border-radius: var(--radius-sm); border: 2px solid var(--border-color);
+                    background: #fff; cursor: pointer; transition: all 0.2s; text-align: center;
+                    display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
+                }
+                .slot-pill-v3:hover { border-color: var(--primary); transform: translateY(-2px); }
+                .slot-pill-v3.active { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 4px 12px rgba(99,102,241,0.15); }
+                .slot-time { font-size: 1rem; font-weight: 800; color: var(--text-main); }
+                .slot-session { font-size: 0.7rem; font-weight: 800; color: var(--primary); text-transform: uppercase; background: #fff; padding: 2px 8px; border-radius: 6px; }
+
+                /* Success View */
+                .success-view { text-align: center; padding: 2rem 0; }
+                .success-icon-wrap { 
+                    width: 80px; height: 80px; background: #dcfce7; color: var(--success); 
+                    border-radius: 24px; display: flex; align-items: center; 
+                    justify-content: center; margin: 0 auto 2rem;
+                    box-shadow: 0 10px 20px rgba(16,185,129,0.2);
+                }
+
+                /* Mobile Overrides */
+                @media (max-width: 640px) {
+                    .main-card-v3 { padding: 1.5rem; border-radius: var(--radius-md); }
+                    .form-grid { grid-template-columns: 1fr; }
+                    .col-1, .col-2, .col-3, .col-4, .col-6 { grid-column: span 1; }
+                    .stepper-v3 { flex-direction: column; align-items: flex-start; gap: 1rem; }
+                    .step-line { display: none; }
+                    .btn-cancel, .btn-primary-v3 { width: 100%; }
+                    .form-actions { flex-direction: column; }
+                }
 
                 .animate-spin { animation: spin 1s linear infinite; }
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-                /* Tablet (600px+) */
-/* Appointment Selection */
-                .appointment-selection-v3 { animation: fadeIn 0.4s ease-out; }
-                .selection-header { text-align: center; margin-bottom: 2rem; }
-                .selection-header .icon-header { color: #6366f1; margin-bottom: 1rem; }
-                .selection-header h2 { font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
-                .selection-header p { color: #64748b; font-weight: 500; }
-
-                .appointment-list { display: flex; flex-direction: column; gap: 1rem; }
-                .appt-select-card {
-                    display: flex; justify-content: space-between; align-items: center;
-                    padding: 1.25rem; background: #f8fafc; border: 2px solid #f1f5f9;
-                    border-radius: 16px; transition: 0.2s;
-                }
-                .appt-select-card:hover { border-color: #6366f1; background: #fff; box-shadow: 0 10px 25px rgba(99,102,241,0.05); }
-                
-                .appt-details { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
-                .appt-meta { display: flex; gap: 1rem; font-size: 0.85rem; font-weight: 700; color: #6366f1; }
-                .appt-meta span { display: flex; align-items: center; gap: 0.35rem; }
-                .appt-doctor { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #1e293b; }
-                .appt-reason { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: #64748b; font-style: italic; }
-
-                .btn-select-appt {
-                    display: flex; align-items: center; gap: 0.5rem;
-                    background: #6366f1; color: white; border: none;
-                    padding: 0.75rem 1.25rem; border-radius: 12px;
-                    font-weight: 700; font-size: 0.9rem; cursor: pointer;
-                    transition: 0.2s;
-                }
-                .btn-select-appt:hover { background: #4f46e5; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
-
-                .no-appointments-found { 
-                    text-align: center; padding: 3rem 1rem; background: #f8fafc; 
-                    border-radius: 20px; border: 2px dashed #e2e8f0;
-                }
-                .no-appointments-found h3 { margin: 1.5rem 0 0.5rem; color: #1e293b; }
-                .no-appointments-found p { color: #64748b; margin-bottom: 2rem; }
-
-                @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-                /* Mobile overrides for appt cards */
-                @media (max-width: 600px) {
-                    .appt-select-card { flex-direction: column; align-items: stretch; gap: 1.25rem; }
-                    .btn-select-appt { justify-content: center; }
-                }
-
-                @media (min-width: 600px) {
-                    .public-reg-container { padding: 2rem 1.25rem 3.5rem; }
-                    .page-header { margin-bottom: 2.25rem; }
-                    .logo-icon-wrap { width: 56px; height: 56px; border-radius: 18px; }
-                    .logo-section { gap: 1rem; }
-                    .brand-name { font-size: 1.65rem; }
-                    .brand-tagline { font-size: 0.85rem; }
-                    .main-card-v3 { padding: 2.5rem 2rem; border-radius: 28px; }
-                    .check-header { margin-bottom: 2.5rem; }
-                    .check-header h2 { font-size: 1.75rem; }
-                    .check-header p { font-size: 1rem; }
-                    .choice-card { padding: 1.5rem; gap: 1.25rem; border-radius: 20px; }
-                    .choice-icon { width: 50px; height: 50px; }
-                    .choice-content h3 { font-size: 1.15rem; }
-                    .choice-content p { font-size: 0.9rem; }
-                    .verify-input-wrap { flex-direction: row; }
-                    .btn-verify { width: auto; padding: 0 1.5rem; }
-                    .stepper-v3 { gap: 1rem; margin-bottom: 2.5rem; }
-                    .step-label { font-size: 0.85rem; }
-                    .step-line { width: 40px; }
-                    .step-badge { width: 32px; height: 32px; border-radius: 10px; }
-                    .form-grid { grid-template-columns: repeat(6, 1fr); gap: 1.25rem 1rem; }
-                    .col-1 { grid-column: span 1; }
-                    .col-2 { grid-column: span 2; }
-                    .col-3 { grid-column: span 3; }
-                    .col-4 { grid-column: span 4; }
-                    .col-6 { grid-column: span 6; }
-                    .form-actions { flex-direction: row; gap: 1.25rem; margin-top: 2.75rem; }
-                    .btn-cancel { width: auto; flex: 1; height: 58px; border-radius: 16px; }
-                    .btn-primary-v3 { width: auto; flex: 2; height: 58px; border-radius: 16px; font-size: 1.05rem; }
-                    .form-grid-v3 { grid-template-columns: 1fr 1fr; gap: 1.75rem; }
-                    .modal-footer-v3 { flex-direction: row; gap: 1.25rem; margin-top: 2.25rem; }
-                    .btn-outline-v3 { width: auto; flex: 1; height: 54px; }
-                    .slot-grid-v3 { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.65rem; }
-                    .slot-pill-v3 { min-height: 72px; padding: 0.75rem 0.5rem; border-radius: 14px; }
-                    .slot-time { font-size: 0.9rem; }
-                }
-
-                /* Desktop (900px+) */
-                @media (min-width: 900px) {
-                    .public-reg-container { padding: 3rem 1.5rem 4rem; }
-                    .page-header { margin-bottom: 3.5rem; }
-                    .logo-icon-wrap { width: 68px; height: 68px; border-radius: 22px; }
-                    .logo-section { gap: 1.5rem; }
-                    .brand-name { font-size: 2.1rem; }
-                    .brand-tagline { font-size: 1rem; }
-                    .main-card-v3 { padding: 3.5rem; border-radius: 36px; }
-                    .check-header { margin-bottom: 3rem; }
-                    .check-header h2 { font-size: 2rem; }
-                    .check-header p { font-size: 1.1rem; }
-                    .choice-card { padding: 2rem; gap: 1.5rem; border-radius: 22px; }
-                    .choice-icon { width: 56px; height: 56px; }
-                    .choice-content h3 { font-size: 1.25rem; }
-                    .stepper-v3 { gap: 1.5rem; margin-bottom: 3.5rem; }
-                    .step-label { font-size: 1rem; }
-                    .step-line { width: 60px; }
-                    .step-badge { width: 36px; height: 36px; border-radius: 12px; }
-                    .form-section { margin-bottom: 3rem; }
-                    .section-header { margin-bottom: 1.75rem; }
-                    .form-grid { gap: 1.5rem 1.25rem; }
-                    .form-actions { margin-top: 4rem; }
-                    .btn-cancel { height: 60px; }
-                    .btn-primary-v3 { height: 60px; font-size: 1.1rem; }
-                    .modal-footer-v3 { margin-top: 3rem; }
-                    .btn-outline-v3 { height: 56px; }
-                    .slot-grid-v3 { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
-                }
-`}</style>
+            `}</style>
         </div>
     );
 };
