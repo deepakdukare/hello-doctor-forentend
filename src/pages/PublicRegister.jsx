@@ -6,7 +6,7 @@ import {
     Check, RefreshCw, Activity, Clipboard, Edit2, Plus,
     ArrowRight, Map, ShieldCheck, ArrowLeft
 } from 'lucide-react';
-import { registerFromForm, bookByForm, getAvailableSlots, getDoctors, getPatientByWa, toIsoDate } from '../api/index';
+import { registerFromForm, bookByForm, getAvailableSlots, getDoctors, getPatientByWa, getAppointmentsByWaId, updateAppointment } from '../api/index';
 
 const SALUTATIONS = ['Master', 'Miss', 'Baby', 'Baby of', 'Mr.', 'Ms.'];
 const GENDERS = ['Male', 'Female', 'Other'];
@@ -44,6 +44,11 @@ const PublicRegister = () => {
     const [verifyError, setVerifyError] = useState(null); // inline error for existing patient check
     const [doctors, setDoctors] = useState([]);
     const [searchWaId, setSearchWaId] = useState('');
+    const [rescheduleWaId, setRescheduleWaId] = useState('');
+    const [rescheduleError, setRescheduleError] = useState(null);
+    const [waIdValidation, setWaIdValidation] = useState({ loading: false, error: null });
+    const [patientAppointments, setPatientAppointments] = useState([]);
+    const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
 
     // Step 1: Detailed Patient Data (Consolidated from Screenshot)
     const [patientForm, setPatientForm] = useState({
@@ -83,7 +88,7 @@ const PublicRegister = () => {
     const [bookingForm, setBookingForm] = useState({
         wa_id: '',
         doctor_name: 'Dr. Indu',
-        appointment_date: toIsoDate(),
+        appointment_date: new Date().toISOString().split('T')[0],
         slot_id: '',
         doctor_speciality: 'Pediatrics',
         visit_type: 'CONSULTATION',
@@ -131,35 +136,106 @@ const PublicRegister = () => {
         }
     }, [step, bookingForm.appointment_date, bookingForm.doctor_name, fetchSlots]);
 
-    const checkMember = async (e) => {
+    const checkMember = async (e, type = 'lookup') => {
         if (e) e.preventDefault();
-        if (!searchWaId) {
-            setVerifyError("Please enter your registered mobile number.");
+        const rawId = type === 'lookup' ? searchWaId : rescheduleWaId;
+        const targetId = rawId.trim();
+        const setErrorFn = type === 'lookup' ? setVerifyError : setRescheduleError;
+
+        if (!targetId || targetId.length < 10) {
+            setErrorFn("Please enter a valid 10-digit mobile number.");
             return;
         }
         setLoading(true);
-        setVerifyError(null);
+        setErrorFn(null);
         setError(null);
+
         try {
-            const res = await getPatientByWa(searchWaId);
-            const patientData = res.data.data;
-            if (patientData) {
+            if (type === 'reschedule') {
+                let patientData = null;
+                let appointments = [];
+
+                try {
+                    const patientRes = await getPatientByWa(targetId);
+                    patientData = patientRes.data.data;
+                } catch (pErr) {
+                    if (pErr.response?.status === 404) {
+                        setErrorFn("No patient record found with this number. Please register first.");
+                        setLoading(false);
+                        return;
+                    }
+                    throw pErr;
+                }
+
+                if (!patientData) {
+                    setErrorFn("No patient record found with this number.");
+                    setLoading(false);
+                    return;
+                }
+
+                try {
+                    const apptsRes = await getAppointmentsByWaId(targetId);
+                    appointments = apptsRes.data.data || [];
+                } catch (aErr) {
+                    // If no appointments found, we just show empty list step
+                    if (aErr.response?.status !== 404) throw aErr;
+                }
+
                 setRegisteredPatient(patientData);
                 setIsNewPatient(false);
-                setBookingForm(prev => ({
-                    ...prev,
-                    wa_id: patientData.wa_id,
-                    doctor_name: patientData.preferred_doctor || prev.doctor_name
-                }));
-                setStep(2);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setPatientAppointments(appointments.filter(a => a.status === 'PENDING' || a.status === 'CONFIRMED'));
+                setStep(4);
             } else {
-                setVerifyError("No record found with this number. Please register as a new patient.");
+                try {
+                    const res = await getPatientByWa(targetId);
+                    const patientData = res.data.data;
+                    if (patientData) {
+                        setRegisteredPatient(patientData);
+                        setIsNewPatient(false);
+                        setBookingForm(prev => ({
+                            ...prev,
+                            wa_id: patientData.wa_id,
+                            doctor_name: patientData.preferred_doctor || prev.doctor_name
+                        }));
+                        setStep(2);
+                    } else {
+                        setErrorFn("No record found with this number.");
+                    }
+                } catch (pErr) {
+                    if (pErr.response?.status === 404) {
+                        setErrorFn("No record found with this number. Please register as a new patient.");
+                    } else {
+                        throw pErr;
+                    }
+                }
             }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
-            setVerifyError("We couldn't find a record for this number. If you're new, please choose 'Not Yet Registered'.");
+            console.error("Lookup Error:", err);
+            setErrorFn(err.response?.data?.message || "Server error. Please try again later.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleWaIdCheck = async (val) => {
+        if (!val || val.length < 10) {
+            setWaIdValidation({ loading: false, error: null });
+            return;
+        }
+        setWaIdValidation({ loading: true, error: null });
+        try {
+            const res = await getPatientByWa(val);
+            if (res.data.data) {
+                setWaIdValidation({
+                    loading: false,
+                    error: "This number is already registered. If this is you, please go back and use 'Already Registered'."
+                });
+            } else {
+                setWaIdValidation({ loading: false, error: null });
+            }
+        } catch (err) {
+            setWaIdValidation({ loading: false, error: null });
         }
     };
 
@@ -219,7 +295,11 @@ const PublicRegister = () => {
         setLoading(true);
         setError(null);
         try {
-            await bookByForm(bookingForm);
+            if (bookingForm.reschedule_from) {
+                await updateAppointment(bookingForm.reschedule_from, bookingForm);
+            } else {
+                await bookByForm(bookingForm);
+            }
             setStep(3);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
@@ -249,23 +329,10 @@ const PublicRegister = () => {
     );
 
     return (
-        <div className="public-reg-container">
-            <div className="gradient-bg" />
-
-            <div className="content-wrapper">
-                <header className="page-header">
-                    <div className="logo-section">
-                        <div className="logo-icon-wrap">
-                            <img src="/logo.jpg" alt="Logo" style={{ width: '100%', height: '100%', borderRadius: '18px', objectFit: 'cover' }} />
-                        </div>
-                        <div>
-                            <h1 className="brand-name">Dr. Indu Child Care</h1>
-                            <p className="brand-tagline">Premium Pediatric Services</p>
-                        </div>
-                    </div>
-                </header>
-
-                <div className="main-card-v3">
+        <div className="auth-container">
+            {/* Right Section: Form Content */}
+            <div className="auth-form-container" style={{ padding: '2rem 1.5rem', overflowY: 'auto' }}>
+                <div className="main-card-v3" style={{ width: '100%', maxWidth: '800px', margin: 'auto' }}>
                     {step === 0 && (
                         <div className="member-check-v3">
                             <div className="check-header">
@@ -281,8 +348,9 @@ const PublicRegister = () => {
                                         <Plus size={24} />
                                     </div>
                                     <div className="choice-content">
-                                        <h3>Not Yet Registered</h3>
+                                        <h3>New Registration</h3>
                                         <p>First time visiting our clinic? Register your details and book an appointment.</p>
+
                                     </div>
                                     <ArrowRight size={20} className="arrow" />
                                 </div>
@@ -293,7 +361,7 @@ const PublicRegister = () => {
                                         <Users size={24} />
                                     </div>
                                     <div className="choice-content">
-                                        <h3>Already Registered</h3>
+                                        <h3>Book Appointment</h3>
                                         <p>Have a patient record? Enter your registered mobile number to book instantly.</p>
 
                                         <div className="verify-input-wrap" onClick={e => e.stopPropagation()}>
@@ -311,7 +379,7 @@ const PublicRegister = () => {
                                                 onClick={checkMember}
                                                 disabled={loading || !searchWaId}
                                             >
-                                                {loading ? <RefreshCw className="animate-spin" size={16} /> : 'Verify & Book'}
+                                                {loading ? <RefreshCw className="animate-spin" size={16} /> : 'Book Appointment'}
                                             </button>
                                         </div>
                                         {verifyError && (
@@ -321,6 +389,42 @@ const PublicRegister = () => {
                                             </div>
                                         )}
                                     </div>
+                                </div>
+
+                                {/* RESCHEDULE APPOINTMENT */}
+                                <div className="choice-card reschedule" style={{ cursor: 'default' }}>
+                                    <div className="choice-icon reschedule">
+                                        <RefreshCw size={24} />
+                                    </div>
+                                    <div className="choice-content">
+                                        <h3>Reschedule Appointment</h3>
+                                        <p>Already have an appointment and need to change the time? Use your mobile to reschedule.</p>
+                                        <div className="verify-input-wrap" onClick={e => e.stopPropagation()}>
+                                            <div className="input-with-icon">
+                                                <Smartphone size={16} className="input-icon" />
+                                                <input
+                                                    placeholder="Enter mobile number"
+                                                    value={rescheduleWaId}
+                                                    onChange={e => { setRescheduleWaId(e.target.value.replace(/\D/g, '')); setRescheduleError(null); }}
+                                                    onKeyDown={e => e.key === 'Enter' && checkMember(e, 'reschedule')}
+                                                />
+                                            </div>
+                                            <button
+                                                className="btn-verify btn-reschedule"
+                                                onClick={(e) => checkMember(e, 'reschedule')}
+                                                disabled={loading || !rescheduleWaId}
+                                            >
+                                                {loading ? <RefreshCw className="animate-spin" size={16} /> : 'Reschedule Now'}
+                                            </button>
+                                        </div>
+                                        {rescheduleError && (
+                                            <div className="inline-verify-error">
+                                                <AlertCircle size={14} />
+                                                <span>{rescheduleError}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <ArrowRight size={20} className="arrow" />
                                 </div>
                             </div>
                         </div>
@@ -496,8 +600,19 @@ const PublicRegister = () => {
                                         <label>WhatsApp ID / Mobile *</label>
                                         <div className="input-icon-wrap">
                                             <Smartphone size={16} />
-                                            <input required placeholder="9876543210" value={patientForm.wa_id} onChange={e => setPatientForm({ ...patientForm, wa_id: e.target.value.replace(/\D/g, '') })} />
+                                            <input
+                                                required
+                                                placeholder="9876543210"
+                                                value={patientForm.wa_id}
+                                                onChange={e => {
+                                                    const val = e.target.value.replace(/\D/g, '');
+                                                    setPatientForm({ ...patientForm, wa_id: val });
+                                                    handleWaIdCheck(val);
+                                                }}
+                                            />
                                         </div>
+                                        {waIdValidation.loading && <div className="field-hint" style={{ color: '#6366f1' }}>Checking registration...</div>}
+                                        {waIdValidation.error && <div className="field-hint" style={{ color: '#ef4444', fontWeight: '600' }}>{waIdValidation.error}</div>}
                                     </div>
                                     <div className="field-group col-3">
                                         <label>Comm. Preference</label>
@@ -533,9 +648,9 @@ const PublicRegister = () => {
 
                             <div className="form-actions">
                                 <button type="button" className="btn-cancel" onClick={() => setStep(0)}>Go Back</button>
-                                <button type="submit" disabled={loading} className="btn-primary-v3">
+                                <button type="submit" disabled={loading || !!waIdValidation.error} className="btn-primary-v3">
                                     {loading ? <RefreshCw className="animate-spin" /> : <ShieldCheck size={20} />}
-                                    Authorize Activation
+                                    Save
                                 </button>
                             </div>
                         </form>
@@ -654,10 +769,74 @@ const PublicRegister = () => {
                                 </button>
                                 <button type="submit" className="btn-primary-v3" style={{ flex: 2, padding: '1rem' }} disabled={loading}>
                                     {loading ? <RefreshCw size={20} className="animate-spin" /> : <CheckCircle size={20} />}
-                                    <span>Confirm Authorization</span>
+                                    <span>Save</span>
                                 </button>
                             </div>
                         </form>
+                    )}
+
+                    {step === 4 && (
+                        <div className="appointment-selection-v3">
+                            <div className="selection-header">
+                                <Calendar size={32} className="icon-header" />
+                                <h2>Select Appointment to Reschedule</h2>
+                                <p>We found {patientAppointments.length} upcoming appointments for {registeredPatient?.child_name || 'you'}.</p>
+                            </div>
+
+                            <div className="appointment-list">
+                                {patientAppointments.map(appt => (
+                                    <div key={appt._id} className="appt-select-card">
+                                        <div className="appt-details">
+                                            <div className="appt-meta">
+                                                <span className="appt-date">
+                                                    <Calendar size={14} /> {appt.appointment_date}
+                                                </span>
+                                                <span className="appt-time">
+                                                    <Clock size={14} /> {formatTime12h(appt.slot_id?.start_time || appt.start_time)}
+                                                </span>
+                                            </div>
+                                            <div className="appt-doctor">
+                                                <Stethoscope size={16} />
+                                                <span>{appt.doctor_name}</span>
+                                            </div>
+                                            {appt.reason && (
+                                                <div className="appt-reason">
+                                                    <FileText size={14} />
+                                                    <span>{appt.reason}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button
+                                            className="btn-select-appt"
+                                            onClick={() => {
+                                                setSelectedAppointmentId(appt._id);
+                                                setBookingForm(prev => ({
+                                                    ...prev,
+                                                    wa_id: appt.wa_id,
+                                                    doctor_name: appt.doctor_name,
+                                                    visit_type: appt.visit_type || 'CONSULTATION',
+                                                    reason: appt.reason || '',
+                                                    reschedule_from: appt._id // Carry forward the ID to let backend know it's a reschedule
+                                                }));
+                                                setStep(2);
+                                            }}
+                                        >
+                                            <Edit2 size={16} />
+                                            <span>Reschedule</span>
+                                        </button>
+                                    </div>
+                                ))}
+
+                                {patientAppointments.length === 0 && (
+                                    <div className="no-appointments-found">
+                                        <AlertCircle size={48} />
+                                        <h3>No upcoming appointments found</h3>
+                                        <p>You don't have any pending appointments to reschedule. Would you like to book a new one?</p>
+                                        <button className="btn-primary-v3" onClick={() => setStep(0)}>Back to Home</button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     )}
 
                     {step === 3 && (
@@ -766,6 +945,10 @@ const PublicRegister = () => {
                 .choice-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
                 .choice-icon.new { background: #e0e7ff; color: #4338ca; }
                 .choice-icon.existing { background: #fef2f2; color: #ef4444; }
+                .choice-icon.reschedule { background: #f0fdf4; color: #10b981; }
+                .choice-card.reschedule:hover { border-color: #10b981; box-shadow: 0 10px 25px rgba(16,185,129,0.1); }
+                .btn-reschedule { background: #10b981 !important; }
+                .btn-reschedule:hover { background: #059669 !important; }
                 .choice-content { flex: 1; min-width: 0; }
                 .choice-content h3 { font-size: 1rem; font-weight: 800; color: #1e293b; margin-bottom: 0.2rem; }
                 .choice-content p { font-size: 0.82rem; color: #64748b; font-weight: 500; line-height: 1.45; margin: 0; }
@@ -876,6 +1059,51 @@ const PublicRegister = () => {
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
                 /* Tablet (600px+) */
+/* Appointment Selection */
+                .appointment-selection-v3 { animation: fadeIn 0.4s ease-out; }
+                .selection-header { text-align: center; margin-bottom: 2rem; }
+                .selection-header .icon-header { color: #6366f1; margin-bottom: 1rem; }
+                .selection-header h2 { font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem; }
+                .selection-header p { color: #64748b; font-weight: 500; }
+
+                .appointment-list { display: flex; flex-direction: column; gap: 1rem; }
+                .appt-select-card {
+                    display: flex; justify-content: space-between; align-items: center;
+                    padding: 1.25rem; background: #f8fafc; border: 2px solid #f1f5f9;
+                    border-radius: 16px; transition: 0.2s;
+                }
+                .appt-select-card:hover { border-color: #6366f1; background: #fff; box-shadow: 0 10px 25px rgba(99,102,241,0.05); }
+                
+                .appt-details { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+                .appt-meta { display: flex; gap: 1rem; font-size: 0.85rem; font-weight: 700; color: #6366f1; }
+                .appt-meta span { display: flex; align-items: center; gap: 0.35rem; }
+                .appt-doctor { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #1e293b; }
+                .appt-reason { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: #64748b; font-style: italic; }
+
+                .btn-select-appt {
+                    display: flex; align-items: center; gap: 0.5rem;
+                    background: #6366f1; color: white; border: none;
+                    padding: 0.75rem 1.25rem; border-radius: 12px;
+                    font-weight: 700; font-size: 0.9rem; cursor: pointer;
+                    transition: 0.2s;
+                }
+                .btn-select-appt:hover { background: #4f46e5; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+
+                .no-appointments-found { 
+                    text-align: center; padding: 3rem 1rem; background: #f8fafc; 
+                    border-radius: 20px; border: 2px dashed #e2e8f0;
+                }
+                .no-appointments-found h3 { margin: 1.5rem 0 0.5rem; color: #1e293b; }
+                .no-appointments-found p { color: #64748b; margin-bottom: 2rem; }
+
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+                /* Mobile overrides for appt cards */
+                @media (max-width: 600px) {
+                    .appt-select-card { flex-direction: column; align-items: stretch; gap: 1.25rem; }
+                    .btn-select-appt { justify-content: center; }
+                }
+
                 @media (min-width: 600px) {
                     .public-reg-container { padding: 2rem 1.25rem 3.5rem; }
                     .page-header { margin-bottom: 2.25rem; }
