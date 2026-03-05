@@ -7,6 +7,7 @@ import {
     ArrowRight, Map, ShieldCheck, ArrowLeft
 } from 'lucide-react';
 import { registerFromForm, bookByForm, getAvailableSlots, getDoctors, getPatientByWa, getAppointmentsByWaId, updateAppointment } from '../api/index';
+import { removeSalutation } from '../utils/formatters';
 
 const SALUTATIONS = ['Master', 'Miss', 'Baby', 'Baby of', 'Mr.', 'Ms.'];
 const GENDERS = ['Male', 'Female', 'Other'];
@@ -780,7 +781,7 @@ const PublicRegister = () => {
                             <div className="selection-header">
                                 <Calendar size={32} className="icon-header" />
                                 <h2>Select Appointment to Reschedule</h2>
-                                <p>We found {patientAppointments.length} upcoming appointments for {registeredPatient?.child_name || 'you'}.</p>
+                                <p>We found {patientAppointments.length} upcoming appointments for {removeSalutation(registeredPatient?.child_name) || 'you'}.</p>
                             </div>
 
                             <div className="appointment-list">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Monitor, RefreshCw, User, Users, Clock, Hash, ArrowRight, Activity, Zap } from 'lucide-react';
 import { getClinicDisplayData, toIsoDate } from '../api/index';
+import { removeSalutation } from '../utils/formatters';
 
 const ClinicDisplay = () => {
     const [displayData, setDisplayData] = useState([]);
@@ -75,7 +76,7 @@ const ClinicDisplay = () => {
                                 )}
                             </div>
                             <div className="patient-name-v2">
-                                {doctor.now_serving_patient || 'Waiting for next patient'}
+                                {removeSalutation(doctor.now_serving_patient) || 'Waiting for next patient'}
                             </div>
                         </div>
 

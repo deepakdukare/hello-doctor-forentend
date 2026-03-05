@@ -9,6 +9,7 @@ import {
 import StatCard from '../components/StatCard';
 import PatientForm, { EMPTY_FORM } from '../components/PatientForm';
 import { getPatients, registerPatient, updatePatient, getDoctors, uploadPatientPhoto, toIsoDate } from '../api/index';
+import { removeSalutation } from '../utils/formatters';
 
 
 const Patients = () => {
@@ -379,7 +380,7 @@ const Patients = () => {
                                                             {p.first_name?.charAt(0) || 'P'}
                                                         </div>
                                                         <div className="patient-name-stack">
-                                                            <div className="name-bold-v2">{p.full_name}</div>
+                                                            <div className="name-bold-v2">{removeSalutation(p.full_name)}</div>
                                                             <div className="id-tag-premium">
                                                                 <span className="id-label">{p.patient_id}</span>
                                                                 <span className="dot">•</span>
@@ -453,7 +454,7 @@ const Patients = () => {
                                                                     <div style={{ flex: 1 }}>
                                                                         <div className="exp-card-header"><Activity size={18} /> <span>Medical Profile</span></div>
                                                                         <div className="exp-info-list">
-                                                                            <div className="exp-info-item"><span>Full Name</span><strong>{p.full_name}</strong></div>
+                                                                            <div className="exp-info-item"><span>Full Name</span><strong>{removeSalutation(p.full_name)}</strong></div>
                                                                             <div className="exp-info-item"><span>Status</span><strong>{p.is_active ? 'Active' : 'Inactive'}</strong></div>
                                                                             <div className="exp-info-item"><span>Birth Date</span><strong>{p.dob ? new Date(p.dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Unknown'}</strong></div>
                                                                             <div className="exp-info-item"><span>Registry ID</span><strong>{p.patient_id}</strong></div>

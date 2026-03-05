@@ -39,6 +39,7 @@ import Reports from './pages/Reports';
 import Notifications from './pages/Notifications';
 import ClinicDisplay from './pages/ClinicDisplay';
 import { hasPermission } from './utils/auth';
+import { removeSalutation } from './utils/formatters';
 
 const MobileNav = () => {
     const location = useLocation();
@@ -70,7 +71,7 @@ const MobileNav = () => {
 const Sidebar = ({ onLogout, isCollapsed }) => {
     const location = useLocation();
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const displayName = user.full_name || user.username || 'Admin';
+    const displayName = removeSalutation(user.full_name || user.username || 'Admin');
     const initial = displayName.charAt(0).toUpperCase();
 
     const allNavItems = [

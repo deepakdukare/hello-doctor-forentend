@@ -31,6 +31,7 @@ import {
     bookAppointmentWithToken,
     toIsoDate
 } from '../api/index';
+import { removeSalutation } from '../utils/formatters';
 
 const getDoctorDisplayName = (doctor) => doctor?.full_name || doctor?.name || doctor?.doctor_name || doctor?.doctor_id || 'Unknown Doctor';
 
@@ -563,7 +564,7 @@ const Appointments = () => {
                                             <div key={p.patient_id} className="patient-result-card" onClick={() => selectPatient(p)}>
                                                 <div className="p-avatar-mini">{p.child_name?.charAt(0)}</div>
                                                 <div className="p-details-mini">
-                                                    <div className="p-name-bold">{p.child_name}</div>
+                                                    <div className="p-name-bold">{removeSalutation(p.child_name)}</div>
                                                     <div className="p-id-sub">{p.patient_id} • {p.parent_mobile}</div>
                                                 </div>
                                                 <ArrowRight size={18} className="p-arrow" />
@@ -606,7 +607,7 @@ const Appointments = () => {
                                                     <User size={24} />
                                                 </div>
                                                 <div>
-                                                    <div className="p-name-premium">{selectedPatient?.child_name}</div>
+                                                    <div className="p-name-premium">{removeSalutation(selectedPatient?.child_name)}</div>
                                                     <div className="p-id-premium">Patient ID: {selectedPatient?.patient_id}</div>
                                                 </div>
                                             </div>

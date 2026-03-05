@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Download, Printer, Lock, Paperclip, Plus, X, FileText, RefreshCw, Activity, User, Calendar, Shield, ArrowRight, Clock, Eye } from 'lucide-react';
+import { removeSalutation } from '../utils/formatters';
 import { getMRDByPatientId, addMRDEntry, exportMRD, getPatients, getDoctors, getEntryByAppointment, toIsoDate } from '../api/index';
 
 const EMPTY_ENTRY = {
@@ -29,7 +30,7 @@ const age = (dob) => {
 
 const pname = (p) => {
     if (!p) return '';
-    return [p.salutation, p.first_name || p.name, p.last_name].filter(Boolean).join(' ');
+    return [p.first_name || p.name, p.last_name].filter(Boolean).join(' ');
 };
 
 const fmt = (ds, opts = { day: '2-digit', month: 'short', year: 'numeric' }) => {
@@ -321,7 +322,7 @@ const MRD = () => {
                                     }}>
                                         <div className="dot"></div>
                                         <div className="wi-content">
-                                            <div className="wi-name">{a.child_name || 'Unknown Patient'}</div>
+                                            <div className="wi-name">{removeSalutation(a.child_name) || 'Unknown Patient'}</div>
                                             <div className="wi-meta">{fmt(a.appointment_date)} • {a.appointment_id}</div>
                                         </div>
                                     </div>

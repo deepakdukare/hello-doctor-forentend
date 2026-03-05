@@ -1,5 +1,6 @@
 import React from 'react';
 import { Camera, Clipboard, Edit2, MapPin, X, Zap } from 'lucide-react';
+import { removeSalutation } from '../utils/formatters';
 import PatientExpansion from './PatientExpansion';
 
 const PatientRow = ({
@@ -21,7 +22,7 @@ const PatientRow = ({
                             {p.first_name?.charAt(0) || 'P'}
                         </div>
                         <div className="patient-name-stack">
-                            <div className="name-bold-v2">{p.full_name}</div>
+                            <div className="name-bold-v2">{removeSalutation(p.full_name)}</div>
                             <div className="id-tag-premium">
                                 <span className="id-label">{p.patient_id}</span>
                                 <span className="dot">•</span>

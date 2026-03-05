@@ -18,6 +18,7 @@ import {
     Zap
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { removeSalutation } from '../utils/formatters';
 import {
     getSystemHealth,
     getAppointmentsByDate,
@@ -249,7 +250,7 @@ const Dashboard = () => {
                                                     <div className="time-pill">{appt.slot_label || 'TBD'}</div>
                                                 </td>
                                                 <td>
-                                                    <div className="patient-name-premium">{appt.child_name || 'Walk-in'}</div>
+                                                    <div className="patient-name-premium">{removeSalutation(appt.child_name) || 'Walk-in'}</div>
                                                     <div className="patient-id-premium">{appt.patient_id || 'TEMP-ID'}</div>
                                                 </td>
                                                 <td>

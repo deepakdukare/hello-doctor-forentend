@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle2, Clock3, Edit2, Phone, Trash2, XCircle } from 'lucide-react';
+import { removeSalutation } from '../utils/formatters';
 
 const STATUS_CONFIG = {
     CONFIRMED: { label: 'CONFIRMED', color: '#10b981', bg: '#d1fae5', icon: CheckCircle2 },
@@ -56,7 +57,7 @@ const AppointmentRow = ({ appt, onEdit, onCancel }) => {
         <tr className="row-hover-v3">
             <td>
                 <div className="patient-link-v3">
-                    <div className="p-name-v3">{appt?.child_name || 'Walk-in Patient'}</div>
+                    <div className="p-name-v3">{removeSalutation(appt?.child_name) || 'Walk-in Patient'}</div>
                     <div className="p-meta-v3">
                         <span>{appt?.patient_id || '--'}</span>
                         <span className="dot-v3">&bull;</span>
