@@ -589,11 +589,21 @@ const PatientForm = ({
                 }
 
                 @media (max-width: 768px) {
-                    .enrollment-body-v4 { padding: 2rem; }
+                    .enrollment-body-v4 { padding: 1.25rem; }
                     .grid-layout-v4 { grid-template-columns: 1fr; }
                     .col-span-2, .col-span-full { grid-column: span 1; }
-                    .enrollment-footer-v4 { flex-direction: column-reverse; padding: 2rem; }
-                    .btn-cancel-v4, .btn-save-v4 { width: 100%; justify-content: center; }
+                    .enrollment-footer-v4 { flex-direction: column-reverse; padding: 1.5rem; gap: 1rem; }
+                    .btn-cancel-v4, .btn-save-v4 { width: 100%; justify-content: center; height: 50px; }
+                    .section-header-v4 { margin-bottom: 1.5rem; }
+                    .section-title-box h3 { font-size: 1.15rem; }
+                }
+
+                @media (max-width: 480px) {
+                    .enrollment-body-v4 { padding: 1rem; }
+                    .enrollment-section-v4 { padding: 1.25rem; border-radius: 16px; margin-bottom: 1.5rem; }
+                    .f-group-v4 label { font-size: 0.8rem; }
+                    .input-v4, .select-v4 { height: 46px; font-size: 0.9rem; }
+                    .btn-save-v4 { font-size: 0.95rem; }
                 }
             `}</style>
         </form>
