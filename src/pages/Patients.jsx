@@ -1032,232 +1032,61 @@ const Patients = () => {
                 .pag-total { margin-left: 0.5rem; font-size: 0.8rem; opacity: 0.7; }
 
                 .inline-form-premium {
-                    background: #fff;
-                    border-radius: 32px;
-                    border: 1px solid #e8ecf4;
-                    box-shadow: 0 8px 40px rgba(99, 102, 241, 0.08);
-                    overflow: hidden;
-                    margin-bottom: 2.5rem;
+                    margin-bottom: 3.5rem;
+                    animation: slideDownEffect 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
                 }
 
-                .pagination-v2-premium {
-                    padding: 2rem 2.5rem;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    background: #fdfdff;
-                    border-top: 1px solid #f1f5f9;
+                @keyframes slideDownEffect {
+                    from { opacity: 0; transform: translateY(-30px) scale(0.98); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
                 }
-
-                .modal-header-premium-v2 {
-                    color: #fff;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    position: relative;
-                }
-
-                .modal-header-premium-v2::after {
-                    content: '';
-                    position: absolute;
-                    inset: 0;
-                    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-                }
-
-                .modal-title-group { display: flex; align-items: center; gap: 2rem; position: relative; z-index: 1; }
-                .modal-icon-wrap-v2 {
-                    width: 52px;
-                    height: 52px;
-                    background: rgba(255,255,255,0.15);
-                    border: 1px solid rgba(255,255,255,0.2);
-                    border-radius: 24px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    backdrop-filter: blur(8px);
-                    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-                }
-
-                .modal-title-group h2 { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.02em; margin: 0; }
-                .modal-title-group p { font-size: 0.9rem; opacity: 0.8; margin-top: 0.25rem; font-weight: 600; }
-
-
-                /* Form Inline Close Button (light bg context) */
-                .modal-close-v3 {
-                    background: #f1f5f9;
-                    border: none;
-                    color: #64748b;
-                    padding: 0.75rem;
-                    border-radius: 50%;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-
-                .modal-close-v3:hover { background: #fee2e2; color: #ef4444; }
-
-                    border-radius: 50%;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .modal-close-v3:hover { background: #ef4444; }
-
-                .modal-form-premium {
-                    display: flex;
-                    flex-direction: column;
-                    flex: 1;
-                    overflow: hidden;
-                }
-
-                .form-scroll-area { 
-                    padding: 2rem 2.5rem; 
-                    overflow-y: auto; 
-                    flex: 1; 
-                }
-
-                .form-grid-v2 { display: grid; gap: 1.5rem; }
-
-                .form-section-header {
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    color: #1e293b;
-                    font-weight: 900;
-                    font-size: 1.1rem;
-                    padding: 1rem 0;
-                    border-bottom: 2px solid #f1f5f9;
-                    margin-top: 1rem;
-                }
-
-                .section-number {
-                    width: 32px;
-                    height: 32px;
-                    background: #6366f1;
-                    color: #fff;
-                    border-radius: 10px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 0.9rem;
-                    font-weight: 900;
-                    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
-                }
-
-                .form-row-multi { display: flex; gap: 1rem; }
-                .form-group-v2 { display: flex; flex-direction: column; gap: 0.6rem; flex: 1; }
-
-                .form-group-v2 label { 
-                    font-size: 0.9rem; 
-                    font-weight: 800; 
-                    color: #475569; 
-                    padding-left: 0.25rem;
-                }
-
-                .input-v3 {
-                    height: 54px;
-                    background: #f8fafc;
-                    border: 2px solid #f1f5f9;
-                    border-radius: 16px;
-                    padding: 0 1.25rem;
-                    font-size: 1rem;
-                    font-weight: 600;
-                    outline: none;
-                    transition: all 0.2s;
-                    color: #0f172a;
-                }
-
-                .input-v3:focus { border-color: #6366f1; background: #fff; box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.08); }
-
-                .input-v3-icon {
-                    flex: 1;
-                    height: 54px;
-                    border: none;
-                    background: transparent;
-                    padding: 0 1.25rem;
-                    font-size: 1rem;
-                    font-weight: 600;
-                    outline: none;
-                    color: #0f172a;
-                }
-
-                .input-with-icon-v3 {
-                    display: flex;
-                    align-items: center;
-                    padding-left: 1.25rem;
-                    background: #f8fafc;
-                    border: 2px solid #f1f5f9;
-                    border-radius: 16px;
-                    transition: all 0.2s;
-                    color: #94a3b8;
-                }
-
-                .input-with-icon-v3:focus-within {
-                    border-color: #6366f1;
-                    background: #fff;
-                    color: #6366f1;
-                }
-
-                .checkbox-inline-v3 { justify-content: flex-end; padding-bottom: 0.5rem; }
-                .toggle-wrapper-v3 { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
-                .toggle-label-v3 { font-size: 0.85rem; font-weight: 700; color: #64748b; }
-
-                .modal-footer-premium {
-                    padding: 1.5rem 2.5rem;
-                    background: #fdfdff;
-                    border-top: 2px solid #f8fafc;
-                    display: flex;
-                    justify-content: flex-end;
-                    gap: 1.5rem;
-                }
-
-                .btn-cancel-v3 {
-                    height: 60px;
-                    padding: 0 2rem;
-                    border-radius: 20px;
-                    background: #f1f5f9;
-                    border: none;
-                    color: #64748b;
-                    font-weight: 800;
-                    cursor: pointer;
-                    font-size: 1.1rem;
-                }
-
-                .btn-save-v3 {
-                    height: 60px;
-                    padding: 0 3rem;
-                    border-radius: 20px;
-                    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
-                    border: none;
-                    color: #fff;
-                    font-weight: 800;
-                    cursor: pointer;
-                    font-size: 1.1rem;
-                    box-shadow: 0 15px 25px -5px rgba(99, 102, 241, 0.4);
-                    transition: all 0.2s;
-                }
-
-                .btn-save-v3:hover { transform: translateY(-3px); box-shadow: 0 20px 40px -5px rgba(99, 102, 241, 0.5); }
 
                 .alert-premium {
                     padding: 1.5rem 2rem;
                     border-radius: 24px;
                     display: flex;
                     align-items: center;
-                    gap: 1rem;
+                    gap: 1.25rem;
                     margin-bottom: 2.5rem;
-                    font-weight: 700;
+                    font-weight: 800;
                     position: relative;
+                    animation: alertEntry 0.4s ease-out;
                 }
 
-                .alert-premium.success { background: #f0fdf4; border: 1px solid #dcfce7; color: #15803d; }
-                .alert-premium.error { background: #fef2f2; border: 1px solid #fee2e2; color: #b91c1c; }
+                @keyframes alertEntry {
+                    from { transform: translateX(20px); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
 
-                .alert-close { position: absolute; right: 1.5rem; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5; }
+                .alert-premium.success {
+                    background: #f0fdf4;
+                    border: 1.5px solid #bbf7d0;
+                    color: #166534;
+                    box-shadow: 0 10px 25px rgba(22, 101, 52, 0.08);
+                }
+
+                .alert-premium.error {
+                    background: #fef2f2;
+                    border: 1.5px solid #fecaca;
+                    color: #991b1b;
+                    box-shadow: 0 10px 25px rgba(153, 27, 27, 0.08);
+                }
+
+                .alert-close {
+                    position: absolute;
+                    right: 1.5rem;
+                    background: transparent;
+                    border: none;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    opacity: 0.6;
+                    color: currentColor;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .alert-close:hover { opacity: 1; }
 
                 .skeleton-row-premium {
                     height: 80px;
@@ -1273,24 +1102,13 @@ const Patients = () => {
                     100% { background-position: -200% 0; }
                 }
 
-                @keyframes slideDown {
-                    from { opacity: 0; transform: translateY(-20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-
                 @media (max-width: 1200px) {
-                    .expansion-grid { grid-template-columns: repeat(2, 1fr); }
                     .header-section-premium { flex-direction: column; align-items: flex-start; gap: 2rem; }
                 }
 
                 @media (max-width: 768px) {
-                    .search-filter-section { grid-template-columns: 1fr; }
-                    .form-row-multi { flex-direction: column; gap: 1rem; }
-                    .expansion-grid { grid-template-columns: 1fr; }
-                    .modal-header-premium-v2 { padding: 2rem; }
-                    .form-scroll-area { padding: 2rem; }
-                    .modal-footer-premium { padding: 2rem; flex-direction: column-reverse; }
-                    .btn-save-v3, .btn-cancel-v3 { width: 100%; }
+                    .header-section-premium { padding: 2rem; }
+                    .alert-premium { margin: 1rem; }
                 }
             `}</style>
         </div>
