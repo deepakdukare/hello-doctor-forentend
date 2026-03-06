@@ -712,20 +712,20 @@ const PublicRegister = () => {
                                     <div className="success-blob">
                                         <CheckCircle size={64} />
                                     </div>
-                                    {patientForm.enrollment_option === 'just_enroll' ? (
+                                    {bookingForm.reschedule_from ? (
+                                        <>
+                                            <h1>Appointment Rescheduled!</h1>
+                                            <p>Your appointment rescheduling has been done successfully. We have sent a confirmation message to your registered WhatsApp number.</p>
+                                        </>
+                                    ) : (patientForm.enrollment_option === 'just_enroll' && isNewPatient) ? (
                                         <>
                                             <h1>Registration Complete!</h1>
                                             <p>Your registration has been done successfully. We have sent a confirmation message to your registered WhatsApp number.</p>
                                         </>
-                                    ) : bookingForm.reschedule_from ? (
-                                        <>
-                                            <h1>Appointment Rescheduled!</h1>
-                                            <p>Your appointment has been rescheduled successfully. We have sent a confirmation message to your registered WhatsApp number.</p>
-                                        </>
                                     ) : (
                                         <>
                                             <h1>Appointment Confirmed!</h1>
-                                            <p>Your appointment has been scheduled successfully. We have sent a confirmation message to your registered WhatsApp number.</p>
+                                            <p>Your appointment booking has been done successfully. We have sent a confirmation message to your registered WhatsApp number.</p>
                                         </>
                                     )}
                                     <button onClick={() => window.location.reload()} className="btn-main-v4">Go Back Home</button>
