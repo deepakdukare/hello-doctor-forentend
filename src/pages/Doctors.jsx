@@ -162,7 +162,7 @@ const Doctors = () => {
         setViewingHubDoc(doc);
         setEditingId(doc.doctor_id);
         setShowDoctorForm(true);
-        
+
         // Initialize forms with doc data
         setDoctorForm({
             name: doc.name,
@@ -177,7 +177,7 @@ const Doctors = () => {
         setHistoryLoading(true);
         setConfigLoading(true);
         setAvailabilityLoading(true);
-        
+
         try {
             const [histRes, confRes, avRes, dashRes] = await Promise.all([
                 getDoctorHistory(doc.doctor_id),
@@ -185,21 +185,21 @@ const Doctors = () => {
                 getDoctorAvailability(doc.doctor_id, { date: selectedDate }),
                 getDoctorAvailabilityDashboard(doc.doctor_id)
             ]);
-            
+
             setDoctorHistory(histRes.data);
             setWeeklyConfig(confRes.data?.data?.weekly_config || DEFAULT_WEEKLY_CONFIG);
             setAvailability(avRes.data?.data || null);
             setDashboard(dashRes.data?.data || null);
-            
+
             // Sync forms
-            setStatusForm({ 
-                status: avRes.data?.data?.status || dashRes.data?.data?.availability?.status || 'PRESENT', 
-                notes: avRes.data?.data?.notes || '' 
+            setStatusForm({
+                status: avRes.data?.data?.status || dashRes.data?.data?.availability?.status || 'PRESENT',
+                notes: avRes.data?.data?.notes || ''
             });
-            setEtaForm({ 
-                eta_minutes: avRes.data?.data?.eta_minutes || '', 
-                eta_time: avRes.data?.data?.eta_time || '', 
-                reason: avRes.data?.data?.reason || '' 
+            setEtaForm({
+                eta_minutes: avRes.data?.data?.eta_minutes || '',
+                eta_time: avRes.data?.data?.eta_time || '',
+                reason: avRes.data?.data?.reason || ''
             });
 
         } catch (err) {
@@ -333,7 +333,7 @@ const Doctors = () => {
         clearMessages();
         try {
             await patchDoctorAvailabilityStatus(doc.doctor_id, { status: newStatus });
-            setSuccess(`Status updated to ${newStatus.replace(/_/g,' ')}`);
+            setSuccess(`Status updated to ${newStatus.replace(/_/g, ' ')}`);
             fetchDoctorsData();
         } catch (e) {
             setError(e.response?.data?.message || 'Failed to update status');
@@ -420,12 +420,12 @@ const Doctors = () => {
                                 const statusColor = getStatusColor(status);
 
                                 return (
-                                    <div 
-                                        key={doc.doctor_id} 
+                                    <div
+                                        key={doc.doctor_id}
                                         className="doc-card"
                                         onClick={() => openHub(doc)}
-                                        style={{ 
-                                            cursor: 'pointer', 
+                                        style={{
+                                            cursor: 'pointer',
                                             transition: 'all 0.2s ease',
                                         }}
                                     >
@@ -445,8 +445,8 @@ const Doctors = () => {
                                         </div>
 
                                         <div className="doc-realtime-strip">
-                                            <div className="doc-status-pill" style={{ 
-                                                background: statusColor.bg, 
+                                            <div className="doc-status-pill" style={{
+                                                background: statusColor.bg,
                                                 color: statusColor.color,
                                                 fontWeight: '700',
                                                 textTransform: 'uppercase',
@@ -496,8 +496,8 @@ const Doctors = () => {
                                             {editingId ? viewingHubDoc?.doctor_id : 'Create a fresh practitioner profile'}
                                         </p>
                                     </div>
-                                    <div className="doc-status-pill" style={{ 
-                                        background: getStatusColor(statusForm.status).bg, 
+                                    <div className="doc-status-pill" style={{
+                                        background: getStatusColor(statusForm.status).bg,
                                         color: getStatusColor(statusForm.status).color,
                                         fontSize: '0.85rem',
                                         padding: '0.4rem 0.9rem',
@@ -522,7 +522,7 @@ const Doctors = () => {
 
                         <div className="doc-edit-body-inline">
                             <div className="doc-edit-main-scroll" style={{ paddingBottom: '4rem' }}>
-                                
+
                                 <div className="doc-hub-accordion">
                                     {/* Section: LIVE MONITORING */}
                                     {editingId && (
@@ -534,7 +534,7 @@ const Doctors = () => {
                                                 </div>
                                                 <Plus size={18} className={`toggle-icon ${hubActiveSection === 'MONITOR' ? 'rotate' : ''}`} />
                                             </div>
-                                            
+
                                             {hubActiveSection === 'MONITOR' && (
                                                 <div className="doc-hub-section-content" style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '0 0 20px 20px', border: '1.5px solid #eef2f6', borderTop: 'none' }}>
                                                     {availabilityLoading ? (
@@ -542,79 +542,81 @@ const Doctors = () => {
                                                             <RefreshCw size={24} className="spinning" color="#6366f1" />
                                                         </div>
                                                     ) : (
-                                        <div className="doc-api-grid-v2" style={{ marginTop: '1rem' }}>
-                                            {/* Quick Status Form */}
-                                            <div className="action-card" style={{ background: '#fff' }}>
-                                                <div className="card-head"><h4>Current Presence</h4><div className="dot"></div></div>
-                                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                                                    {STATUS_OPTIONS.map(s => {
-                                                        const sc = getStatusColor(s);
-                                                        const isActive = statusForm.status === s;
-                                                        return (
-                                                            <button 
-                                                                key={s}
-                                                                onClick={() => setStatusForm({ ...statusForm, status: s })}
-                                                                style={{
-                                                                    padding: '0.4rem 0.8rem',
-                                                                    borderRadius: '8px',
-                                                                    border: isActive ? `2px solid ${sc.color}` : '1px solid #e2e8f0',
-                                                                    background: isActive ? sc.bg : '#fff',
-                                                                    color: isActive ? sc.color : '#64748b',
-                                                                    fontSize: '0.75rem',
-                                                                    fontWeight: '600',
-                                                                    cursor: 'pointer'
-                                                                }}
-                                                            >
-                                                                {prettyStatus(s)}
-                                                            </button>
-                                                        )
-                                                    })}
-                                                </div>
-                                                <button 
-                                                    className="btn-action-primary" 
-                                                    onClick={() => runAvailabilityAction(() => patchDoctorAvailabilityStatus(viewingHubDoc.doctor_id, statusForm), 'Status updated')}
-                                                >
-                                                    Push Remote Update
-                                                </button>
-                                            </div>
+                                                        <div className="doc-api-grid-v2" style={{ marginTop: '1rem' }}>
+                                                            {/* Quick Status Form */}
+                                                            <div className="action-card" style={{ background: '#fff' }}>
+                                                                <div className="card-head"><h4>Current Presence</h4><div className="dot"></div></div>
+                                                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                                                                    {STATUS_OPTIONS.map(s => {
+                                                                        const sc = getStatusColor(s);
+                                                                        const isActive = statusForm.status === s;
+                                                                        return (
+                                                                            <button
+                                                                                key={s}
+                                                                                onClick={() => setStatusForm({ ...statusForm, status: s })}
+                                                                                style={{
+                                                                                    padding: '0.4rem 0.8rem',
+                                                                                    borderRadius: '8px',
+                                                                                    border: isActive ? `2px solid ${sc.color}` : '1px solid #e2e8f0',
+                                                                                    background: isActive ? sc.bg : '#fff',
+                                                                                    color: isActive ? sc.color : '#64748b',
+                                                                                    fontSize: '0.75rem',
+                                                                                    fontWeight: '600',
+                                                                                    cursor: 'pointer'
+                                                                                }}
+                                                                            >
+                                                                                {prettyStatus(s)}
+                                                                            </button>
+                                                                        )
+                                                                    })}
+                                                                </div>
+                                                                <button
+                                                                    className="btn-action-primary"
+                                                                    onClick={() => runAvailabilityAction(() => patchDoctorAvailabilityStatus(viewingHubDoc.doctor_id, statusForm), 'Status updated')}
+                                                                >
+                                                                    Push Remote Update
+                                                                </button>
+                                                            </div>
 
-                                            {/* ETA Form */}
-                                            <div className="action-card" style={{ background: '#fff' }}>
-                                                <div className="card-head"><h4>ETA Adjustment</h4><div className="dot eta"></div></div>
-                                                <div className="form-row-compact">
-                                                    <input type="number" placeholder="Mins" value={etaForm.eta_minutes} onChange={(e) => setEtaForm({ ...etaForm, eta_minutes: e.target.value })} required />
-                                                    <input placeholder="Time (e.g. 11 AM)" value={etaForm.eta_time} onChange={(e) => setEtaForm({ ...etaForm, eta_time: e.target.value })} />
-                                                </div>
-                                                <button 
-                                                    className="btn-action-primary"
-                                                    onClick={() => runAvailabilityAction(() => patchDoctorAvailabilityEta(viewingHubDoc.doctor_id, {
-                                                        eta_minutes: Number(etaForm.eta_minutes) || 0,
-                                                        eta_time: etaForm.eta_time || null
-                                                    }), 'ETA synchronized')}
-                                                >
-                                                    Sync Delay
-                                                </button>
-                                            </div>
+                                                            {/* ETA Form */}
+                                                            <div className="action-card" style={{ background: '#fff' }}>
+                                                                <div className="card-head"><h4>ETA Adjustment</h4><div className="dot eta"></div></div>
+                                                                <div className="form-row-compact">
+                                                                    <input type="number" placeholder="Mins" value={etaForm.eta_minutes} onChange={(e) => setEtaForm({ ...etaForm, eta_minutes: e.target.value })} required />
+                                                                    <input placeholder="Time (e.g. 11 AM)" value={etaForm.eta_time} onChange={(e) => setEtaForm({ ...etaForm, eta_time: e.target.value })} />
+                                                                </div>
+                                                                <button
+                                                                    className="btn-action-primary"
+                                                                    onClick={() => runAvailabilityAction(() => patchDoctorAvailabilityEta(viewingHubDoc.doctor_id, {
+                                                                        eta_minutes: Number(etaForm.eta_minutes) || 0,
+                                                                        eta_time: etaForm.eta_time || null
+                                                                    }), 'ETA synchronized')}
+                                                                >
+                                                                    Sync Delay
+                                                                </button>
+                                                            </div>
 
-                                            {/* WhatsApp Form */}
-                                            <div className="action-card full-span" style={{ background: '#fff' }}>
-                                                <div className="card-head"><h4>WhatsApp Notifications</h4><div className="dot" style={{ background: '#4338ca' }}></div></div>
-                                                <div style={{ display: 'flex', gap: '1rem' }}>
-                                                    <input type="number" value={delayNotifyForm.delay_minutes} style={{ flex: 1 }} onChange={(e) => setDelayNotifyForm({ ...delayNotifyForm, delay_minutes: e.target.value })} />
-                                                    <button 
-                                                        className="btn-action-primary" 
-                                                        style={{ marginTop: 0, background: '#4338ca', flex: 2 }}
-                                                        onClick={() => runAvailabilityAction(() => notifyDelay({
-                                                            doctor_id: viewingHubDoc.doctor_id,
-                                                            date: selectedDate,
-                                                            delay_minutes: Number(delayNotifyForm.delay_minutes)
-                                                        }), 'Alerts Sent')}
-                                                    >
-                                                        Broadcast to {availability?.queue?.total || dashboard?.queue_summary?.total || 0} Patients
-                                                    </button>
+                                                            {/* WhatsApp Form */}
+                                                            <div className="action-card full-span" style={{ background: '#fff' }}>
+                                                                <div className="card-head"><h4>WhatsApp Notifications</h4><div className="dot" style={{ background: '#4338ca' }}></div></div>
+                                                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                                                    <input type="number" value={delayNotifyForm.delay_minutes} style={{ flex: 1 }} onChange={(e) => setDelayNotifyForm({ ...delayNotifyForm, delay_minutes: e.target.value })} />
+                                                                    <button
+                                                                        className="btn-action-primary"
+                                                                        style={{ marginTop: 0, background: '#4338ca', flex: 2 }}
+                                                                        onClick={() => runAvailabilityAction(() => notifyDelay({
+                                                                            doctor_id: viewingHubDoc.doctor_id,
+                                                                            date: selectedDate,
+                                                                            delay_minutes: Number(delayNotifyForm.delay_minutes)
+                                                                        }), 'Alerts Sent')}
+                                                                    >
+                                                                        Broadcast to {availability?.queue?.total || dashboard?.queue_summary?.total || 0} Patients
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            </div>
-                                        </div>
                                             )}
                                         </div>
                                     )}
@@ -632,56 +634,56 @@ const Doctors = () => {
                                         {hubActiveSection === 'IDENTITY' && (
                                             <div className="doc-hub-section-content" style={{ padding: '1.5rem', border: '1.5px solid #eef2f6', borderTop: 'none', borderRadius: '0 0 20px 20px' }}>
                                                 <div className="doc-edit-grid">
-                                        <div className="doc-edit-field">
-                                            <label>Full Name <span className="required">*</span></label>
-                                            <div className="doc-field-input-wrap">
-                                                <User size={16} className="doc-field-icon" />
-                                                <input
-                                                    required
-                                                    placeholder="Dr. Deepak ..."
-                                                    value={doctorForm.name}
-                                                    onChange={(e) => setDoctorForm(f => ({ ...f, name: e.target.value }))}
-                                                    className="doc-field-input"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="doc-edit-field">
-                                            <label>Speciality <span className="required">*</span></label>
-                                            <div className="doc-field-input-wrap">
-                                                <Activity size={16} className="doc-field-icon" />
-                                                <input
-                                                    required
-                                                    placeholder="e.g. Pediatrics"
-                                                    value={doctorForm.speciality}
-                                                    onChange={(e) => setDoctorForm(f => ({ ...f, speciality: e.target.value }))}
-                                                    className="doc-field-input"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="doc-edit-field">
-                                            <label>Qualification</label>
-                                            <div className="doc-field-input-wrap">
-                                                <Shield size={16} className="doc-field-icon" />
-                                                <input
-                                                    placeholder="MBBS, MD"
-                                                    value={doctorForm.qualification}
-                                                    onChange={(e) => setDoctorForm(f => ({ ...f, qualification: e.target.value }))}
-                                                    className="doc-field-input"
-                                                />
-                                            </div>
-                                        </div>
-                                                <div className="doc-edit-field">
-                                                    <label>Total Experience</label>
-                                                    <div className="doc-field-input-wrap">
-                                                        <History size={16} className="doc-field-icon" />
-                                                        <input
-                                                            placeholder="10 years"
-                                                            value={doctorForm.experience}
-                                                            onChange={(e) => setDoctorForm(f => ({ ...f, experience: e.target.value }))}
-                                                            className="doc-field-input"
-                                                        />
+                                                    <div className="doc-edit-field">
+                                                        <label>Full Name <span className="required">*</span></label>
+                                                        <div className="doc-field-input-wrap">
+                                                            <User size={16} className="doc-field-icon" />
+                                                            <input
+                                                                required
+                                                                placeholder="Dr. Deepak ..."
+                                                                value={doctorForm.name}
+                                                                onChange={(e) => setDoctorForm(f => ({ ...f, name: e.target.value }))}
+                                                                className="doc-field-input"
+                                                            />
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                    <div className="doc-edit-field">
+                                                        <label>Speciality <span className="required">*</span></label>
+                                                        <div className="doc-field-input-wrap">
+                                                            <Activity size={16} className="doc-field-icon" />
+                                                            <input
+                                                                required
+                                                                placeholder="e.g. Pediatrics"
+                                                                value={doctorForm.speciality}
+                                                                onChange={(e) => setDoctorForm(f => ({ ...f, speciality: e.target.value }))}
+                                                                className="doc-field-input"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="doc-edit-field">
+                                                        <label>Qualification</label>
+                                                        <div className="doc-field-input-wrap">
+                                                            <Shield size={16} className="doc-field-icon" />
+                                                            <input
+                                                                placeholder="MBBS, MD"
+                                                                value={doctorForm.qualification}
+                                                                onChange={(e) => setDoctorForm(f => ({ ...f, qualification: e.target.value }))}
+                                                                className="doc-field-input"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="doc-edit-field">
+                                                        <label>Total Experience</label>
+                                                        <div className="doc-field-input-wrap">
+                                                            <History size={16} className="doc-field-icon" />
+                                                            <input
+                                                                placeholder="10 years"
+                                                                value={doctorForm.experience}
+                                                                onChange={(e) => setDoctorForm(f => ({ ...f, experience: e.target.value }))}
+                                                                className="doc-field-input"
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -700,80 +702,80 @@ const Doctors = () => {
                                         {hubActiveSection === 'SCHEDULE' && (
                                             <div className="doc-hub-section-content" style={{ padding: '1.5rem', border: '1.5px solid #eef2f6', borderTop: 'none', borderRadius: '0 0 20px 20px' }}>
                                                 {configLoading ? (
-                                        <div className="modal-loading" style={{ height: '200px' }}>
-                                            <RefreshCw size={24} className="spinning" />
-                                        </div>
-                                    ) : (
-                                        <div className="doc-token-config-table-wrap">
-                                            <table className="doc-token-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Day</th>
-                                                        <th>Status</th>
-                                                        <th>Start Time</th>
-                                                        <th>Online Limit</th>
-                                                        <th>Walk-in</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {DAY_NAMES.map(day => {
-                                                        const dayConf = weeklyConfig?.[day] || { is_active: false, start_time: '10:00', online_limit: 0 };
-                                                        return (
-                                                            <tr key={day} className={dayConf.is_active ? '' : 'row-disabled'}>
-                                                                <td className="day-name">{day.charAt(0).toUpperCase() + day.slice(1, 3)}</td>
-                                                                <td>
-                                                                    <button
-                                                                        type="button"
-                                                                        className={`status-toggle-mini ${dayConf.is_active ? 'active' : ''}`}
-                                                                        onClick={() => {
-                                                                            setWeeklyConfig(prev => ({
-                                                                                ...prev,
-                                                                                [day]: { ...prev[day], is_active: !prev[day]?.is_active }
-                                                                            }));
-                                                                        }}
-                                                                    >
-                                                                        {dayConf.is_active ? 'Work' : 'Off'}
-                                                                    </button>
-                                                                </td>
-                                                                <td>
-                                                                    <input
-                                                                        type="time"
-                                                                        value={dayConf.start_time || '10:00'}
-                                                                        onChange={(e) => {
-                                                                            setWeeklyConfig(prev => ({
-                                                                                ...prev,
-                                                                                [day]: { ...prev[day], start_time: e.target.value }
-                                                                            }));
-                                                                        }}
-                                                                        disabled={!dayConf.is_active}
-                                                                    />
-                                                                </td>
-                                                                <td>
-                                                                    <input
-                                                                        type="number"
-                                                                        value={dayConf.online_limit || 0}
-                                                                        onChange={(e) => {
-                                                                            setWeeklyConfig(prev => ({
-                                                                                ...prev,
-                                                                                [day]: { ...prev[day], online_limit: parseInt(e.target.value) || 0 }
-                                                                            }));
-                                                                        }}
-                                                                        disabled={!dayConf.is_active}
-                                                                        min="0"
-                                                                        className="num-input-mini"
-                                                                    />
-                                                                </td>
-                                                                <td><span className="badge-walkin-mini">FREE</span></td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                    <div className="modal-loading" style={{ height: '200px' }}>
+                                                        <RefreshCw size={24} className="spinning" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="doc-token-config-table-wrap">
+                                                        <table className="doc-token-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Day</th>
+                                                                    <th>Status</th>
+                                                                    <th>Start Time</th>
+                                                                    <th>Online Limit</th>
+                                                                    <th>Walk-in</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {DAY_NAMES.map(day => {
+                                                                    const dayConf = weeklyConfig?.[day] || { is_active: false, start_time: '10:00', online_limit: 0 };
+                                                                    return (
+                                                                        <tr key={day} className={dayConf.is_active ? '' : 'row-disabled'}>
+                                                                            <td className="day-name">{day.charAt(0).toUpperCase() + day.slice(1, 3)}</td>
+                                                                            <td>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    className={`status-toggle-mini ${dayConf.is_active ? 'active' : ''}`}
+                                                                                    onClick={() => {
+                                                                                        setWeeklyConfig(prev => ({
+                                                                                            ...prev,
+                                                                                            [day]: { ...prev[day], is_active: !prev[day]?.is_active }
+                                                                                        }));
+                                                                                    }}
+                                                                                >
+                                                                                    {dayConf.is_active ? 'Work' : 'Off'}
+                                                                                </button>
+                                                                            </td>
+                                                                            <td>
+                                                                                <input
+                                                                                    type="time"
+                                                                                    value={dayConf.start_time || '10:00'}
+                                                                                    onChange={(e) => {
+                                                                                        setWeeklyConfig(prev => ({
+                                                                                            ...prev,
+                                                                                            [day]: { ...prev[day], start_time: e.target.value }
+                                                                                        }));
+                                                                                    }}
+                                                                                    disabled={!dayConf.is_active}
+                                                                                />
+                                                                            </td>
+                                                                            <td>
+                                                                                <input
+                                                                                    type="number"
+                                                                                    value={dayConf.online_limit || 0}
+                                                                                    onChange={(e) => {
+                                                                                        setWeeklyConfig(prev => ({
+                                                                                            ...prev,
+                                                                                            [day]: { ...prev[day], online_limit: parseInt(e.target.value) || 0 }
+                                                                                        }));
+                                                                                    }}
+                                                                                    disabled={!dayConf.is_active}
+                                                                                    min="0"
+                                                                                    className="num-input-mini"
+                                                                                />
+                                                                            </td>
+                                                                            <td><span className="badge-walkin-mini">FREE</span></td>
+                                                                        </tr>
+                                                                    );
+                                                                })}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
-                                                </div>
-                                            )}
-                                        </div>
+                                    </div>
 
                                     {/* Section: HISTORY */}
                                     {editingId && (
@@ -793,29 +795,31 @@ const Doctors = () => {
                                                             <RefreshCw size={24} className="spinning" />
                                                         </div>
                                                     ) : (
-                                                        doctorHistory && (
+                                                        doctorHistory ? (
                                                             <>
-                                                            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(135deg,#6366f1,#818cf8)', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem' }}>
-                                                                    <CalendarIcon size={14} />
-                                                                    {doctorHistory.summary?.total_days || 0} Sessions
+                                                                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(135deg,#6366f1,#818cf8)', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem' }}>
+                                                                        <CalendarIcon size={14} />
+                                                                        {doctorHistory.summary?.total_days || 0} Sessions
+                                                                    </div>
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(135deg,#10b981,#34d399)', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem' }}>
+                                                                        <Users size={14} />
+                                                                        {doctorHistory.summary?.avg_patients_per_day || 0} Avg/Day
+                                                                    </div>
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(135deg,#f59e0b,#fbbf24)', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem' }}>
+                                                                        <TrendingUp size={14} />
+                                                                        Peak: {doctorHistory.summary?.max_patients || 0} Patients
+                                                                    </div>
                                                                 </div>
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(135deg,#10b981,#34d399)', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem' }}>
-                                                                    <Users size={14} />
-                                                                    {doctorHistory.summary?.avg_patients_per_day || 0} Avg/Day
-                                                                </div>
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(135deg,#f59e0b,#fbbf24)', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem' }}>
-                                                                    <TrendingUp size={14} />
-                                                                    Peak: {doctorHistory.summary?.max_patients || 0} Patients
-                                                                </div>
-                                                            </div>
-                                                        </>
-                                                    ))}
+                                                            </>
+                                                        ) : (
+                                                            <p style={{ textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>No history available for this period.</p>
+                                                        )
+                                                    )}
                                                 </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
