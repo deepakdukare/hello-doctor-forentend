@@ -44,56 +44,80 @@ const AppointmentRow = ({ appt, onEdit, onCancel }) => {
 
     return (
         <tr style={{ backgroundColor: '#fff', borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}>
+            {/* 1. Token */}
             <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img src={ptAvatar} alt="patient" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#6366f1' }}>
+                    {appt?.token_display || appt?.token_number || 'T-XX'}
+                </span>
+            </td>
+
+            {/* 2. Patient (Child Name) */}
+            <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
+                        {(removeSalutation(appt?.child_name) || 'W')[0].toUpperCase()}
+                    </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
                             {removeSalutation(appt?.child_name) || 'Walk-in Patient'}
                         </span>
-                        <span style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-                            ID: #{String(ptId).slice(-4)}
-                        </span>
+                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>#{String(ptId).slice(-6)}</span>
                     </div>
                 </div>
             </td>
 
-            <td style={{ padding: '16px 20px', verticalAlign: 'middle', fontSize: '13px', color: '#475569', fontWeight: 500 }}>
-                {getDateTime(appt)}
+            {/* 3. Time */}
+            <td style={{ padding: '16px 20px', verticalAlign: 'middle', fontSize: '13px', color: '#475569', fontWeight: 600 }}>
+                {formatTime12h(appt?.appointment_time || appt?.start_time)}
             </td>
 
+            {/* 4. Doctor + Specialty */}
             <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <img src={docAvatar} alt="doctor" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
-                            {docName}
-                        </span>
-                        <span style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
-                            {appt?.doctor_speciality || 'Pediatrician'}
-                        </span>
-                    </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                        {docName}
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+                        {appt?.doctor_speciality || 'Pediatrician'}
+                    </span>
                 </div>
             </td>
 
-            <td style={{ padding: '16px 20px', verticalAlign: 'middle', fontSize: '13px', color: '#64748b' }}>
-                {appt?.reason || 'General Checkup'}
+            {/* 5. Visit Category */}
+            <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
+                <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, backgroundColor: '#f8fafc', padding: '4px 8px', borderRadius: '4px', border: '1px solid #f1f5f9' }}>
+                    {appt?.visit_category || 'First visit'}
+                </span>
             </td>
 
+            {/* 6. Status */}
             <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
                 <span style={{
                     display: 'inline-flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '4px 12px',
-                    borderRadius: '6px',
-                    fontSize: '11px',
-                    fontWeight: 600,
+                    padding: '4px 10px',
+                    borderRadius: '50px',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.02em',
                     border: `1px solid ${statusView.color}`,
                     color: statusView.color,
                     backgroundColor: '#fff'
                 }}>
                     {statusView.label}
+                </span>
+            </td>
+
+            {/* 7. Token Status */}
+            <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
+                <span style={{
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    color: (appt?.token_status || 'waiting').toLowerCase() === 'called' ? '#f59e0b' : '#3b82f6',
+                    textTransform: 'uppercase'
+                }}>
+                    {appt?.token_status || 'WAITING'}
                 </span>
             </td>
 
@@ -112,11 +136,7 @@ const AppointmentRow = ({ appt, onEdit, onCancel }) => {
                         justifyContent: 'center'
                     }}
                 >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="1"></circle>
-                        <circle cx="12" cy="5" r="1"></circle>
-                        <circle cx="12" cy="19" r="1"></circle>
-                    </svg>
+                    <Edit2 size={14} />
                 </button>
             </td>
         </tr>

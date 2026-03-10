@@ -37,7 +37,6 @@ const BotInteractions = lazy(() => import('./pages/BotInteractions'));
 const Doctors = lazy(() => import('./pages/Doctors'));
 const Admins = lazy(() => import('./pages/Admins'));
 const QueueDisplay = lazy(() => import('./pages/QueueDisplay'));
-const Reports = lazy(() => import('./pages/Reports'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const ClinicDisplay = lazy(() => import('./pages/ClinicDisplay'));
 const Feedback = lazy(() => import('./pages/Feedback'));
@@ -88,8 +87,7 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
                 { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },
                 { name: 'Doctors', path: '/doctors', icon: Stethoscope, permission: 'view_doctors' },
                 { name: 'Medical Records', path: '/mrd', icon: FileText, permission: 'view_mrd' },
-                { name: 'Analytics', path: '/analytics', icon: TrendingUp, permission: 'view_reports' },
-                { name: 'Reports', path: '/reports', icon: BarChart2, permission: 'view_reports' },
+                { name: 'Reports & Analytics', path: '/analytics', icon: TrendingUp, permission: 'view_reports' },
                 { name: 'Feedback Hub', path: '/feedback', icon: MessageSquare, permission: 'view_feedback' },
                 { name: 'Notifications', path: '/notifications', icon: BellIcon, permission: 'view_notifications' },
                 { name: 'Settings', path: '/settings', icon: SettingsIcon, permission: 'view_settings' },
@@ -417,7 +415,7 @@ const App = () => {
                                     <Route path="/admins" element={<ProtectedRoute permission="view_admins"><Admins /></ProtectedRoute>} />
                                     <Route path="/mrd" element={<ProtectedRoute permission="view_mrd"><MRD /></ProtectedRoute>} />
                                     <Route path="/queue" element={<ProtectedRoute permission="view_queue"><QueueDisplay /></ProtectedRoute>} />
-                                    <Route path="/reports" element={<ProtectedRoute permission="view_reports"><Reports /></ProtectedRoute>} />
+                                    <Route path="/reports" element={<Navigate to="/analytics" replace />} />
                                     <Route path="/analytics" element={<ProtectedRoute permission="view_reports"><Analytics /></ProtectedRoute>} />
                                     <Route path="/notifications" element={<ProtectedRoute permission="view_notifications"><Notifications /></ProtectedRoute>} />
                                     <Route path="/feedback" element={<ProtectedRoute permission="view_feedback"><FeedbackReports /></ProtectedRoute>} />

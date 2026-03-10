@@ -163,12 +163,17 @@ const PublicRegister = () => {
                     return;
                 }
 
-                const apptsRes = await getAppointmentsByWaId(targetId);
+                const apptsRes = await getAppointmentsByWaId(patientData.wa_id || targetId);
                 const appointments = apptsRes.data.data || [];
 
                 setRegisteredPatient(patientData);
                 setIsNewPatient(false);
-                setPatientAppointments(appointments.filter(a => a.status === 'PENDING' || a.status === 'CONFIRMED'));
+                // More robust filtering (case-insensitive)
+                const pendingAppts = appointments.filter(a => {
+                    const s = String(a.status || '').toUpperCase();
+                    return s === 'PENDING' || s === 'CONFIRMED' || s === 'SCHEDULED';
+                });
+                setPatientAppointments(pendingAppts);
                 setStep(4);
             } else {
                 const res = await getPatientByWa(targetId);
@@ -392,7 +397,10 @@ const PublicRegister = () => {
             if (bookingForm.reschedule_from) {
                 const reschedulePayload = {
                     appointment_date: bookingForm.appointment_date,
-                    appointment_mode: bookingForm.appointment_mode
+                    appointment_mode: bookingForm.appointment_mode,
+                    doctor_name: bookingForm.doctor_name,
+                    visit_category: bookingForm.visit_category,
+                    reason: bookingForm.reason
                 };
                 await updateAppointment(bookingForm.reschedule_from, reschedulePayload);
             } else {
@@ -423,18 +431,18 @@ const PublicRegister = () => {
             {step === 0 ? (
                 <div className="glass-landing-container">
                     <div className="glass-content-wrapper">
-                        
+
                         {/* Left Side: Hero Text */}
                         <div className="glass-hero-section">
                             <h1 className="glass-hero-title">
-                                Dr. Indu's<br/>
-                                New Born &<br/>
-                                Childcare<br/>
+                                Dr. Indu's<br />
+                                New Born &<br />
+                                Childcare<br />
                                 Center
                             </h1>
                             <p className="glass-hero-subtitle">
-                                Welcome to a smarter way to manage your child's health. 
-                                Our modern portal gives you direct access to premium care, 
+                                Welcome to a smarter way to manage your child's health.
+                                Our modern portal gives you direct access to premium care,
                                 scheduling, and medical records.
                             </p>
                             <button className="glass-hero-btn" onClick={() => { setIsNewPatient(true); setStep(1); }}>
@@ -444,7 +452,7 @@ const PublicRegister = () => {
 
                         {/* Right Side: Action Cards */}
                         <div className="glass-cards-container">
-                            
+
                             {/* Card 1: New Registration */}
                             <div className="glass-card">
                                 <div className="glass-card-icon">
@@ -469,9 +477,9 @@ const PublicRegister = () => {
                                     Have a patient record? Enter mobile number to book instantly.
                                 </p>
                                 <div className="glass-input-wrapper">
-                                    <input 
+                                    <input
                                         className="glass-input"
-                                        placeholder="Mobile Number" 
+                                        placeholder="Mobile Number"
                                         value={searchWaId}
                                         onChange={e => setSearchWaId(e.target.value.replace(/\D/g, ''))}
                                         onKeyDown={e => e.key === 'Enter' && checkMember(e)}
@@ -493,9 +501,9 @@ const PublicRegister = () => {
                                     Need to change your time? Access your existing booking with your mobile number to reschedule.
                                 </p>
                                 <div className="glass-input-wrapper">
-                                    <input 
+                                    <input
                                         className="glass-input"
-                                        placeholder="Mobile Number" 
+                                        placeholder="Mobile Number"
                                         value={rescheduleWaId}
                                         onChange={e => setRescheduleWaId(e.target.value.replace(/\D/g, ''))}
                                         onKeyDown={e => e.key === 'Enter' && checkMember(e, 'reschedule')}
@@ -540,7 +548,7 @@ const PublicRegister = () => {
                                                     <img src="/logo.jpg" alt="DICC" />
                                                     <div className="logo-text">
                                                         <span className="brand">Dr. Indu's</span>
-                                                        <span className="sub">New Born &<br/>Childcare<br/>Center</span>
+                                                        <span className="sub">New Born &<br />Childcare<br />Center</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1010,9 +1018,15 @@ const PublicRegister = () => {
 
                                     {step === 4 && (
                                         <div className="reschedule-panel-v4">
-                                            <div className="pan-header">
-                                                <h2>Reschedule Appointment</h2>
-                                                <p>Select an ongoing appointment to modify</p>
+                                            <div className="reschedule-header-v4">
+                                                <button type="button" className="btn-back-v4" onClick={() => setStep(0)}>
+                                                    <ArrowLeft size={20} />
+                                                    <span>Home</span>
+                                                </button>
+                                                <div className="pan-header">
+                                                    <h2>Reschedule Appointment</h2>
+                                                    <p>Select an ongoing appointment to modify</p>
+                                                </div>
                                             </div>
                                             <div className="appt-list-v4">
                                                 {patientAppointments.length > 0 ? patientAppointments.map(appt => (
@@ -1031,6 +1045,9 @@ const PublicRegister = () => {
                                                                 ...bookingForm,
                                                                 wa_id: appt.wa_id,
                                                                 doctor_name: appt.doctor_name,
+                                                                appointment_date: appt.appointment_date ? appt.appointment_date.split('T')[0] : todayStr,
+                                                                visit_category: appt.visit_category || 'First visit',
+                                                                appointment_mode: appt.appointment_mode || 'OFFLINE',
                                                                 reschedule_from: appt.appointment_id || appt._id
                                                             });
                                                             setStep(2);
