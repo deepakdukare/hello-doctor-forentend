@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Monitor, RefreshCw, User, Users, Clock, Hash, ArrowRight, Activity, Zap } from 'lucide-react';
 import { getClinicDisplayData, toIsoDate } from '../api/index';
 import { removeSalutation } from '../utils/formatters';
+import clinicLogo from '../assets/clinic_logo.png';
 
 const ClinicDisplay = () => {
     const [displayData, setDisplayData] = useState([]);
@@ -36,7 +37,7 @@ const ClinicDisplay = () => {
         <div className="clinic-display-v2">
             <div className="display-header-v2">
                 <div className="header-brand-v2">
-                    <div className="brand-icon-v2">🩺</div>
+                    <img src={clinicLogo} alt="Logo" className="brand-logo-v2" />
                     <div className="brand-text-v2">
                         <h1>Dr. Indu Child Care</h1>
                     </div>
