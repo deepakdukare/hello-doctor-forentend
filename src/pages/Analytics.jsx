@@ -139,8 +139,15 @@ const Analytics = () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `dicc_report_${dateFrom}_to_${dateTo}.csv`;
+        a.download = `practice_report_${dateFrom}_to_${dateTo}.csv`;
         a.click();
+    };
+
+    const formatDateReadable = (dateStr) => {
+        if (!dateStr) return '—';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     };
 
     const filteredAppointments = appointments.filter(a => {
@@ -178,71 +185,88 @@ const Analytics = () => {
                 </div>
             </div>
 
-            <div className="v2-filter-bar">
-                <Filter size={16} color="#3b82f6" />
-                <div className="v2-filter-item">
-                    <span>From</span>
-                    <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+            <div className="v2-filter-bar" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '2rem', background: '#fff', padding: '1.25rem', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+                <div className="v2-filter-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', border: '1px solid #eef2f6' }}>
+                    <Calendar size={14} color="#6366f1" />
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>From</span>
+                    <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', fontWeight: 600, color: '#1e293b' }} />
                 </div>
-                <div className="v2-filter-item">
-                    <span>To</span>
-                    <span>To</span>
-                    <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+                <div className="v2-filter-item" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', border: '1px solid #eef2f6' }}>
+                    <Calendar size={14} color="#6366f1" />
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>To</span>
+                    <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', fontWeight: 600, color: '#1e293b' }} />
                 </div>
-                <select value={doctorId} onChange={e => setDoctorId(e.target.value)} className="v2-select">
+                <select value={doctorId} onChange={e => setDoctorId(e.target.value)} className="v2-select" style={{ minWidth: '160px', padding: '10px 14px', borderRadius: '10px', border: '1px solid #eef2f6', background: '#f8fafc', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>
                     <option value="">All Doctors</option>
                     {doctors.map(d => <option key={d.doctor_id || d._id} value={d.doctor_id || d._id}>{d.name}</option>)}
                 </select>
-                <select value={status} onChange={e => setStatus(e.target.value)} className="v2-select">
+                <select value={status} onChange={e => setStatus(e.target.value)} className="v2-select" style={{ minWidth: '140px', padding: '10px 14px', borderRadius: '10px', border: '1px solid #eef2f6', background: '#f8fafc', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>
                     <option value="">All Statuses</option>
                     {['CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'].map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
-                <button className="v2-update-btn" onClick={fetchData}>Update Report</button>
+                <button className="v2-update-btn" onClick={fetchData} style={{ marginLeft: 'auto', background: '#6366f1', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)' }}>Update Report</button>
             </div>
 
             {error && <div className="v2-error-pill"><Activity size={18} />{error}</div>}
 
-            <div className="v2-stats-grid">
-                <div className="v2-stat-card blue">
-                    <div className="v2-stat-icon"><Calendar size={20} /></div>
-                    <div className="v2-stat-info">
-                        <span className="v2-stat-label">Total Appointments</span>
-                        <div className="v2-stat-value">{loading ? '...' : displayMetrics.total.toLocaleString()}</div>
+            <div className="stat-grid-v3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
+                <div className="stat-card-v3" style={{ border: '1px solid #e2e8f0', borderRadius: '16px', background: '#fff', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', borderBottom: '4px solid #6366f1' }}>
+                    <div style={{ background: '#f5f3ff', color: '#6366f1', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Calendar size={20} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Appointments</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 950, color: '#1e293b' }}>{loading ? '...' : displayMetrics.total.toLocaleString()}</div>
                     </div>
                 </div>
-                <div className="v2-stat-card green">
-                    <div className="v2-stat-icon"><CheckCircle2 size={20} /></div>
-                    <div className="v2-stat-info">
-                        <span className="v2-stat-label">Completed</span>
-                        <div className="v2-stat-value">{loading ? '...' : displayMetrics.completed.toLocaleString()}</div>
+
+                <div className="stat-card-v3" style={{ border: '1px solid #e2e8f0', borderRadius: '16px', background: '#fff', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', borderBottom: '4px solid #10b981' }}>
+                    <div style={{ background: '#ecfdf5', color: '#10b981', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <CheckCircle2 size={20} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Completed</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 950, color: '#1e293b' }}>{loading ? '...' : displayMetrics.completed.toLocaleString()}</div>
                     </div>
                 </div>
-                <div className="v2-stat-card red">
-                    <div className="v2-stat-icon"><XCircle size={20} /></div>
-                    <div className="v2-stat-info">
-                        <span className="v2-stat-label">Cancelled</span>
-                        <div className="v2-stat-value">{loading ? '...' : displayMetrics.cancelled.toLocaleString()}</div>
+
+                <div className="stat-card-v3" style={{ border: '1px solid #e2e8f0', borderRadius: '16px', background: '#fff', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', borderBottom: '4px solid #ef4444' }}>
+                    <div style={{ background: '#fef2f2', color: '#ef4444', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <XCircle size={20} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Cancelled</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 950, color: '#1e293b' }}>{loading ? '...' : displayMetrics.cancelled.toLocaleString()}</div>
                     </div>
                 </div>
-                <div className="v2-stat-card amber">
-                    <div className="v2-stat-icon"><Clock size={20} /></div>
-                    <div className="v2-stat-info">
-                        <span className="v2-stat-label">No Shows</span>
-                        <div className="v2-stat-value">{loading ? '...' : displayMetrics.no_show.toLocaleString()}</div>
+
+                <div className="stat-card-v3" style={{ border: '1px solid #e2e8f0', borderRadius: '16px', background: '#fff', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', borderBottom: '4px solid #f59e0b' }}>
+                    <div style={{ background: '#fffbeb', color: '#f59e0b', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Clock size={20} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>No Shows</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 950, color: '#1e293b' }}>{loading ? '...' : displayMetrics.no_show.toLocaleString()}</div>
                     </div>
                 </div>
-                <div className="v2-stat-card cyan">
-                    <div className="v2-stat-icon"><Users size={20} /></div>
-                    <div className="v2-stat-info">
-                        <span className="v2-stat-label">Unique Patients</span>
-                        <div className="v2-stat-value">{loading ? '...' : displayMetrics.unique.toLocaleString()}</div>
+
+                <div className="stat-card-v3" style={{ border: '1px solid #e2e8f0', borderRadius: '16px', background: '#fff', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', borderBottom: '4px solid #06b6d4' }}>
+                    <div style={{ background: '#ecfeff', color: '#06b6d4', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Users size={20} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Unique Patients</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 950, color: '#1e293b' }}>{loading ? '...' : displayMetrics.unique.toLocaleString()}</div>
                     </div>
                 </div>
-                <div className="v2-stat-card purple">
-                    <div className="v2-stat-icon"><TrendingUp size={20} /></div>
-                    <div className="v2-stat-info">
-                        <span className="v2-stat-label">Completion Rate</span>
-                        <div className="v2-stat-value">{loading ? '...' : `${completionRate}%`}</div>
+
+                <div className="stat-card-v3" style={{ border: '1px solid #e2e8f0', borderRadius: '16px', background: '#fff', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', borderBottom: '4px solid #8b5cf6' }}>
+                    <div style={{ background: '#f5f3ff', color: '#8b5cf6', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <TrendingUp size={20} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Completion Rate</div>
+                        <div style={{ fontSize: '1.75rem', fontWeight: 950, color: '#1e293b' }}>{loading ? '...' : `${completionRate}%`}</div>
                     </div>
                 </div>
             </div>
@@ -310,24 +334,24 @@ const Analytics = () => {
                             <thead>
                                 <tr>
                                     {['Date', 'Patient', 'Patient ID', 'Doctor', 'Time/Token', 'Type', 'Source', 'Status'].map(h => (
-                                        <th key={h}>{h}</th>
+                                        <th key={h} style={{ padding: '12px 16px', fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid #f1f5f9' }}>{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {filteredAppointments.map((a, i) => {
                                     const s = getStatusStyle(a.status);
-                                    const pName = a.child_name || a.patient_name || a.name || '—';
+                                    const pName = a.child_name || a.patient_name || a.name || a.patient?.child_name || '—';
                                     return (
                                         <tr key={a.appointment_id || i}>
-                                            <td>{a.date || a.appointment_date || '—'}</td>
-                                            <td className="p-name">{removeSalutation(pName)}</td>
-                                            <td className="p-id">{a.patient_id || '—'}</td>
-                                            <td>{a.doctor_name || '—'}</td>
-                                            <td>{a.token_display || a.appointment_time || '—'}</td>
-                                            <td><span className="type-badge">{a.visit_category || 'General'}</span></td>
-                                            <td className="source">{(a.booking_source || 'Admin').toLowerCase()}</td>
-                                            <td><span className="status-pill" style={{ background: s.bg, color: s.color }}>{a.status}</span></td>
+                                            <td style={{ fontWeight: 600, color: '#64748b' }}>{formatDateReadable(a.date || a.appointment_date)}</td>
+                                            <td className="p-name" style={{ fontWeight: 800, color: '#1e293b' }}>{removeSalutation(pName)}</td>
+                                            <td className="p-id" style={{ color: '#64748b', fontSize: '12px' }}>{a.patient_id || '—'}</td>
+                                            <td style={{ fontWeight: 600 }}>{a.doctor_name || '—'}</td>
+                                            <td style={{ fontWeight: 700, color: '#6366f1' }}>{a.token_display || a.appointment_time || '—'}</td>
+                                            <td><span className="type-badge" style={{ background: '#f1f5f9', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600 }}>{a.visit_category || 'First visit'}</span></td>
+                                            <td className="source" style={{ textTransform: 'capitalize', fontSize: '12px' }}>{(a.booking_source || 'Admin')}</td>
+                                            <td><span className="status-pill" style={{ background: s.bg, color: s.color, padding: '4px 10px', borderRadius: '50px', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase' }}>{a.status}</span></td>
                                         </tr>
                                     );
                                 })}
@@ -337,18 +361,18 @@ const Analytics = () => {
                 )}
             </div>
 
-            <div className="v2-doctor-section">
-                <h2>Doctor Performance Snapshot</h2>
-                <div className="v2-doctor-grid">
+            <div className="v2-doctor-section" style={{ marginTop: '3rem' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 950, color: '#0f172a', marginBottom: '1.5rem' }}>Doctor Performance Snapshot</h2>
+                <div className="v2-doctor-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
                     {displayMetrics.doctors.map((doc, i) => (
-                        <div key={i} className="v2-doctor-card">
-                            <div className="doc-avatar">
-                                <img src={`https://ui-avatars.com/api/?name=${doc.name || 'Doc'}&background=6366f1&color=fff`} alt={doc.name} />
+                        <div key={i} className="v2-doctor-card" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.25rem', transition: 'transform 0.2s', cursor: 'default' }}>
+                            <div className="doc-avatar" style={{ flexShrink: 0 }}>
+                                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(doc.name || 'Doc')}&background=EEF2FF&color=4F46E5&bold=true`} alt={doc.name} style={{ width: '56px', height: '56px', borderRadius: '16px', objectFit: 'cover' }} />
                             </div>
                             <div className="doc-info">
-                                <h3>{doc.name}</h3>
-                                <span>{doc.role || doc.speciality || 'Specialist'}</span>
-                                <div className="doc-count"><strong>{doc.count || doc.visits || 0}</strong> Bookings</div>
+                                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>{doc.name}</h3>
+                                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{doc.role || doc.speciality || 'Pediatrician'}</span>
+                                <div className="doc-count" style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}><strong style={{ color: '#6366f1', fontSize: '1rem' }}>{doc.count || doc.visits || 0}</strong> Bookings</div>
                             </div>
                         </div>
                     ))}
