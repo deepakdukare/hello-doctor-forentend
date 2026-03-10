@@ -424,10 +424,6 @@ const Doctors = () => {
                                         key={doc.doctor_id}
                                         className="doc-card"
                                         onClick={() => openHub(doc)}
-                                        style={{
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease',
-                                        }}
                                     >
                                         <div className="doc-card-head">
                                             <div className="doc-avatar">
@@ -448,9 +444,6 @@ const Doctors = () => {
                                             <div className="doc-status-pill" style={{
                                                 background: statusColor.bg,
                                                 color: statusColor.color,
-                                                fontWeight: '700',
-                                                textTransform: 'uppercase',
-                                                fontSize: '0.75rem'
                                             }}>
                                                 <span className="doc-status-dot" style={{ background: statusColor.color }}></span>
                                                 {status ? prettyStatus(status) : (ca === undefined ? 'Syncing...' : 'Offline')}
@@ -477,350 +470,338 @@ const Doctors = () => {
                     <div className="doc-edit-form-full">
                         <div className="doc-form-breadcrumb">
                             <button type="button" onClick={() => { setViewingHubDoc(null); setEditingId(''); setShowDoctorForm(false); }} className="breadcrumb-back">
-                                <ArrowLeft size={16} />
-                                <span>Back to Practitioners</span>
+                                <ArrowLeft size={18} />
+                                <span>Return to Practitioners</span>
                             </button>
                         </div>
 
                         <div className="doc-edit-header-inline">
                             <div className="doc-edit-header-left">
                                 <div className="doc-edit-icon-wrap">
-                                    <User size={28} />
+                                    <User size={32} />
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <div>
-                                        <h2 className="doc-edit-title" style={{ color: '#1e293b', fontWeight: '800', letterSpacing: '-0.01em' }}>
-                                            {editingId ? 'Practitioner Hub' : 'Register New Doctor'}
-                                        </h2>
-                                        <p className="doc-edit-subtitle" style={{ color: '#6366f1', fontWeight: '600', fontSize: '0.85rem' }}>
-                                            {editingId ? viewingHubDoc?.doctor_id : 'Create a fresh practitioner profile'}
-                                        </p>
-                                    </div>
-                                    <div className="doc-status-pill" style={{
-                                        background: getStatusColor(statusForm.status).bg,
-                                        color: getStatusColor(statusForm.status).color,
-                                        fontSize: '0.85rem',
-                                        padding: '0.4rem 0.9rem',
-                                        fontWeight: '700',
-                                        letterSpacing: '0.02em',
-                                        boxShadow: `0 2px 8px -2px ${getStatusColor(statusForm.status).color}40`,
-                                        textTransform: 'uppercase'
-                                    }}>
-                                        <span className="doc-status-dot" style={{ background: getStatusColor(statusForm.status).color }}></span>
-                                        {prettyStatus(statusForm.status)}
-                                    </div>
+                                <div>
+                                    <h2 className="doc-edit-title">
+                                        Practitioner Hub
+                                    </h2>
+                                    <p className="doc-edit-subtitle">
+                                        Managing {viewingHubDoc?.name} • ID: {viewingHubDoc?.doctor_id}
+                                    </p>
                                 </div>
                             </div>
-                            <div className="doc-edit-header-actions">
-                                <button type="button" className="doc-edit-cancel" onClick={() => { setViewingHubDoc(null); setEditingId(''); setShowDoctorForm(false); }}>Done</button>
-                                <button type="button" className="doc-edit-save" onClick={saveDoctor}>
-                                    <CheckCircle2 size={20} />
-                                    Synchronize Profile
-                                </button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                                <div className="doc-status-pill large" style={{
+                                    background: getStatusColor(statusForm.status).bg,
+                                    color: getStatusColor(statusForm.status).color,
+                                    border: `1.5px solid ${getStatusColor(statusForm.status).color}30`
+                                }}>
+                                    <span className="doc-status-dot" style={{
+                                        background: getStatusColor(statusForm.status).color,
+                                        boxShadow: `0 0 10px ${getStatusColor(statusForm.status).color}`
+                                    }}></span>
+                                    {prettyStatus(statusForm.status)}
+                                </div>
+                                <div className="doc-edit-header-actions">
+                                    <button type="button" className="doc-edit-cancel" onClick={() => { setViewingHubDoc(null); setEditingId(''); setShowDoctorForm(false); }}>Close Hub</button>
+                                    <button type="button" className="doc-edit-save" onClick={saveDoctor}>
+                                        <CheckCircle2 size={20} />
+                                        Sync Changes
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         <div className="doc-edit-body-inline">
-                            <div className="doc-edit-main-scroll" style={{ paddingBottom: '4rem' }}>
-
-                                <div className="doc-hub-accordion">
-                                    {/* Section: LIVE MONITORING */}
-                                    {editingId && (
-                                        <div className={`doc-hub-section ${hubActiveSection === 'MONITOR' ? 'expanded' : ''}`}>
-                                            <div className="doc-hub-section-header" onClick={() => toggleHubSection('MONITOR')}>
-                                                <div className="header-left">
-                                                    <Activity size={20} />
-                                                    <span>LIVE QUEUE MONITORING</span>
-                                                </div>
-                                                <Plus size={18} className={`toggle-icon ${hubActiveSection === 'MONITOR' ? 'rotate' : ''}`} />
-                                            </div>
-
-                                            {hubActiveSection === 'MONITOR' && (
-                                                <div className="doc-hub-section-content" style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '0 0 20px 20px', border: '1.5px solid #eef2f6', borderTop: 'none' }}>
-                                                    {availabilityLoading ? (
-                                                        <div style={{ textAlign: 'center', padding: '1rem' }}>
-                                                            <RefreshCw size={24} className="spinning" color="#6366f1" />
-                                                        </div>
-                                                    ) : (
-                                                        <div className="doc-api-grid-v2" style={{ marginTop: '1rem' }}>
-                                                            {/* Quick Status Form */}
-                                                            <div className="action-card" style={{ background: '#fff' }}>
-                                                                <div className="card-head"><h4>Current Presence</h4><div className="dot"></div></div>
-                                                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                                                                    {STATUS_OPTIONS.map(s => {
-                                                                        const sc = getStatusColor(s);
-                                                                        const isActive = statusForm.status === s;
-                                                                        return (
-                                                                            <button
-                                                                                key={s}
-                                                                                onClick={() => setStatusForm({ ...statusForm, status: s })}
-                                                                                style={{
-                                                                                    padding: '0.4rem 0.8rem',
-                                                                                    borderRadius: '8px',
-                                                                                    border: isActive ? `2px solid ${sc.color}` : '1px solid #e2e8f0',
-                                                                                    background: isActive ? sc.bg : '#fff',
-                                                                                    color: isActive ? sc.color : '#64748b',
-                                                                                    fontSize: '0.75rem',
-                                                                                    fontWeight: '600',
-                                                                                    cursor: 'pointer'
-                                                                                }}
-                                                                            >
-                                                                                {prettyStatus(s)}
-                                                                            </button>
-                                                                        )
-                                                                    })}
-                                                                </div>
-                                                                <button
-                                                                    className="btn-action-primary"
-                                                                    onClick={() => runAvailabilityAction(() => patchDoctorAvailabilityStatus(viewingHubDoc.doctor_id, statusForm), 'Status updated')}
-                                                                >
-                                                                    Push Remote Update
-                                                                </button>
-                                                            </div>
-
-                                                            {/* ETA Form */}
-                                                            <div className="action-card" style={{ background: '#fff' }}>
-                                                                <div className="card-head"><h4>ETA Adjustment</h4><div className="dot eta"></div></div>
-                                                                <div className="form-row-compact">
-                                                                    <input type="number" placeholder="Mins" value={etaForm.eta_minutes} onChange={(e) => setEtaForm({ ...etaForm, eta_minutes: e.target.value })} required />
-                                                                    <input placeholder="Time (e.g. 11 AM)" value={etaForm.eta_time} onChange={(e) => setEtaForm({ ...etaForm, eta_time: e.target.value })} />
-                                                                </div>
-                                                                <button
-                                                                    className="btn-action-primary"
-                                                                    onClick={() => runAvailabilityAction(() => patchDoctorAvailabilityEta(viewingHubDoc.doctor_id, {
-                                                                        eta_minutes: Number(etaForm.eta_minutes) || 0,
-                                                                        eta_time: etaForm.eta_time || null
-                                                                    }), 'ETA synchronized')}
-                                                                >
-                                                                    Sync Delay
-                                                                </button>
-                                                            </div>
-
-                                                            {/* WhatsApp Form */}
-                                                            <div className="action-card full-span" style={{ background: '#fff' }}>
-                                                                <div className="card-head"><h4>WhatsApp Notifications</h4><div className="dot" style={{ background: '#4338ca' }}></div></div>
-                                                                <div style={{ display: 'flex', gap: '1rem' }}>
-                                                                    <input type="number" value={delayNotifyForm.delay_minutes} style={{ flex: 1 }} onChange={(e) => setDelayNotifyForm({ ...delayNotifyForm, delay_minutes: e.target.value })} />
-                                                                    <button
-                                                                        className="btn-action-primary"
-                                                                        style={{ marginTop: 0, background: '#4338ca', flex: 2 }}
-                                                                        onClick={() => runAvailabilityAction(() => notifyDelay({
-                                                                            doctor_id: viewingHubDoc.doctor_id,
-                                                                            date: selectedDate,
-                                                                            delay_minutes: Number(delayNotifyForm.delay_minutes)
-                                                                        }), 'Alerts Sent')}
-                                                                    >
-                                                                        Broadcast to {availability?.queue?.total || dashboard?.queue_summary?.total || 0} Patients
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Section: IDENTITY DETAILS */}
-                                    <div className={`doc-hub-section ${hubActiveSection === 'IDENTITY' ? 'expanded' : ''}`} style={{ marginTop: '1rem' }}>
-                                        <div className="doc-hub-section-header" onClick={() => toggleHubSection('IDENTITY')}>
+                            <div className="doc-hub-accordion">
+                                {/* Section: LIVE MONITORING */}
+                                {editingId && (
+                                    <div className={`doc-hub-section ${hubActiveSection === 'MONITOR' ? 'expanded' : ''}`}>
+                                        <div className="doc-hub-section-header" onClick={() => toggleHubSection('MONITOR')}>
                                             <div className="header-left">
-                                                <User size={20} />
-                                                <span>Practitioner Details</span>
+                                                <div className="icon-circle-v2">
+                                                    <Activity size={20} />
+                                                </div>
+                                                <span>Live Operational Status</span>
                                             </div>
-                                            <Plus size={18} className={`toggle-icon ${hubActiveSection === 'IDENTITY' ? 'rotate' : ''}`} />
+                                            <Plus size={20} className={`toggle-icon ${hubActiveSection === 'MONITOR' ? 'rotate' : ''}`} />
                                         </div>
 
-                                        {hubActiveSection === 'IDENTITY' && (
-                                            <div className="doc-hub-section-content" style={{ padding: '1.5rem', border: '1.5px solid #eef2f6', borderTop: 'none', borderRadius: '0 0 20px 20px' }}>
-                                                <div className="doc-edit-grid">
-                                                    <div className="doc-edit-field">
-                                                        <label>Full Name <span className="required">*</span></label>
-                                                        <div className="doc-field-input-wrap">
-                                                            <User size={16} className="doc-field-icon" />
-                                                            <input
-                                                                required
-                                                                placeholder="Dr. Deepak ..."
-                                                                value={doctorForm.name}
-                                                                onChange={(e) => setDoctorForm(f => ({ ...f, name: e.target.value }))}
-                                                                className="doc-field-input"
-                                                            />
+                                        {hubActiveSection === 'MONITOR' && (
+                                            <div className="doc-hub-section-content">
+                                                <div className="doc-api-grid-v2">
+                                                    <div className="action-card">
+                                                        <div className="card-head"><h4>Current Presence</h4><div className="dot"></div></div>
+                                                        <div className="doc-status-options">
+                                                            {STATUS_OPTIONS.map(s => {
+                                                                const sc = getStatusColor(s);
+                                                                const isActive = statusForm.status === s;
+                                                                return (
+                                                                    <button
+                                                                        key={s}
+                                                                        onClick={() => setStatusForm({ ...statusForm, status: s })}
+                                                                        className={`status-btn-mini ${isActive ? 'active' : ''}`}
+                                                                        style={{ '--btn-color': sc.color, '--btn-bg': sc.bg }}
+                                                                    >
+                                                                        {prettyStatus(s)}
+                                                                    </button>
+                                                                )
+                                                            })}
                                                         </div>
+                                                        <button
+                                                            className="btn-action-primary"
+                                                            onClick={() => runAvailabilityAction(() => patchDoctorAvailabilityStatus(viewingHubDoc.doctor_id, statusForm), 'Status updated')}
+                                                        >
+                                                            Update Presence
+                                                        </button>
                                                     </div>
-                                                    <div className="doc-edit-field">
-                                                        <label>Speciality <span className="required">*</span></label>
-                                                        <div className="doc-field-input-wrap">
-                                                            <Activity size={16} className="doc-field-icon" />
-                                                            <input
-                                                                required
-                                                                placeholder="e.g. Pediatrics"
-                                                                value={doctorForm.speciality}
-                                                                onChange={(e) => setDoctorForm(f => ({ ...f, speciality: e.target.value }))}
-                                                                className="doc-field-input"
-                                                            />
+
+                                                    <div className="action-card">
+                                                        <div className="card-head"><h4>Delay Management</h4><div className="dot eta"></div></div>
+                                                        <div className="form-row-compact">
+                                                            <div className="doc-edit-field" style={{ flex: 1 }}>
+                                                                <input type="number" placeholder="Mins Late" value={etaForm.eta_minutes} onChange={(e) => setEtaForm({ ...etaForm, eta_minutes: e.target.value })} className="doc-field-input" />
+                                                            </div>
+                                                            <div className="doc-edit-field" style={{ flex: 2 }}>
+                                                                <input placeholder="ETA Time (e.g. 11:30 AM)" value={etaForm.eta_time} onChange={(e) => setEtaForm({ ...etaForm, eta_time: e.target.value })} className="doc-field-input" />
+                                                            </div>
                                                         </div>
+                                                        <button
+                                                            className="btn-action-primary"
+                                                            onClick={() => runAvailabilityAction(() => patchDoctorAvailabilityEta(viewingHubDoc.doctor_id, {
+                                                                eta_minutes: Number(etaForm.eta_minutes) || 0,
+                                                                eta_time: etaForm.eta_time || null
+                                                            }), 'ETA synchronized')}
+                                                        >
+                                                            Broadcast Delay
+                                                        </button>
                                                     </div>
-                                                    <div className="doc-edit-field">
-                                                        <label>Qualification</label>
-                                                        <div className="doc-field-input-wrap">
-                                                            <Shield size={16} className="doc-field-icon" />
-                                                            <input
-                                                                placeholder="MBBS, MD"
-                                                                value={doctorForm.qualification}
-                                                                onChange={(e) => setDoctorForm(f => ({ ...f, qualification: e.target.value }))}
-                                                                className="doc-field-input"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div className="doc-edit-field">
-                                                        <label>Total Experience</label>
-                                                        <div className="doc-field-input-wrap">
-                                                            <History size={16} className="doc-field-icon" />
-                                                            <input
-                                                                placeholder="10 years"
-                                                                value={doctorForm.experience}
-                                                                onChange={(e) => setDoctorForm(f => ({ ...f, experience: e.target.value }))}
-                                                                className="doc-field-input"
-                                                            />
+
+                                                    <div className="action-card full-span" style={{ background: '#f5f3ff', border: '1.5px dashed #c7d2fe' }}>
+                                                        <div className="card-head"><h4>Patient Notifications (WhatsApp)</h4><div className="dot indigo"></div></div>
+                                                        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                                                            <div style={{ flex: 1 }}>
+                                                                <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#4338ca', textTransform: 'uppercase' }}>Delay Minutes</label>
+                                                                <input type="number" value={delayNotifyForm.delay_minutes} onChange={(e) => setDelayNotifyForm({ ...delayNotifyForm, delay_minutes: e.target.value })} className="doc-field-input" style={{ marginTop: '0.4rem' }} />
+                                                            </div>
+                                                            <button
+                                                                className="btn-action-primary"
+                                                                style={{ marginTop: '1.2rem', background: '#4338ca', flex: 2 }}
+                                                                onClick={() => runAvailabilityAction(() => notifyDelay({
+                                                                    doctor_id: viewingHubDoc.doctor_id,
+                                                                    date: selectedDate,
+                                                                    delay_minutes: Number(delayNotifyForm.delay_minutes)
+                                                                }), 'Alerts Sent')}
+                                                            >
+                                                                Alert {availability?.queue?.total || dashboard?.queue_summary?.total || 0} Waiting Patients
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         )}
                                     </div>
+                                )}
 
-                                    {/* Section: SCHEDULING */}
-                                    <div className={`doc-hub-section ${hubActiveSection === 'SCHEDULE' ? 'expanded' : ''}`} style={{ marginTop: '1rem' }}>
-                                        <div className="doc-hub-section-header" onClick={() => toggleHubSection('SCHEDULE')}>
-                                            <div className="header-left">
-                                                <Clock3 size={20} />
-                                                <span>Scheduling & Token Limits</span>
+                                {/* Section: IDENTITY DETAILS */}
+                                <div className={`doc-hub-section ${hubActiveSection === 'IDENTITY' ? 'expanded' : ''}`}>
+                                    <div className="doc-hub-section-header" onClick={() => toggleHubSection('IDENTITY')}>
+                                        <div className="header-left">
+                                            <div className="icon-circle-v2">
+                                                <User size={20} />
                                             </div>
-                                            <Plus size={18} className={`toggle-icon ${hubActiveSection === 'SCHEDULE' ? 'rotate' : ''}`} />
+                                            <span>Practitioner Identity</span>
+                                        </div>
+                                        <Plus size={20} className={`toggle-icon ${hubActiveSection === 'IDENTITY' ? 'rotate' : ''}`} />
+                                    </div>
+
+                                    {hubActiveSection === 'IDENTITY' && (
+                                        <div className="doc-hub-section-content">
+                                            <div className="doc-edit-grid">
+                                                <div className="doc-edit-field">
+                                                    <label>Full Name <span className="required">*</span></label>
+                                                    <div className="doc-field-input-wrap">
+                                                        <User size={16} className="doc-field-icon" />
+                                                        <input required placeholder="Dr. Full Name" value={doctorForm.name} onChange={(e) => setDoctorForm(f => ({ ...f, name: e.target.value }))} className="doc-field-input" />
+                                                    </div>
+                                                </div>
+                                                <div className="doc-edit-field">
+                                                    <label>Speciality <span className="required">*</span></label>
+                                                    <div className="doc-field-input-wrap">
+                                                        <Activity size={16} className="doc-field-icon" />
+                                                        <input required placeholder="e.g. Pediatrics" value={doctorForm.speciality} onChange={(e) => setDoctorForm(f => ({ ...f, speciality: e.target.value }))} className="doc-field-input" />
+                                                    </div>
+                                                </div>
+                                                <div className="doc-edit-field">
+                                                    <label>Qualification</label>
+                                                    <div className="doc-field-input-wrap">
+                                                        <Shield size={16} className="doc-field-icon" />
+                                                        <input placeholder="MBBS, MD" value={doctorForm.qualification} onChange={(e) => setDoctorForm(f => ({ ...f, qualification: e.target.value }))} className="doc-field-input" />
+                                                    </div>
+                                                </div>
+                                                <div className="doc-edit-field">
+                                                    <label>Experience</label>
+                                                    <div className="doc-field-input-wrap">
+                                                        <History size={16} className="doc-field-icon" />
+                                                        <input placeholder="10+ Years" value={doctorForm.experience} onChange={(e) => setDoctorForm(f => ({ ...f, experience: e.target.value }))} className="doc-field-input" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Section: SCHEDULING */}
+                                <div className={`doc-hub-section ${hubActiveSection === 'SCHEDULE' ? 'expanded' : ''}`}>
+                                    <div className="doc-hub-section-header" onClick={() => toggleHubSection('SCHEDULE')}>
+                                        <div className="header-left">
+                                            <div className="icon-circle-v2">
+                                                <Clock3 size={20} />
+                                            </div>
+                                            <span>Session Schedule & Limits</span>
+                                        </div>
+                                        <Plus size={20} className={`toggle-icon ${hubActiveSection === 'SCHEDULE' ? 'rotate' : ''}`} />
+                                    </div>
+
+                                    {hubActiveSection === 'SCHEDULE' && (
+                                        <div className="doc-hub-section-content">
+                                            {configLoading ? (
+                                                <div style={{ textAlign: 'center', padding: '3rem' }}>
+                                                    <RefreshCw size={32} className="spinning" color="#6366f1" />
+                                                </div>
+                                            ) : (
+                                                <div className="doc-token-config-table-wrap">
+                                                    <table className="doc-token-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Working Day</th>
+                                                                <th>Status</th>
+                                                                <th>Start Time</th>
+                                                                <th>Online Limit</th>
+                                                                <th>Walk-in</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {DAY_NAMES.map(day => {
+                                                                const dayConf = weeklyConfig?.[day] || { is_active: false, start_time: '10:00', online_limit: 0 };
+                                                                return (
+                                                                    <tr key={day} className={dayConf.is_active ? '' : 'row-disabled'}>
+                                                                        <td className="day-name">{day.charAt(0).toUpperCase() + day.slice(1)}</td>
+                                                                        <td>
+                                                                            <button
+                                                                                type="button"
+                                                                                className={`status-toggle-mini ${dayConf.is_active ? 'active' : ''}`}
+                                                                                onClick={() => {
+                                                                                    setWeeklyConfig(prev => ({
+                                                                                        ...prev,
+                                                                                        [day]: { ...prev[day], is_active: !prev[day]?.is_active }
+                                                                                    }));
+                                                                                }}
+                                                                            >
+                                                                                {dayConf.is_active ? 'ENABLED' : 'DISABLED'}
+                                                                            </button>
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="time" value={dayConf.start_time || '10:00'} onChange={(e) => setWeeklyConfig(prev => ({ ...prev, [day]: { ...prev[day], start_time: e.target.value } }))} disabled={!dayConf.is_active} className="doc-field-input" style={{ height: '36px', padding: '0 0.5rem' }} />
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" value={dayConf.online_limit || 0} onChange={(e) => setWeeklyConfig(prev => ({ ...prev, [day]: { ...prev[day], online_limit: parseInt(e.target.value) || 0 } }))} disabled={!dayConf.is_active} min="0" className="doc-field-input" style={{ height: '36px', width: '80px', padding: '0 0.5rem' }} />
+                                                                        </td>
+                                                                        <td><span style={{ fontWeight: 800, color: '#10b981', fontSize: '0.75rem' }}>UNLIMITED</span></td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Section: PERFORMANCE */}
+                                {editingId && (
+                                    <div className={`doc-hub-section ${hubActiveSection === 'HISTORY' ? 'expanded' : ''}`}>
+                                        <div className="doc-hub-section-header" onClick={() => toggleHubSection('HISTORY')}>
+                                            <div className="header-left">
+                                                <div className="icon-circle-v2">
+                                                    <BarChart2 size={20} />
+                                                </div>
+                                                <span>Performance & Insights (60D)</span>
+                                            </div>
+                                            <Plus size={20} className={`toggle-icon ${hubActiveSection === 'HISTORY' ? 'rotate' : ''}`} />
                                         </div>
 
-                                        {hubActiveSection === 'SCHEDULE' && (
-                                            <div className="doc-hub-section-content" style={{ padding: '1.5rem', border: '1.5px solid #eef2f6', borderTop: 'none', borderRadius: '0 0 20px 20px' }}>
-                                                {configLoading ? (
-                                                    <div className="modal-loading" style={{ height: '200px' }}>
-                                                        <RefreshCw size={24} className="spinning" />
+                                        {hubActiveSection === 'HISTORY' && (
+                                            <div className="doc-hub-section-content">
+                                                {historyLoading ? (
+                                                    <div style={{ textAlign: 'center', padding: '3rem' }}>
+                                                        <RefreshCw size={32} className="spinning" color="#6366f1" />
                                                     </div>
+                                                ) : doctorHistory ? (
+                                                    <>
+                                                        <div className="doc-history-summary">
+                                                            <div className="history-stat-pill indigo">
+                                                                <span className="history-stat-label">Total Sessions</span>
+                                                                <span className="history-stat-value">{doctorHistory.summary?.total_days || 0}</span>
+                                                            </div>
+                                                            <div className="history-stat-pill emerald">
+                                                                <span className="history-stat-label">Total Patient Base</span>
+                                                                <span className="history-stat-value">{doctorHistory.summary?.total_patients || 0}</span>
+                                                            </div>
+                                                            <div className="history-stat-pill amber">
+                                                                <span className="history-stat-label">Avg Attendance</span>
+                                                                <span className="history-stat-value">{doctorHistory.summary?.avg_patients_per_day || 0}</span>
+                                                            </div>
+                                                            <div className="history-stat-pill slate">
+                                                                <span className="history-stat-label">Peak Inflow</span>
+                                                                <span className="history-stat-value">{doctorHistory.summary?.max_patients || doctorHistory.summary?.peak_attendance || 0}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Session Breakdown Section */}
+                                                        <div style={{ marginTop: '3rem' }}>
+                                                            <h4 style={{ fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', color: '#64748b', marginBottom: '1.25rem', letterSpacing: '0.05em' }}>
+                                                                Session breakdown
+                                                            </h4>
+                                                            {doctorHistory.history && doctorHistory.history.length > 0 ? (
+                                                                <div className="doc-history-table-wrap">
+                                                                    <table className="doc-history-table">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Session Date</th>
+                                                                                <th>Status</th>
+                                                                                <th>Patients Served</th>
+                                                                                <th>Completion Rate</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {doctorHistory.history.map((row, idx) => (
+                                                                                <tr key={idx}>
+                                                                                    <td style={{ fontWeight: 700 }}>{row.date ? new Date(row.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Unknown'}</td>
+                                                                                    <td><span className={`p-pill ${row.status === 'COMPLETED' ? 'success' : ''}`}>{row.status || 'N/A'}</span></td>
+                                                                                    <td style={{ fontWeight: 900, color: '#6366f1' }}>{row.visit_count || row.patients || 0}</td>
+                                                                                    <td>{Math.min(100, Math.round(((row.visit_count || 0) / 20) * 100))}%</td>
+                                                                                </tr>
+                                                                            ))}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            ) : (
+                                                                <div style={{ padding: '2rem', background: '#f8fafc', borderRadius: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.9rem' }}>
+                                                                    No individual session data recorded for this period.
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </>
                                                 ) : (
-                                                    <div className="doc-token-config-table-wrap">
-                                                        <table className="doc-token-table">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>Day</th>
-                                                                    <th>Status</th>
-                                                                    <th>Start Time</th>
-                                                                    <th>Online Limit</th>
-                                                                    <th>Walk-in</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {DAY_NAMES.map(day => {
-                                                                    const dayConf = weeklyConfig?.[day] || { is_active: false, start_time: '10:00', online_limit: 0 };
-                                                                    return (
-                                                                        <tr key={day} className={dayConf.is_active ? '' : 'row-disabled'}>
-                                                                            <td className="day-name">{day.charAt(0).toUpperCase() + day.slice(1, 3)}</td>
-                                                                            <td>
-                                                                                <button
-                                                                                    type="button"
-                                                                                    className={`status-toggle-mini ${dayConf.is_active ? 'active' : ''}`}
-                                                                                    onClick={() => {
-                                                                                        setWeeklyConfig(prev => ({
-                                                                                            ...prev,
-                                                                                            [day]: { ...prev[day], is_active: !prev[day]?.is_active }
-                                                                                        }));
-                                                                                    }}
-                                                                                >
-                                                                                    {dayConf.is_active ? 'Work' : 'Off'}
-                                                                                </button>
-                                                                            </td>
-                                                                            <td>
-                                                                                <input
-                                                                                    type="time"
-                                                                                    value={dayConf.start_time || '10:00'}
-                                                                                    onChange={(e) => {
-                                                                                        setWeeklyConfig(prev => ({
-                                                                                            ...prev,
-                                                                                            [day]: { ...prev[day], start_time: e.target.value }
-                                                                                        }));
-                                                                                    }}
-                                                                                    disabled={!dayConf.is_active}
-                                                                                />
-                                                                            </td>
-                                                                            <td>
-                                                                                <input
-                                                                                    type="number"
-                                                                                    value={dayConf.online_limit || 0}
-                                                                                    onChange={(e) => {
-                                                                                        setWeeklyConfig(prev => ({
-                                                                                            ...prev,
-                                                                                            [day]: { ...prev[day], online_limit: parseInt(e.target.value) || 0 }
-                                                                                        }));
-                                                                                    }}
-                                                                                    disabled={!dayConf.is_active}
-                                                                                    min="0"
-                                                                                    className="num-input-mini"
-                                                                                />
-                                                                            </td>
-                                                                            <td><span className="badge-walkin-mini">FREE</span></td>
-                                                                        </tr>
-                                                                    );
-                                                                })}
-                                                            </tbody>
-                                                        </table>
+                                                    <div style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>
+                                                        <p>No historical data available for this practitioner yet.</p>
                                                     </div>
                                                 )}
                                             </div>
                                         )}
                                     </div>
-
-                                    {/* Section: HISTORY */}
-                                    {editingId && (
-                                        <div className={`doc-hub-section ${hubActiveSection === 'HISTORY' ? 'expanded' : ''}`} style={{ marginTop: '1rem' }}>
-                                            <div className="doc-hub-section-header" onClick={() => toggleHubSection('HISTORY')}>
-                                                <div className="header-left">
-                                                    <BarChart2 size={20} />
-                                                    <span>Performance Overview (Last 60 Days)</span>
-                                                </div>
-                                                <Plus size={18} className={`toggle-icon ${hubActiveSection === 'HISTORY' ? 'rotate' : ''}`} />
-                                            </div>
-
-                                            {hubActiveSection === 'HISTORY' && (
-                                                <div className="doc-hub-section-content" style={{ padding: '1.5rem', border: '1.5px solid #eef2f6', borderTop: 'none', borderRadius: '0 0 20px 20px' }}>
-                                                    {historyLoading ? (
-                                                        <div className="modal-loading" style={{ height: '200px' }}>
-                                                            <RefreshCw size={24} className="spinning" />
-                                                        </div>
-                                                    ) : (
-                                                        doctorHistory ? (
-                                                            <>
-                                                                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(135deg,#6366f1,#818cf8)', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem' }}>
-                                                                        <CalendarIcon size={14} />
-                                                                        {doctorHistory.summary?.total_days || 0} Sessions
-                                                                    </div>
-                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(135deg,#10b981,#34d399)', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem' }}>
-                                                                        <Users size={14} />
-                                                                        {doctorHistory.summary?.avg_patients_per_day || 0} Avg/Day
-                                                                    </div>
-                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(135deg,#f59e0b,#fbbf24)', color: '#fff', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: '600', fontSize: '0.85rem' }}>
-                                                                        <TrendingUp size={14} />
-                                                                        Peak: {doctorHistory.summary?.max_patients || 0} Patients
-                                                                    </div>
-                                                                </div>
-                                                            </>
-                                                        ) : (
-                                                            <p style={{ textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>No history available for this period.</p>
-                                                        )
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>
