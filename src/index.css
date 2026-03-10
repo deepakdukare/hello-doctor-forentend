@@ -15063,11 +15063,11 @@ input:checked+.slider-premium:before {
 
 .select-v3-iconic {
   width: 100%;
-  padding: 0.85rem 1rem 0.85rem 3rem;
-  border-radius: 14px;
-  border: 2px solid #f1f5f9;
+  padding: 0.65rem 1rem 0.65rem 3rem;
+  border-radius: 12px;
+  border: 1.5px solid #f1f5f9;
   background: #f8fafc;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #1e293b;
   appearance: none;
@@ -15084,11 +15084,11 @@ input:checked+.slider-premium:before {
 
 .input-v3-iconic {
   width: 100%;
-  padding: 0.85rem 1rem 0.85rem 3rem;
-  border-radius: 14px;
-  border: 2px solid #f1f5f9;
+  padding: 0.65rem 1rem 0.65rem 3rem;
+  border-radius: 12px;
+  border: 1.5px solid #f1f5f9;
   background: #f8fafc;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #1e293b;
   outline: none;
@@ -15102,9 +15102,9 @@ input:checked+.slider-premium:before {
 
 .token-availability-v3 {
   background: #fff;
-  border-radius: 20px;
-  border: 2px solid #eef2ff;
-  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1.5px solid #eef2ff;
+  padding: 1.25rem;
 }
 
 .token-header {
@@ -15156,7 +15156,7 @@ input:checked+.slider-premium:before {
 }
 
 .token-stat-card .stat-value {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 900;
   color: #1e293b;
 }
@@ -15225,7 +15225,7 @@ input:checked+.slider-premium:before {
 }
 
 .p-name-premium {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 900;
   color: #1e293b;
 }

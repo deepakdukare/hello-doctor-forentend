@@ -664,17 +664,17 @@ const Appointments = () => {
                     </>
                 ) : (
                     <div className="authorizer-panel-premium">
-                        <div className="authorizer-header-v3">
+                        <div className="authorizer-header-v3" style={{ padding: '1.25rem 1.5rem 0.75rem' }}>
                             <div className="header-flex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div className="header-text">
-                                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1e293b', marginBottom: '4px' }}>{editMode ? 'Modify Reservation' : 'Schedule New Visit'}</h2>
+                                    <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#1e293b', marginBottom: '2px' }}>{editMode ? 'Modify Reservation' : 'Schedule New Visit'}</h2>
                                 </div>
-                                <button className="close-btn-v3" onClick={() => setActiveView('queue')}><XCircle size={24} /></button>
+                                <button className="close-btn-v3" style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }} onClick={() => setActiveView('queue')}><XCircle size={20} /></button>
                             </div>
                         </div>
 
-                        <div className="modal-stepper-v3" style={{ padding: '0 2.5rem 1.5rem', background: '#fff', borderBottom: '1px solid #f1f5f9' }}>
-                            <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <div className="modal-stepper-v3" style={{ padding: '0 1.5rem 0.75rem', background: '#fff', borderBottom: '1px solid #f1f5f9' }}>
+                            <h3 style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                 {activeTab === 'patient' ? 'Identity Verification' : activeTab === 'new-patient' ? 'Patient Enrollment' : 'Visit Parameters'}
                             </h3>
                         </div>
@@ -736,13 +736,13 @@ const Appointments = () => {
                                                     style={{
                                                         display: 'flex',
                                                         alignItems: 'center',
-                                                        padding: '10px 14px',
+                                                        padding: '8px 12px',
                                                         backgroundColor: '#fff',
                                                         border: '1px solid #e5e7eb',
                                                         borderRadius: '8px',
                                                         cursor: 'pointer',
                                                         transition: 'all 0.2s',
-                                                        gap: '10px'
+                                                        gap: '8px'
                                                     }}
                                                     onMouseEnter={(e) => {
                                                         e.currentTarget.style.borderColor = '#6366f1';
@@ -837,20 +837,20 @@ const Appointments = () => {
                                 </form>
                             ) : (
                                 <form onSubmit={handleFormSubmit} className="wizard-form-v3" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                    <div className="selected-patient-v3" style={{ backgroundColor: '#EEF2FF', padding: '16px', borderRadius: '16px', border: '1.5px solid #E0E7FF' }}>
+                                    <div className="selected-patient-v3" style={{ backgroundColor: '#EEF2FF', padding: '12px', borderRadius: '14px', border: '1.5px solid #E0E7FF' }}>
                                         <div className="p-banner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <div className="p-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                <div className="p-avatar-circle" style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4F46E5', boxShadow: '0 2px 6px rgba(79, 70, 229, 0.1)' }}>
-                                                    <User size={24} />
+                                            <div className="p-info" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                <div className="p-avatar-circle" style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4F46E5', boxShadow: '0 2px 4px rgba(79, 70, 229, 0.1)' }}>
+                                                    <User size={20} />
                                                 </div>
                                                 <div className="p-text">
-                                                    <div className="p-name-premium" style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>{removeSalutation(selectedPatient?.child_name)}</div>
-                                                    <div className="p-id-premium" style={{ fontSize: '12px', color: '#6366f1', fontWeight: 600 }}>Patient ID: {selectedPatient?.patient_id}</div>
+                                                    <div className="p-name-premium" style={{ fontSize: '13px', fontWeight: 850, color: '#1e293b' }}>{removeSalutation(selectedPatient?.child_name)}</div>
+                                                    <div className="p-id-premium" style={{ fontSize: '11px', color: '#6366f1', fontWeight: 700 }}>Patient ID: {selectedPatient?.patient_id}</div>
                                                 </div>
                                             </div>
                                             {!editMode && (
-                                                <button type="button" onClick={() => setActiveTab('patient')} style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#fff', border: '1px solid #E0E7FF', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, color: '#4F46E5', cursor: 'pointer' }}>
-                                                    <Edit2 size={14} />
+                                                <button type="button" onClick={() => setActiveTab('patient')} style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#fff', border: '1px solid #E0E7FF', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, color: '#4F46E5', cursor: 'pointer' }}>
+                                                    <Edit2 size={12} />
                                                     <span>Change</span>
                                                 </button>
                                             )}
@@ -868,7 +868,7 @@ const Appointments = () => {
                                                         const doc = doctors.find(d => d.doctor_id === e.target.value);
                                                         setForm({ ...form, doctor_id: e.target.value, doctor_name: getDoctorDisplayName(doc) });
                                                     }}
-                                                    style={{ width: '100%', height: '52px', paddingLeft: '48px', paddingRight: '16px', borderRadius: '12px', border: '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: 600, color: '#1e293b', outline: 'none', appearance: 'none' }}
+                                                    style={{ width: '100%', height: '42px', paddingLeft: '40px', paddingRight: '12px', borderRadius: '10px', border: '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '13px', fontWeight: 700, color: '#1e293b', outline: 'none', appearance: 'none' }}
                                                 >
                                                     <option value="" disabled>Select Provider</option>
                                                     {doctors.map(doc => <option key={doc.doctor_id} value={doc.doctor_id}>{getDoctorDisplayName(doc)}</option>)}
@@ -880,32 +880,32 @@ const Appointments = () => {
                                         <div className="f-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                             <label style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Visit Date</label>
                                             <div className="input-with-icon" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                                                <CalendarIcon size={18} style={{ position: 'absolute', left: '16px', color: '#94a3b8' }} />
+                                                <CalendarIcon size={16} style={{ position: 'absolute', left: '14px', color: '#94a3b8' }} />
                                                 <input
                                                     type="date"
                                                     value={form.appointment_date}
                                                     onChange={e => setForm({ ...form, appointment_date: e.target.value })}
-                                                    style={{ width: '100%', height: '52px', paddingLeft: '48px', paddingRight: '16px', borderRadius: '12px', border: '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: 600, color: '#1e293b', outline: 'none' }}
+                                                    style={{ width: '100%', height: '42px', paddingLeft: '40px', paddingRight: '12px', borderRadius: '10px', border: '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '13px', fontWeight: 700, color: '#1e293b', outline: 'none' }}
                                                 />
                                             </div>
                                         </div>
 
                                         <div className="f-group full-span" style={{ gridColumn: 'span 2' }}>
-                                            <div className="token-availability-v3 card-premium-v3" style={{ backgroundColor: '#fff', border: '1.5px solid #eef2ff', borderRadius: '16px', padding: '20px' }}>
+                                            <div className="token-availability-v3 card-premium-v3" style={{ backgroundColor: '#fff', border: '1.5px solid #eef2ff', borderTop: '4px solid #6366f1', borderRadius: '14px', padding: '14px' }}>
                                                 <div className="token-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                                    <h3 style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Token Inventory Status</h3>
-                                                    {tokensLoading && <RefreshCw size={16} style={{ color: '#6366f1' }} className="animate-spin" />}
+                                                    <h3 style={{ fontSize: '11px', fontWeight: 950, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Token Status</h3>
+                                                    {tokensLoading && <RefreshCw size={14} style={{ color: '#6366f1' }} className="animate-spin" />}
                                                 </div>
 
                                                 {availableTokens ? (
                                                     <div className="token-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-                                                        <div className="token-stat-card walkin active-pool" style={{ gridColumn: 'span 2', padding: '16px', backgroundColor: '#f0fdf9', border: '1.5px solid #ccfbf1', borderRadius: '12px', textAlign: 'center' }}>
-                                                            <div style={{ fontSize: '11px', fontWeight: 700, color: '#0d9488', textTransform: 'uppercase', marginBottom: '4px' }}>Walk-in Pool (Next Available Token)</div>
-                                                            <div style={{ fontSize: '32px', fontWeight: 900, color: '#134e4a' }}>#{availableTokens.walkin_next_token || '--'}</div>
+                                                        <div className="token-stat-card walkin active-pool" style={{ gridColumn: 'span 2', padding: '12px', backgroundColor: '#f0fdf9', border: '1.5px solid #ccfbf1', borderRadius: '10px', textAlign: 'center' }}>
+                                                            <div style={{ fontSize: '10px', fontWeight: 800, color: '#0d9488', textTransform: 'uppercase', marginBottom: '2px' }}>Walk-in Token</div>
+                                                            <div style={{ fontSize: '24px', fontWeight: 950, color: '#134e4a' }}>#{availableTokens.walkin_next_token || '--'}</div>
                                                         </div>
-                                                        <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '13px', color: '#64748b', fontWeight: 600, marginTop: '8px' }}>
-                                                            <Clock size={14} />
-                                                            <span>Shift Start Time: {availableTokens.start_time || '--:--'}</span>
+                                                        <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '11px', color: '#94a3b8', fontWeight: 700, marginTop: '4px' }}>
+                                                            <Clock size={12} />
+                                                            <span>Shift Start: {availableTokens.start_time || '--:--'}</span>
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -924,7 +924,7 @@ const Appointments = () => {
                                                 <select
                                                     value={form.visit_category}
                                                     onChange={e => setForm({ ...form, visit_category: e.target.value })}
-                                                    style={{ width: '100%', height: '52px', paddingLeft: '48px', paddingRight: '16px', borderRadius: '12px', border: '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: 600, color: '#1e293b', outline: 'none', appearance: 'none' }}
+                                                    style={{ width: '100%', height: '42px', paddingLeft: '40px', paddingRight: '12px', borderRadius: '10px', border: '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '13px', fontWeight: 700, color: '#1e293b', outline: 'none', appearance: 'none' }}
                                                 >
                                                     <option value="First visit">First visit</option>
                                                     <option value="Follow-up">Follow-up</option>
@@ -943,19 +943,19 @@ const Appointments = () => {
                                                     placeholder="Reason for visit"
                                                     value={form.reason}
                                                     onChange={e => setForm({ ...form, reason: e.target.value })}
-                                                    style={{ width: '100%', height: '52px', paddingLeft: '48px', paddingRight: '16px', borderRadius: '12px', border: '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: 600, color: '#1e293b', outline: 'none' }}
+                                                    style={{ width: '100%', height: '42px', paddingLeft: '40px', paddingRight: '12px', borderRadius: '10px', border: '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '13px', fontWeight: 700, color: '#1e293b', outline: 'none' }}
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="wizard-footer-large" style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-                                        <button type="button" onClick={() => setActiveView('queue')} style={{ flex: 1, height: '52px', borderRadius: '12px', border: '1.5px solid #e2e8f0', backgroundColor: '#fff', fontSize: '15px', fontWeight: 700, color: '#475569', cursor: 'pointer' }}>
-                                            Discard Changes
+                                    <div className="wizard-footer-large" style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
+                                        <button type="button" onClick={() => setActiveView('queue')} style={{ flex: 1, height: '42px', borderRadius: '10px', border: '1.5px solid #e2e8f0', backgroundColor: '#fff', fontSize: '13px', fontWeight: 800, color: '#64748b', cursor: 'pointer' }}>
+                                            Discard
                                         </button>
-                                        <button type="submit" disabled={submitting} style={{ flex: 2, height: '52px', borderRadius: '12px', border: 'none', backgroundColor: '#6366f1', fontSize: '15px', fontWeight: 700, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 8px 16px rgba(99, 102, 241, 0.25)' }}>
-                                            {submitting ? <RefreshCw size={20} className="animate-spin" /> : <CheckCircle2 size={20} />}
-                                            <span>{editMode ? 'Update Record' : 'Confirm Authorization'}</span>
+                                        <button type="submit" disabled={submitting} style={{ flex: 2, height: '42px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', fontSize: '13px', fontWeight: 900, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)' }}>
+                                            {submitting ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                                            <span>{editMode ? 'Update Record' : 'Authorize Authorization'}</span>
                                         </button>
                                     </div>
                                 </form>
