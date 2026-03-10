@@ -671,20 +671,10 @@ const Appointments = () => {
                             </div>
                         </div>
 
-                        <div className="modal-stepper-v3" style={{ padding: '0 2.5rem 1.5rem', background: '#fff', borderBottom: '1px solid #f1f5f9', gap: '1.5rem' }}>
-                            <button className={`step-btn ${activeTab === 'patient' || activeTab === 'new-patient' ? 'active' : ''}`} onClick={() => !editMode && setActiveTab('patient')} style={{ color: activeTab === 'patient' || activeTab === 'new-patient' ? '#6366f1' : '#94a3b8', fontSize: '14px', fontWeight: 700, pointerEvents: editMode ? 'none' : 'auto' }}>
-                                <span className="step-num" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: (activeTab === 'patient' || activeTab === 'new-patient') ? '#eef2ff' : 'transparent', border: (activeTab === 'patient' || activeTab === 'new-patient') ? 'none' : '2px solid #cbd5e1', width: (activeTab === 'patient' || activeTab === 'new-patient') ? 'auto' : '26px', padding: (activeTab === 'patient' || activeTab === 'new-patient') ? '0 10px' : '0', height: '26px', borderRadius: '13px', color: (activeTab === 'patient' || activeTab === 'new-patient') ? '#6366f1' : '#94a3b8', fontSize: '11px', fontWeight: 800 }}>
-                                    {(activeTab === 'patient' || activeTab === 'new-patient') ? 'Step 1' : '1'}
-                                </span>
-                                <span>Identity Verification</span>
-                            </button>
-                            <div className="step-line" style={{ height: '2px', background: '#e2e8f0', width: '50px', flex: 'none' }}></div>
-                            <button className={`step-btn ${activeTab === 'visit' ? 'active' : ''}`} onClick={() => selectedPatient && setActiveTab('visit')} style={{ color: activeTab === 'visit' ? '#6366f1' : '#94a3b8', fontSize: '14px', fontWeight: 700, pointerEvents: !selectedPatient ? 'none' : 'auto' }}>
-                                <span className="step-num" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: activeTab === 'visit' ? '#eef2ff' : 'transparent', border: activeTab === 'visit' ? 'none' : '2px solid #cbd5e1', width: activeTab === 'visit' ? 'auto' : '26px', padding: activeTab === 'visit' ? '0 10px' : '0', height: '26px', borderRadius: '13px', color: activeTab === 'visit' ? '#6366f1' : '#94a3b8', fontSize: '11px', fontWeight: 800 }}>
-                                    {activeTab === 'visit' ? 'Step 2' : '2'}
-                                </span>
-                                <span>Visit Parameters</span>
-                            </button>
+                        <div className="modal-stepper-v3" style={{ padding: '0 2.5rem 1.5rem', background: '#fff', borderBottom: '1px solid #f1f5f9' }}>
+                            <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                {activeTab === 'patient' ? 'Identity Verification' : activeTab === 'new-patient' ? 'Patient Enrollment' : 'Visit Parameters'}
+                            </h3>
                         </div>
 
                         <div className="modal-body-v3">
