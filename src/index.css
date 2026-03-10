@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
 
 :root {
   --primary: #4f46e5;
@@ -496,11 +496,11 @@
 }
 
 .token-info-v4 {
-  background: #fff;
+  background: transparent;
   border-radius: 24px;
-  padding: 2rem;
-  border: 2px solid #eef2ff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+  padding: 0;
+  border: none;
+  box-shadow: none;
 }
 
 .token-header-v4 {
@@ -594,7 +594,7 @@
 /* Success Screen */
 .success-screen-v4 {
   text-align: center;
-  padding: 4rem 1rem;
+  padding: 0;
   animation: scaleUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -627,8 +627,8 @@
 }
 
 .patient-id-card-v4 {
-  background: #fff;
-  border: 2px solid #f1f5f9;
+  background: transparent;
+  border: 1px solid #e2e8f0;
   border-radius: 20px;
   padding: 1.5rem 2rem;
   display: flex;
@@ -694,10 +694,10 @@
 }
 
 .appt-card-v4 {
-  background: #fff;
+  background: transparent;
   padding: 1.25rem;
   border-radius: 20px;
-  border: 1.5px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -7017,7 +7017,7 @@ input:checked+.slider-premium:before {
 /* Success UI */
 .success-screen-v4 {
   text-align: center;
-  padding: 2rem 0;
+  padding: 0;
 }
 
 .success-blob {
@@ -7051,7 +7051,7 @@ input:checked+.slider-premium:before {
 }
 
 .patient-id-card-v4 {
-  background: #f1f5f9;
+  background: transparent;
   border-radius: 20px;
   padding: 1.5rem;
   margin: 0 auto 2.5rem;
@@ -7059,7 +7059,7 @@ input:checked+.slider-premium:before {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  border: 2px dashed #cbd5e1;
+  border: 1px solid #e2e8f0;
 }
 
 .id-label {
@@ -7111,7 +7111,7 @@ input:checked+.slider-premium:before {
 
 /* Reschedule UI */
 .reschedule-panel-v4 {
-  padding: 1rem 0;
+  padding: 0;
   width: 100%;
 }
 
@@ -14784,11 +14784,11 @@ input:checked+.slider-premium:before {
 }
 
 .token-info-v4 {
-  background: #fff;
+  background: transparent;
   border-radius: 24px;
-  padding: 2rem;
-  border: 2px solid #eef2ff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+  padding: 0;
+  border: none;
+  box-shadow: none;
 }
 
 .token-header-v4 {
@@ -14882,7 +14882,7 @@ input:checked+.slider-premium:before {
 /* Success Screen */
 .success-screen-v4 {
   text-align: center;
-  padding: 4rem 1rem;
+  padding: 0;
   animation: scaleUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -14915,8 +14915,8 @@ input:checked+.slider-premium:before {
 }
 
 .patient-id-card-v4 {
-  background: #fff;
-  border: 2px solid #f1f5f9;
+  background: transparent;
+  border: 1px solid #e2e8f0;
   border-radius: 20px;
   padding: 1.5rem 2rem;
   display: flex;
@@ -14982,10 +14982,10 @@ input:checked+.slider-premium:before {
 }
 
 .appt-card-v4 {
-  background: #fff;
+  background: transparent;
   padding: 1.25rem;
   border-radius: 20px;
-  border: 1.5px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;

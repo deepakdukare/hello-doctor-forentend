@@ -63,9 +63,7 @@ const PublicRegister = () => {
         gender: 'boy',
         dob: '',
         mother_name: '',
-        mother_mobile: '',
         father_name: '',
-        father_mobile: '',
         wa_id: '',
         comm_preference: 'WhatsApp',
         preferred_doctor: '',
@@ -262,7 +260,7 @@ const PublicRegister = () => {
 
         if (!patientForm.mother_name?.trim()) errors.mother_name = "Mother Name is required";
 
-        if (!patientForm.wa_id?.trim()) errors.wa_id = "WhatsApp Number is required";
+        if (!patientForm.wa_id?.trim()) errors.wa_id = "Mobile Number is required";
         else if (!phoneRegex.test(patientForm.wa_id)) errors.wa_id = "10-digit numeric required";
 
         if (!patientForm.email?.trim()) {
@@ -306,7 +304,7 @@ const PublicRegister = () => {
 
         let error = null;
         if (['first_name', 'last_name', 'father_name', 'mother_name', 'wa_id', 'preferred_doctor', 'gender', 'dob', 'email'].includes(name) && !value.trim()) {
-            const labelMap = { dob: 'Date of Birth', wa_id: 'WhatsApp Number', preferred_doctor: 'Preferred Doctor', email: 'Email Address' };
+            const labelMap = { dob: 'Date of Birth', wa_id: 'Mobile Number', preferred_doctor: 'Preferred Doctor', email: 'Email Address' };
             const label = labelMap[name] || name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
             error = `${label} is required`;
         } else if (name === 'first_name' || name === 'last_name') {
@@ -353,8 +351,6 @@ const PublicRegister = () => {
                 registration_source: patientForm.registration_source,
                 enrollment_option: patientForm.enrollment_option,
                 wa_id: patientForm.wa_id,
-                father_mobile: patientForm.father_mobile || null,
-                mother_mobile: patientForm.mother_mobile || null,
                 state: patientForm.state,
                 city: patientForm.city,
                 pincode: patientForm.pincode,
@@ -543,8 +539,8 @@ const PublicRegister = () => {
                                                 <div className="logo-box mini">
                                                     <img src="/logo.jpg" alt="DICC" />
                                                     <div className="logo-text">
-                                                        <span className="brand">DICC</span>
-                                                        <span className="sub">Pediatric Care Excellence</span>
+                                                        <span className="brand">Dr. Indu's</span>
+                                                        <span className="sub">New Born &<br/>Childcare<br/>Center</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -667,16 +663,6 @@ const PublicRegister = () => {
                                                     {regErrors.father_name && <p className="reg-err">{regErrors.father_name}</p>}
                                                 </div>
 
-                                                <div className="reg-field">
-                                                    <label className="reg-label">Father's Mobile</label>
-                                                    <input
-                                                        className="reg-input"
-                                                        name="father_mobile"
-                                                        placeholder="Full Name"
-                                                        value={patientForm.father_mobile || ''}
-                                                        onChange={e => setPatientForm({ ...patientForm, father_mobile: e.target.value.replace(/\D/g, '') })}
-                                                    />
-                                                </div>
 
                                                 <div className="reg-field">
                                                     <label className="reg-label">Mother's Name *</label>
@@ -691,16 +677,6 @@ const PublicRegister = () => {
                                                     {regErrors.mother_name && <p className="reg-err">{regErrors.mother_name}</p>}
                                                 </div>
 
-                                                <div className="reg-field">
-                                                    <label className="reg-label">Mother's Mobile</label>
-                                                    <input
-                                                        className="reg-input"
-                                                        name="mother_mobile"
-                                                        placeholder="Full Name"
-                                                        value={patientForm.mother_mobile || ''}
-                                                        onChange={e => setPatientForm({ ...patientForm, mother_mobile: e.target.value.replace(/\D/g, '') })}
-                                                    />
-                                                </div>
                                             </div>
 
                                             {/* â”€â”€ Contact & Location â”€â”€ */}
@@ -708,7 +684,7 @@ const PublicRegister = () => {
                                                 <h2 className="reg-section-title">Contact &amp; Location</h2>
 
                                                 <div className="reg-field">
-                                                    <label className="reg-label">WhatsApp ID / Mobile *</label>
+                                                    <label className="reg-label">Mobile Number *</label>
                                                     <input
                                                         className={`reg-input ${regErrors.wa_id || waIdValidation.error ? 'has-error' : ''}`}
                                                         name="wa_id"
@@ -943,14 +919,14 @@ const PublicRegister = () => {
                                                                     <div className="token-count-v4">#{availableTokens.online_next_token ?? '--'}</div>
                                                                     <div className="token-label-v4">Next Available Token</div>
                                                                     <div className="token-sub-v4">For {new Date(bookingForm.appointment_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</div>
-                                                                    <div className="token-sub-v4">Tokens Available Online: {availableTokens.online_tokens_remaining}</div>
+                                                                    <div className="token-sub-v4">Tokens Available Online for this date</div>
                                                                 </div>
 
                                                                 {availableTokens.online_tokens_remaining > 0 ? (
                                                                     <div className="token-instruction-v4">
                                                                         <CheckCircle className="text-success" size={20} />
                                                                         <span>
-                                                                            Confirmed: {availableTokens.online_tokens_remaining} tokens available for today/selected date.
+                                                                            Confirmed: Tokens available for today/selected date.
                                                                             Your next token is {availableTokens.online_next_token ?? '--'} and the exact token will be assigned upon confirmation.
                                                                         </span>
                                                                     </div>
@@ -975,7 +951,12 @@ const PublicRegister = () => {
                                                         <div className="emergency-alert-v4">
                                                             <div className="alert-content">
                                                                 <strong>Emergency?</strong>
-                                                                <p>If this is an emergency, please call the hospital directly at <b>+91-XXXXXXXXXX</b> to get the urgent appointment immediately.</p>
+                                                                <p>If this is an emergency, please get an urgent appointment immediately by calling:</p>
+                                                                <p style={{ marginTop: '0.4rem', fontWeight: 700 }}>
+                                                                    Main Line: 022-46057766<br />
+                                                                    Alternate: 022-46054411<br />
+                                                                    Mobile: 8779398681
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     </div>
