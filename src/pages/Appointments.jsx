@@ -673,11 +673,6 @@ const Appointments = () => {
                             </div>
                         </div>
 
-                        <div className="modal-stepper-v3" style={{ padding: '0 1.5rem 0.75rem', background: '#fff', borderBottom: '1px solid #f1f5f9' }}>
-                            <h3 style={{ fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                {activeTab === 'patient' ? 'Identity Verification' : activeTab === 'new-patient' ? 'Patient Enrollment' : 'Visit Parameters'}
-                            </h3>
-                        </div>
 
                         <div className="modal-body-v3">
                             {error && (

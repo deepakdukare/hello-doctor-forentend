@@ -50,11 +50,11 @@ const TokenRow = ({ token, onCheckin, onStatusChange, onNext, isNext }) => {
             <td>
                 <div className="patient-name">{removeSalutation(token.child_name || token.patient_name) || '—'}</div>
                 <div className="patient-id">{token.patient_id || ''}</div>
-                {!token.is_single_doctor && token.doctor_name && (
-                    <div className="doctor-name-pill">
-                        {token.doctor_name}
-                    </div>
-                )}
+            </td>
+            <td>
+                <div className="doctor-name-pill" style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '6px', background: '#f1f5f9', color: '#475569', fontSize: '11px', fontWeight: 700 }}>
+                    {token.doctor_name || '—'}
+                </div>
             </td>
             <td><div className="slot-label">{token.appointment_time || token.token_display || '—'}</div></td>
             <td>
@@ -380,41 +380,6 @@ const QueueDisplay = () => {
                 <StatBadge label="No Show" value={stats.noShow} color="#ef4444" isActive={statusFilter === 'NO_SHOW'} onClick={() => setStatusFilter('NO_SHOW')} />
             </div>
 
-            {/* Display board data */}
-            {displayData && (
-                <div className="display-hero">
-                    <Monitor size={28} style={{ opacity: 0.8 }} />
-                    <div>
-                        <div className="display-serving-label">Now Serving</div>
-                        <div className="display-serving-value">
-                            {displayData.current_token || displayData.now_serving || '—'}
-                        </div>
-                    </div>
-                    {displayData.next_token && (
-                        <>
-                            <ArrowRight size={20} style={{ opacity: 0.5 }} />
-                            <div>
-                                <div className="display-next-label">Up Next</div>
-                                <div className="display-next-value">{displayData.next_token}</div>
-                            </div>
-                        </>
-                    )}
-                    <div className="display-stats-wrap">
-                        {displayData.queue_length !== undefined && (
-                            <div className="display-stat-item">
-                                <div className="display-stat-num">{displayData.queue_length}</div>
-                                <div className="display-stat-label">In Queue</div>
-                            </div>
-                        )}
-                        {displayData.estimated_wait !== undefined && (
-                            <div className="display-stat-item">
-                                <div className="display-stat-num">{displayData.estimated_wait}m</div>
-                                <div className="display-stat-label">Est. Wait</div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
 
             {/* Table */}
             <div className="queue-table-card">
@@ -441,6 +406,7 @@ const QueueDisplay = () => {
                                 <tr>
                                     <th>Token</th>
                                     <th>Patient</th>
+                                    <th>Doctor</th>
                                     <th>Scheduled Time</th>
                                     <th>Status</th>
                                     <th>Actions</th>
