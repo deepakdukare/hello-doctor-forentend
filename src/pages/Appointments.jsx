@@ -838,9 +838,9 @@ const Appointments = () => {
                                                 <div className="p-avatar-circle" style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4F46E5', boxShadow: '0 2px 4px rgba(79, 70, 229, 0.1)' }}>
                                                     <User size={20} />
                                                 </div>
-                                                <div className="p-text">
-                                                    <div className="p-name-premium" style={{ fontSize: '13px', fontWeight: 850, color: '#1e293b' }}>{removeSalutation(selectedPatient?.child_name)}</div>
-                                                    <div className="p-id-premium" style={{ fontSize: '11px', color: '#6366f1', fontWeight: 700 }}>Patient ID: {selectedPatient?.patient_id}</div>
+                                                <div className="p-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <span className="p-name-premium" style={{ fontSize: '13px', fontWeight: 850, color: '#1e293b' }}>{removeSalutation(selectedPatient?.child_name)}</span>
+                                                    <span className="p-id-premium" style={{ fontSize: '11px', color: '#6366f1', fontWeight: 700 }}>• Patient ID: {selectedPatient?.patient_id}</span>
                                                 </div>
                                             </div>
                                             {!editMode && (
@@ -946,11 +946,11 @@ const Appointments = () => {
 
                                     <div className="wizard-footer-large" style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
                                         <button type="button" onClick={() => setActiveView('queue')} style={{ flex: 1, height: '42px', borderRadius: '10px', border: '1.5px solid #e2e8f0', backgroundColor: '#fff', fontSize: '13px', fontWeight: 800, color: '#64748b', cursor: 'pointer' }}>
-                                            Discard
+                                            Discard Changes
                                         </button>
                                         <button type="submit" disabled={submitting} style={{ flex: 2, height: '42px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', fontSize: '13px', fontWeight: 900, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)' }}>
                                             {submitting ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-                                            <span>{editMode ? 'Update Record' : 'Authorize Authorization'}</span>
+                                            <span>{editMode ? 'Update Record' : 'Confirm Appointment'}</span>
                                         </button>
                                     </div>
                                 </form>
