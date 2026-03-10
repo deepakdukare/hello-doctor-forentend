@@ -4,9 +4,10 @@ import {
     AlertCircle, Stethoscope, Baby, Users, Briefcase, Mail,
     Clock, Smartphone, MapPinned, ChevronRight, ChevronLeft,
     Check, RefreshCw, Activity, Clipboard, Edit2, Plus,
-    ArrowRight, Map, ShieldCheck, ArrowLeft, Zap, Shield, ChevronDown
+    ArrowRight, Map, ShieldCheck, ArrowLeft, Zap, Shield, ChevronDown, UserPlus, CalendarClock
 } from 'lucide-react';
 import { registerFromForm, bookByForm, getAvailableTokens, getDoctors, getReferringDoctors, getPatientByWa, getPatientByEmail, getAppointmentsByWaId, updateAppointment } from '../api/index';
+import '../glass-landing.css';
 
 const SALUTATIONS = ['Baby', 'Baby of', 'Mr.', 'Mrs.', 'Ms.', 'Master', 'Miss', 'Dr.'];
 const GENDERS = ['boy', 'girl'];
@@ -62,7 +63,9 @@ const PublicRegister = () => {
         gender: 'boy',
         dob: '',
         mother_name: '',
+        mother_mobile: '',
         father_name: '',
+        father_mobile: '',
         wa_id: '',
         comm_preference: 'WhatsApp',
         preferred_doctor: '',
@@ -70,7 +73,11 @@ const PublicRegister = () => {
         referred_by: '',
         enrollment_option: 'just_enroll',
         registration_source: 'form',
-        email: ''
+        email: '',
+        state: 'Maharashtra',
+        city: 'Mumbai',
+        pincode: '',
+        residential_address: ''
     });
 
     const [bookingForm, setBookingForm] = useState({
@@ -268,6 +275,11 @@ const PublicRegister = () => {
 
         if (!patientForm.preferred_doctor?.trim()) errors.preferred_doctor = "Doctor choice required";
 
+        if (!patientForm.city?.trim()) errors.city = "City is required";
+        if (!patientForm.pincode?.trim()) errors.pincode = "Pincode is required";
+        else if (!/^\d{6}$/.test(patientForm.pincode)) errors.pincode = "6-digit pincode required";
+        if (!patientForm.residential_address?.trim()) errors.residential_address = "Address is required";
+
         if (Object.keys(errors).length > 0) {
             setRegErrors(errors);
             // Scroll to first error
@@ -343,6 +355,12 @@ const PublicRegister = () => {
                 referred_by: patientForm.referred_by || null,
                 registration_source: patientForm.registration_source,
                 enrollment_option: patientForm.enrollment_option,
+                father_mobile: patientForm.father_mobile || null,
+                mother_mobile: patientForm.mother_mobile || null,
+                state: patientForm.state,
+                city: patientForm.city,
+                pincode: patientForm.pincode,
+                residential_address: patientForm.residential_address,
             };
 
             if (patientForm.email?.trim()) {
@@ -407,485 +425,662 @@ const PublicRegister = () => {
     };
 
     return (
-        <div className="landing-premium">
-            <div className="landing-background">
-                <div className="blob blob-1"></div>
-                <div className="blob blob-2"></div>
-                <div className="blob blob-3"></div>
-            </div>
+        <>
+            {step === 0 ? (
+                <div className="glass-landing-container">
+                    <div className="glass-content-wrapper">
+                        
+                        {/* Left Side: Hero Text */}
+                        <div className="glass-hero-section">
+                            <h1 className="glass-hero-title">
+                                Dr. Indu's<br/>
+                                New Born &<br/>
+                                Childcare<br/>
+                                Center
+                            </h1>
+                            <p className="glass-hero-subtitle">
+                                Welcome to a smarter way to manage your child's health. 
+                                Our modern portal gives you direct access to premium care, 
+                                scheduling, and medical records.
+                            </p>
+                            <button className="glass-hero-btn" onClick={() => { setIsNewPatient(true); setStep(1); }}>
+                                Register Now
+                            </button>
+                        </div>
 
-            <div className="landing-content">
-                <div className="landing-header">
-                    <div className="logo-box">
-                        <img src="/logo.jpg" alt="DICC" />
-                        <div className="logo-text">
-                            <span className="brand">DICC</span>
-                            <span className="sub">Pediatric Care Excellence</span>
+                        {/* Right Side: Action Cards */}
+                        <div className="glass-cards-container">
+                            
+                            {/* Card 1: New Registration */}
+                            <div className="glass-card">
+                                <div className="glass-card-icon">
+                                    <UserPlus />
+                                </div>
+                                <h3 className="glass-card-title">New Registration</h3>
+                                <p className="glass-card-desc">
+                                    Start your journey with us. Fill out your details once and gain access to our full suite of medical services.
+                                </p>
+                                <button className="glass-btn-full" onClick={() => { setIsNewPatient(true); setStep(1); }}>
+                                    Register Now
+                                </button>
+                            </div>
+
+                            {/* Card 2: Book Appointment */}
+                            <div className="glass-card">
+                                <div className="glass-card-icon">
+                                    <Calendar />
+                                </div>
+                                <h3 className="glass-card-title">Book Appointment</h3>
+                                <p className="glass-card-desc">
+                                    Have a patient record? Enter mobile number to book instantly.
+                                </p>
+                                <div className="glass-input-wrapper">
+                                    <input 
+                                        className="glass-input"
+                                        placeholder="Mobile Number" 
+                                        value={searchWaId}
+                                        onChange={e => setSearchWaId(e.target.value.replace(/\D/g, ''))}
+                                        onKeyDown={e => e.key === 'Enter' && checkMember(e)}
+                                    />
+                                </div>
+                                {verifyError && <div className="error-text-glass">{verifyError}</div>}
+                                <button className="glass-btn-full" onClick={checkMember} disabled={loading || !searchWaId}>
+                                    {loading ? <RefreshCw className="animate-spin" size={18} /> : 'Schedule Now'}
+                                </button>
+                            </div>
+
+                            {/* Card 3: Modify Visit */}
+                            <div className="glass-card">
+                                <div className="glass-card-icon">
+                                    <CalendarClock />
+                                </div>
+                                <h3 className="glass-card-title">Modify Visit</h3>
+                                <p className="glass-card-desc">
+                                    Need to change your time? Access your existing booking with your mobile number to reschedule.
+                                </p>
+                                <div className="glass-input-wrapper">
+                                    <input 
+                                        className="glass-input"
+                                        placeholder="Mobile Number" 
+                                        value={rescheduleWaId}
+                                        onChange={e => setRescheduleWaId(e.target.value.replace(/\D/g, ''))}
+                                        onKeyDown={e => e.key === 'Enter' && checkMember(e, 'reschedule')}
+                                    />
+                                </div>
+                                {rescheduleError && <div className="error-text-glass">{rescheduleError}</div>}
+                                <button className="glass-btn-full" onClick={e => checkMember(e, 'reschedule')} disabled={loading || !rescheduleWaId}>
+                                    {loading ? <RefreshCw className="animate-spin" size={18} /> : 'Manage Booking'}
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 </div>
+            ) : (
+                <div className="landing-premium">
+                    <div className="landing-background">
+                        <div className="blob blob-1"></div>
+                        <div className="blob blob-2"></div>
+                        <div className="blob blob-3"></div>
+                    </div>
 
-                <div className="main-stage-v4">
-                    {step === 0 && (
-                        <div className="home-hero-v4">
-                            <div className="hero-text-center">
-                                <h1>Welcome to Dr. Indu Child Care</h1>
-                                <p>Are you a registered patient or visiting for the first time?</p>
-                            </div>
-
-                            <div className="action-cards-v4">
-                                <div className="card-v4 new-reg" onClick={() => { setIsNewPatient(true); setStep(1); }}>
-                                    <div className="card-icon-box">
-                                        <Plus size={28} />
-                                    </div>
-                                    <div className="card-details-v4">
-                                        <h3>New Registration</h3>
-                                        <p>First time visiting our clinic? Register details & book an appointment.</p>
-                                    </div>
-                                    <ChevronRight className="card-arrow" />
-                                </div>
-
-                                <div className="card-v4 book-appt" onClick={e => e.stopPropagation()}>
-                                    <div className="card-icon-box purple">
-                                        <Calendar size={28} />
-                                    </div>
-                                    <div className="card-details-v4">
-                                        <h3>Book Appointment</h3>
-                                        <p>Have a patient record? Enter mobile number to book instantly.</p>
-                                        <div className="inline-verify-v4">
-                                            <input
-                                                placeholder=""
-                                                value={searchWaId}
-                                                onChange={e => setSearchWaId(e.target.value.replace(/\D/g, ''))}
-                                                onKeyDown={e => e.key === 'Enter' && checkMember(e)}
-                                            />
-                                            <button onClick={checkMember} disabled={loading || !searchWaId}>
-                                                {loading ? <RefreshCw className="animate-spin" size={18} /> : 'Book'}
-                                            </button>
-                                        </div>
-                                        {verifyError && <div className="error-text-mini">{verifyError}</div>}
-                                    </div>
-                                </div>
-
-                                <div className="card-v4 reschedule" onClick={e => e.stopPropagation()}>
-                                    <div className="card-icon-box orange">
-                                        <RefreshCw size={28} />
-                                    </div>
-                                    <div className="card-details-v4">
-                                        <h3>Reschedule Appointment</h3>
-                                        <p>Need to change time? Use your mobile to reschedule existing booking.</p>
-                                        <div className="inline-verify-v4">
-                                            <input
-                                                placeholder=""
-                                                value={rescheduleWaId}
-                                                onChange={e => setRescheduleWaId(e.target.value.replace(/\D/g, ''))}
-                                                onKeyDown={e => e.key === 'Enter' && checkMember(e, 'reschedule')}
-                                            />
-                                            <button className="btn-res" onClick={e => checkMember(e, 'reschedule')} disabled={loading || !rescheduleWaId}>
-                                                {loading ? <RefreshCw className="animate-spin" size={18} /> : 'Modify'}
-                                            </button>
-                                        </div>
-                                        {rescheduleError && <div className="error-text-mini">{rescheduleError}</div>}
-                                    </div>
+                    <div className="landing-content">
+                        <div className="landing-header">
+                            <div className="logo-box">
+                                <img src="/logo.jpg" alt="DICC" />
+                                <div className="logo-text">
+                                    <span className="brand">DICC</span>
+                                    <span className="sub">Pediatric Care Excellence</span>
                                 </div>
                             </div>
                         </div>
-                    )}
 
-                    {step > 0 && (
-                        <div className="step-container-v4">
-                            <div className="step-nav-header">
-                                <button className="btn-back-v4" onClick={() => {
-                                    if (step === 3) window.location.reload();
-                                    else if (step === 1) setStep(0);
-                                    else if (step === 2) isNewPatient ? setStep(1) : setStep(0);
-                                    else setStep(0);
-                                }}>
-                                    <ArrowLeft size={20} />
-                                    <span>Back</span>
-                                </button>
-                                {step < 3 && (
-                                    <div className="step-indicator-v4">
-                                        <div className={`ind-dot ${step === 1 ? 'active' : 'done'}`}>1</div>
-                                        <div className="ind-line"></div>
-                                        <div className={`ind-dot ${step === 2 ? 'active' : step > 2 ? 'done' : ''}`}>2</div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {error && <div className="global-alert-v4 error"><AlertCircle size={20} /> {error}</div>}
-
-                            {step === 1 && (
-                                <form onSubmit={handleRegistration} className="premium-scroll-form">
-                                    <div className="form-section-v4">
-                                        <div className="sec-title-v4">
-                                            <div className="sec-icon-circle"><Baby size={22} /></div>
-                                            <h2>Child Identification</h2>
-                                        </div>
-
-                                        <div className="grid-v4">
-                                            <div className="f-group-v4">
-                                                <label>Salutation</label>
-                                                <div className="sel-wrap-v4">
-                                                    <select value={patientForm.salutation} onBlur={handleBlur} name="salutation" onChange={e => setPatientForm({ ...patientForm, salutation: e.target.value })}>
-                                                        {SALUTATIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                                                    </select>
-                                                    <ChevronDown size={18} className="arrow-v4" />
-                                                </div>
-                                            </div>
-                                            <div className="f-group-v4 col-2">
-                                                <label>First Name *</label>
-                                                <input name="first_name" placeholder="" value={patientForm.first_name} onBlur={handleBlur} onChange={e => setPatientForm({ ...patientForm, first_name: e.target.value })} className={regErrors.first_name ? 'error' : ''} />
-                                                {regErrors.first_name && <p className="err-v4">{regErrors.first_name}</p>}
-                                            </div>
-                                            <div className="f-group-v4">
-                                                <label>Middle Name</label>
-                                                <input name="middle_name" placeholder="" value={patientForm.middle_name} onBlur={handleBlur} onChange={e => setPatientForm({ ...patientForm, middle_name: e.target.value })} />
-                                            </div>
-                                            <div className="f-group-v4">
-                                                <label>Last Name *</label>
-                                                <input name="last_name" placeholder="" value={patientForm.last_name} onBlur={handleBlur} onChange={e => setPatientForm({ ...patientForm, last_name: e.target.value })} className={regErrors.last_name ? 'error' : ''} />
-                                                {regErrors.last_name && <p className="err-v4">{regErrors.last_name}</p>}
-                                            </div>
-                                            <div className="f-group-v4">
-                                                <label>Gender *</label>
-                                                <div className="sel-wrap-v4">
-                                                    <select name="gender" value={patientForm.gender} onBlur={handleBlur} onChange={e => setPatientForm({ ...patientForm, gender: e.target.value })} className={regErrors.gender ? 'error' : ''}>
-                                                        {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
-                                                    </select>
-                                                    <ChevronDown size={18} className="arrow-v4" />
-                                                </div>
-                                                {regErrors.gender && <p className="err-v4">{regErrors.gender}</p>}
-                                            </div>
-                                            <div className="f-group-v4 col-2">
-                                                <label>Date of Birth *</label>
-                                                <input name="dob" type="date" placeholder="" max={todayStr} onBlur={handleBlur} value={patientForm.dob} onChange={e => setPatientForm({ ...patientForm, dob: e.target.value })} className={regErrors.dob ? 'error' : ''} />
-                                                {regErrors.dob && <p className="err-v4">{regErrors.dob}</p>}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="form-section-v4">
-                                        <div className="sec-title-v4 blue">
-                                            <div className="sec-icon-circle"><Users size={22} /></div>
-                                            <h2>Parental Hierarchy</h2>
-                                        </div>
-                                        <div className="grid-v4">
-                                            <div className="f-group-v4 col-2">
-                                                <label>Father's Name *</label>
-                                                <input name="father_name" placeholder="" value={patientForm.father_name} onBlur={handleBlur} onChange={e => setPatientForm({ ...patientForm, father_name: e.target.value })} className={regErrors.father_name ? 'error' : ''} />
-                                                {regErrors.father_name && <p className="err-v4">{regErrors.father_name}</p>}
-                                            </div>
-                                            <div className="f-group-v4 col-2">
-                                                <label>Mother's Name *</label>
-                                                <input name="mother_name" placeholder="" value={patientForm.mother_name} onBlur={handleBlur} onChange={e => setPatientForm({ ...patientForm, mother_name: e.target.value })} className={regErrors.mother_name ? 'error' : ''} />
-                                                {regErrors.mother_name && <p className="err-v4">{regErrors.mother_name}</p>}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="form-section-v4">
-                                        <div className="sec-title-v4 orange">
-                                            <div className="sec-icon-circle"><MapPin size={22} /></div>
-                                            <h2>Communication</h2>
-                                        </div>
-                                        <div className="grid-v4">
-                                            <div className="f-group-v4 col-2">
-                                                <label>WhatsApp ID / Mobile *</label>
-                                                <div className="icon-input-v4">
-                                                    <Zap size={18} className="i-v4" />
-                                                    <input name="wa_id" placeholder="" value={patientForm.wa_id} onBlur={handleBlur} className={regErrors.wa_id ? 'error' : ''} onChange={e => {
-                                                        const v = e.target.value.replace(/\D/g, '');
-                                                        setPatientForm({ ...patientForm, wa_id: v });
-                                                        handleWaIdCheck(v);
-                                                    }} />
-                                                </div>
-                                                {regErrors.wa_id && <p className="err-v4">{regErrors.wa_id}</p>}
-                                                {waIdValidation.error && <p className="err-v4">{waIdValidation.error}</p>}
-                                            </div>
-                                            <div className="f-group-v4 col-2">
-                                                <label>Communication Pref.</label>
-                                                <div className="sel-wrap-v4">
-                                                    <select value={patientForm.comm_preference} onBlur={handleBlur} name="comm_preference" onChange={e => setPatientForm({ ...patientForm, comm_preference: e.target.value })}>
-                                                        {COMM_PREFERENCES.map(p => <option key={p} value={p}>{p}</option>)}
-                                                    </select>
-                                                    <ChevronDown size={18} className="arrow-v4" />
-                                                </div>
-                                            </div>
-                                            <div className="f-group-v4 col-2">
-                                                <label>Email Address *</label>
-                                                <div className="icon-input-v4">
-                                                    <Mail size={18} className="i-v4" />
-                                                    <input name="email" type="email" placeholder="" value={patientForm.email} onBlur={handleBlur} className={regErrors.email || emailValidation.error ? 'error' : ''} onChange={e => {
-                                                        setPatientForm({ ...patientForm, email: e.target.value });
-                                                        handleEmailCheck(e.target.value);
-                                                    }} />
-                                                    {emailValidation.loading && <RefreshCw size={14} className="i-v4-right animate-spin" />}
-                                                </div>
-                                                {regErrors.email && <p className="err-v4">{regErrors.email}</p>}
-                                                {emailValidation.error && <p className="err-v4">{emailValidation.error}</p>}
-                                            </div>
-                                            <div className="f-group-v4 col-2">
-                                                <label>Preferred Doctor *</label>
-                                                <div className="sel-wrap-v4">
-                                                    <select name="preferred_doctor" value={patientForm.preferred_doctor} onBlur={handleBlur} className={regErrors.preferred_doctor ? 'error' : ''} onChange={e => setPatientForm({ ...patientForm, preferred_doctor: e.target.value })}>
-                                                        <option value="">— Select Doctor —</option>
-                                                        {doctors.map((d, idx) => (
-                                                            <option key={d._id || d.doctor_id || `reg-doc-${idx}`} value={getDoctorDisplayName(d)}>
-                                                                {getDoctorDisplayName(d)}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                    <ChevronDown size={18} className="arrow-v4" />
-                                                </div>
-                                                {regErrors.preferred_doctor && <p className="err-v4">{regErrors.preferred_doctor}</p>}
-                                            </div>
-                                            <div className="f-group-v4">
-                                                <label>Referred by Patient</label>
-                                                <input name="referred_by" placeholder="Friend or family name" value={patientForm.referred_by} onBlur={handleBlur} onChange={e => setPatientForm({ ...patientForm, referred_by: e.target.value })} />
-                                            </div>
-                                            <div className="f-group-v4">
-                                                <label>Remarks / Notes</label>
-                                                <input name="notes" placeholder="" value={patientForm.notes} onBlur={handleBlur} onChange={e => setPatientForm({ ...patientForm, notes: e.target.value })} />
-                                            </div>
-                                            <div className="f-group-v4 col-2">
-                                                <label>Enrollment Option</label>
-                                                <div className="sel-wrap-v4">
-                                                    <select value={patientForm.enrollment_option} onBlur={handleBlur} name="enrollment_option" onChange={e => setPatientForm({ ...patientForm, enrollment_option: e.target.value })}>
-                                                        {ENROLLMENT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                                                    </select>
-                                                    <ChevronDown size={18} className="arrow-v4" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="form-footer-v4">
-                                        <button type="submit" disabled={loading} className="btn-main-v4">
-                                            {loading ? <RefreshCw className="animate-spin" /> : <><span>Next: Token Booking</span> <ArrowRight size={20} /></>}
+                        <div className="main-stage-v4">
+                            {step > 0 && (
+                                <div className="step-container-v4">
+                                    <div className="step-nav-header">
+                                        <button className="btn-back-v4" onClick={() => {
+                                            if (step === 3) window.location.reload();
+                                            else if (step === 1) setStep(0);
+                                            else if (step === 2) isNewPatient ? setStep(1) : setStep(0);
+                                            else setStep(0);
+                                        }}>
+                                            <ArrowLeft size={20} />
+                                            <span>Back</span>
                                         </button>
-                                    </div>
-                                </form>
-                            )}
-
-                            {step === 2 && (
-                                <form onSubmit={handleBooking} className="booking-stage-v4">
-                                    <div className="booking-summary-v4">
-                                        <div className="p-badge-v4">
-                                            <div className="p-avatar-v4"><User size={24} /></div>
-                                            <div className="p-meta-v4">
-                                                <strong>{registeredPatient?.child_name || patientForm.first_name}</strong>
-                                                <span>{registeredPatient?.patient_id || 'New Patient'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="booking-grid-v4">
-                                        <div className="f-group-v4 col-2">
-                                            <label>Select Clinician</label>
-                                            <div className="sel-wrap-v4">
-                                                <select
-                                                    value={bookingForm.doctor_name}
-                                                    onChange={e => setBookingForm({ ...bookingForm, doctor_name: e.target.value })}
-                                                >
-                                                    {doctors.map((d, idx) => (
-                                                        <option key={d._id || d.doctor_id || `book-doc-${idx}`} value={getRawDoctorName(d)}>
-                                                            {getDoctorDisplayName(d)}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <ChevronDown size={18} className="arrow-v4" />
-                                            </div>
-                                        </div>
-                                        <div className="f-group-v4 col-2">
-                                            <label>Appointment Date</label>
-                                            <input type="date" min={todayStr} value={bookingForm.appointment_date} onChange={e => setBookingForm({ ...bookingForm, appointment_date: e.target.value })} />
-                                        </div>
-
-                                        <div className="f-group-v4 col-full">
-                                            <div className="token-info-v4 card-premium-v3">
-                                                <div className="token-header-v4">
-                                                    <h3>Clinic Queue Status</h3>
-                                                    {tokensLoading && <RefreshCw size={18} className="animate-spin text-primary" />}
-                                                </div>
-
-                                                {availableTokens ? (
-                                                    <div className="token-display-v4">
-                                                        <div className="token-card-v4 large">
-                                                            <div className="token-count-v4">#{availableTokens.online_next_token ?? '--'}</div>
-                                                            <div className="token-label-v4">Next Available Token</div>
-                                                            <div className="token-sub-v4">For {new Date(bookingForm.appointment_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</div>
-                                                            <div className="token-sub-v4">Tokens Available Online: {availableTokens.online_tokens_remaining}</div>
-                                                        </div>
-
-                                                        {availableTokens.online_tokens_remaining > 0 ? (
-                                                            <div className="token-instruction-v4">
-                                                                <CheckCircle className="text-success" size={20} />
-                                                                <span>
-                                                                    Confirmed: {availableTokens.online_tokens_remaining} tokens available for today/selected date.
-                                                                    Your next token is {availableTokens.online_next_token ?? '--'} and the exact token will be assigned upon confirmation.
-                                                                </span>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="token-instruction-v4 error">
-                                                                <AlertCircle className="text-danger" size={20} />
-                                                                <span>Online tokens are not available for this date. Please <strong>try for another doctor</strong> or <strong>try for next days</strong>.</span>
-                                                            </div>
-                                                        )}
-                                                        <div className="token-info-mini-v4" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                                            <Clock size={16} />
-                                                            <span>Start Time: {availableTokens.start_time || '--:--'}</span>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <div className="token-placeholder-v4">
-                                                        <Activity size={24} />
-                                                        <p>Checking live clinic availability...</p>
-                                                    </div>
-                                                )}
-
-                                                <div className="emergency-alert-v4">
-                                                    <div className="alert-content">
-                                                        <strong>Emergency?</strong>
-                                                        <p>If this is an emergency, please call the hospital directly at <b>+91-XXXXXXXXXX</b> to get the urgent appointment immediately.</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="f-group-v4 col-2">
-                                            <label>Visit Category</label>
-                                            <div className="sel-wrap-v4">
-                                                <select value={bookingForm.visit_category} onChange={e => setBookingForm({ ...bookingForm, visit_category: e.target.value })}>
-                                                    <option value="First visit">First visit</option>
-                                                    <option value="Follow-up">Follow-up</option>
-                                                    <option value="Vaccination">Vaccination</option>
-                                                    <option value="Other">Other</option>
-                                                </select>
-                                                <ChevronDown size={18} className="arrow-v4" />
-                                            </div>
-                                        </div>
-                                        <div className="f-group-v4 col-2">
-                                            <label>Appointment Mode</label>
-                                            <div className="sel-wrap-v4">
-                                                <select value={bookingForm.appointment_mode} onChange={e => setBookingForm({ ...bookingForm, appointment_mode: e.target.value })}>
-                                                    <option value="OFFLINE">Clinic Visit (Offline)</option>
-                                                    <option value="ONLINE">Online Consultation</option>
-                                                </select>
-                                                <ChevronDown size={18} className="arrow-v4" />
-                                            </div>
-                                        </div>
-                                        <div className="f-group-v4 col-full">
-                                            <label>Reason (Optional)</label>
-                                            <input placeholder="" value={bookingForm.reason} onChange={e => setBookingForm({ ...bookingForm, reason: e.target.value })} />
-                                        </div>
-                                    </div>
-
-                                    <div className="form-footer-v4">
-                                        <button
-                                            type="submit"
-                                            disabled={loading || (availableTokens && availableTokens.online_tokens_remaining <= 0)}
-                                            className="btn-main-v4"
-                                        >
-                                            {loading ? <RefreshCw className="animate-spin" /> : (
-                                                availableTokens && availableTokens.online_tokens_remaining <= 0 ? (
-                                                    <><span>Fully Booked</span> <AlertCircle size={20} /></>
-                                                ) : (
-                                                    <><span>Complete Booking</span> <CheckCircle size={20} /></>
-                                                )
-                                            )}
-                                        </button>
-                                    </div>
-                                </form>
-                            )}
-
-                            {step === 4 && (
-                                <div className="reschedule-panel-v4">
-                                    <div className="pan-header">
-                                        <h2>Reschedule Appointment</h2>
-                                        <p>Select an ongoing appointment to modify</p>
-                                    </div>
-                                    <div className="appt-list-v4">
-                                        {patientAppointments.length > 0 ? patientAppointments.map(appt => (
-                                            <div key={appt._id} className="appt-card-v4">
-                                                <div className="appt-info-v4">
-                                                    <div className="a-date-wrap">
-                                                        <Calendar size={18} className="a-icon" />
-                                                        <strong>{new Date(appt.appointment_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>
-                                                    </div>
-                                                    <div className="a-meta-wrap">
-                                                        <span>{formatTime12h(appt.start_time)} • {appt.doctor_name}</span>
-                                                    </div>
-                                                </div>
-                                                <button className="btn-reschedule-v4" onClick={() => {
-                                                    setBookingForm({
-                                                        ...bookingForm,
-                                                        wa_id: appt.wa_id,
-                                                        doctor_name: appt.doctor_name,
-                                                        reschedule_from: appt.appointment_id || appt._id
-                                                    });
-                                                    setStep(2);
-                                                }}>
-                                                    <RefreshCw size={18} />
-                                                    <span>Reschedule</span>
-                                                </button>
-                                            </div>
-                                        )) : (
-                                            <div className="no-appts-v4">
-                                                <AlertCircle size={40} />
-                                                <p>No pending appointments found</p>
+                                        {step < 3 && (
+                                            <div className="step-indicator-v4">
+                                                <div className={`ind-dot ${step === 1 ? 'active' : 'done'}`}>1</div>
+                                                <div className="ind-line"></div>
+                                                <div className={`ind-dot ${step === 2 ? 'active' : step > 2 ? 'done' : ''}`}>2</div>
                                             </div>
                                         )}
                                     </div>
-                                </div>
-                            )}
 
-                            {step === 3 && (
-                                <div className="success-screen-v4">
-                                    <div className="success-blob">
-                                        <CheckCircle size={64} />
-                                    </div>
-                                    {bookingForm.reschedule_from ? (
-                                        <>
-                                            <h1>Appointment Rescheduled!</h1>
-                                            <p>Your appointment rescheduling has been done successfully. We have sent a confirmation message to your registered WhatsApp number.</p>
-                                        </>
-                                    ) : (patientForm.enrollment_option === 'just_enroll' && isNewPatient) ? (
-                                        <>
-                                            <h1>Registration Complete!</h1>
-                                            <div className="patient-id-card-v4">
-                                                <span className="id-label">Patient ID</span>
-                                                <span className="id-value">{registeredPatient?.patient_id}</span>
+                                    {error && <div className="global-alert-v4 error"><AlertCircle size={20} /> {error}</div>}
+
+                                    {step === 1 && (
+                                        <form onSubmit={handleRegistration} className="reg-form-clean">
+
+                                            {/* â”€â”€ Child Identification â”€â”€ */}
+                                            <div className="reg-section">
+                                                <h2 className="reg-section-title">Child Identification</h2>
+
+                                                {/* Gender Picker */}
+                                                <div className="reg-gender-row">
+                                                    <button
+                                                        type="button"
+                                                        className={`reg-gender-card ${patientForm.gender === 'boy' ? 'selected' : ''}`}
+                                                        onClick={() => setPatientForm({ ...patientForm, gender: 'boy', salutation: 'Baby' })}
+                                                    >
+                                                        <div className="reg-gender-avatar">
+                                                            <img src="/boy_avatar.png" alt="Boy" />
+                                                        </div>
+                                                        <span className="reg-gender-label">Boy</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className={`reg-gender-card ${patientForm.gender === 'girl' ? 'selected' : ''}`}
+                                                        onClick={() => setPatientForm({ ...patientForm, gender: 'girl', salutation: 'Baby' })}
+                                                    >
+                                                        <div className="reg-gender-avatar">
+                                                            <img src="/girl_avatar.png" alt="Girl" />
+                                                        </div>
+                                                        <span className="reg-gender-label">Girl</span>
+                                                    </button>
+                                                </div>
+                                                {regErrors.gender && <p className="reg-err">{regErrors.gender}</p>}
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Baby's Full Name *</label>
+                                                    <input
+                                                        className={`reg-input ${regErrors.first_name ? 'has-error' : ''}`}
+                                                        name="first_name"
+                                                        placeholder="Full Name"
+                                                        value={patientForm.first_name}
+                                                        onBlur={handleBlur}
+                                                        onChange={e => setPatientForm({ ...patientForm, first_name: e.target.value })}
+                                                    />
+                                                    {regErrors.first_name && <p className="reg-err">{regErrors.first_name}</p>}
+                                                </div>
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Date of Birth *</label>
+                                                    <input
+                                                        className={`reg-input ${regErrors.dob ? 'has-error' : ''}`}
+                                                        name="dob"
+                                                        type="date"
+                                                        placeholder="dd-mm-yyyy"
+                                                        max={todayStr}
+                                                        value={patientForm.dob}
+                                                        onBlur={handleBlur}
+                                                        onChange={e => setPatientForm({ ...patientForm, dob: e.target.value })}
+                                                    />
+                                                    {regErrors.dob && <p className="reg-err">{regErrors.dob}</p>}
+                                                </div>
                                             </div>
-                                            <p>Your registration has been done successfully. We have sent a confirmation message to your registered WhatsApp number.</p>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <h1>Appointment Confirmed!</h1>
-                                            <div className="patient-id-card-v4">
-                                                <div className="id-row"><span>Patient ID</span> <strong>{registeredPatient?.patient_id}</strong></div>
-                                                <div className="id-row"><span>Doctor Name</span> <strong>{registeredPatient?.doctor_name || 'N/A'}</strong></div>
-                                                <div className="id-row"><span>Appointment Date</span> <strong>{registeredPatient?.appointment_date ? new Date(registeredPatient.appointment_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</strong></div>
-                                                <div className="id-row"><span>Shift Start Time</span> <strong>{registeredPatient?.appointment_time || '14:00'}</strong></div>
-                                                <div className="id-row"><span>Token Number</span> <strong>{registeredPatient?.token_display || registeredPatient?.token_number || 'T-XX'}</strong></div>
+
+                                            {/* â”€â”€ Parental Details â”€â”€ */}
+                                            <div className="reg-section">
+                                                <h2 className="reg-section-title">Parental Details</h2>
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Father's Name *</label>
+                                                    <input
+                                                        className={`reg-input ${regErrors.father_name ? 'has-error' : ''}`}
+                                                        name="father_name"
+                                                        placeholder="Father's Name"
+                                                        value={patientForm.father_name}
+                                                        onBlur={handleBlur}
+                                                        onChange={e => setPatientForm({ ...patientForm, father_name: e.target.value })}
+                                                    />
+                                                    {regErrors.father_name && <p className="reg-err">{regErrors.father_name}</p>}
+                                                </div>
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Father's Mobile</label>
+                                                    <input
+                                                        className="reg-input"
+                                                        name="father_mobile"
+                                                        placeholder="Full Name"
+                                                        value={patientForm.father_mobile || ''}
+                                                        onChange={e => setPatientForm({ ...patientForm, father_mobile: e.target.value.replace(/\D/g, '') })}
+                                                    />
+                                                </div>
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Mother's Name *</label>
+                                                    <input
+                                                        className={`reg-input ${regErrors.mother_name ? 'has-error' : ''}`}
+                                                        name="mother_name"
+                                                        placeholder="Full Name"
+                                                        value={patientForm.mother_name}
+                                                        onBlur={handleBlur}
+                                                        onChange={e => setPatientForm({ ...patientForm, mother_name: e.target.value })}
+                                                    />
+                                                    {regErrors.mother_name && <p className="reg-err">{regErrors.mother_name}</p>}
+                                                </div>
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Mother's Mobile</label>
+                                                    <input
+                                                        className="reg-input"
+                                                        name="mother_mobile"
+                                                        placeholder="Full Name"
+                                                        value={patientForm.mother_mobile || ''}
+                                                        onChange={e => setPatientForm({ ...patientForm, mother_mobile: e.target.value.replace(/\D/g, '') })}
+                                                    />
+                                                </div>
                                             </div>
-                                            <p>Your appointment booking has been done successfully. We have sent a confirmation message to your registered WhatsApp number.</p>
-                                        </>
+
+                                            {/* â”€â”€ Contact & Location â”€â”€ */}
+                                            <div className="reg-section">
+                                                <h2 className="reg-section-title">Contact &amp; Location</h2>
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">WhatsApp ID / Mobile *</label>
+                                                    <input
+                                                        className={`reg-input ${regErrors.wa_id || waIdValidation.error ? 'has-error' : ''}`}
+                                                        name="wa_id"
+                                                        placeholder="9545651222"
+                                                        value={patientForm.wa_id}
+                                                        onBlur={handleBlur}
+                                                        onChange={e => {
+                                                            const v = e.target.value.replace(/\D/g, '');
+                                                            setPatientForm({ ...patientForm, wa_id: v });
+                                                            handleWaIdCheck(v);
+                                                        }}
+                                                    />
+                                                    {regErrors.wa_id && <p className="reg-err">{regErrors.wa_id}</p>}
+                                                    {waIdValidation.error && <p className="reg-err">{waIdValidation.error}</p>}
+                                                </div>
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Communication Pref.</label>
+                                                    <div className="reg-select-wrap">
+                                                        <select
+                                                            className="reg-select"
+                                                            name="comm_preference"
+                                                            value={patientForm.comm_preference}
+                                                            onChange={e => setPatientForm({ ...patientForm, comm_preference: e.target.value })}
+                                                        >
+                                                            {COMM_PREFERENCES.map(p => <option key={p} value={p}>{p}</option>)}
+                                                        </select>
+                                                        <ChevronDown size={16} className="reg-select-icon" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Email Address *</label>
+                                                    <input
+                                                        className={`reg-input ${regErrors.email || emailValidation.error ? 'has-error' : ''}`}
+                                                        name="email"
+                                                        type="email"
+                                                        placeholder="parents@gmail.com"
+                                                        value={patientForm.email}
+                                                        onBlur={handleBlur}
+                                                        onChange={e => {
+                                                            setPatientForm({ ...patientForm, email: e.target.value });
+                                                            handleEmailCheck(e.target.value);
+                                                        }}
+                                                    />
+                                                    {regErrors.email && <p className="reg-err">{regErrors.email}</p>}
+                                                    {emailValidation.error && <p className="reg-err">{emailValidation.error}</p>}
+                                                </div>
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Referred by Patient</label>
+                                                    <input
+                                                        className="reg-input"
+                                                        name="referred_by"
+                                                        placeholder="Friend or family name"
+                                                        value={patientForm.referred_by}
+                                                        onChange={e => setPatientForm({ ...patientForm, referred_by: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* â”€â”€ Address Details â”€â”€ */}
+                                            <div className="reg-section">
+                                                <h2 className="reg-section-title">Address Details</h2>
+
+                                                <div className="reg-grid-2">
+                                                    <div className="reg-field">
+                                                        <label className="reg-label">State</label>
+                                                        <input
+                                                            className="reg-input"
+                                                            name="state"
+                                                            placeholder="State"
+                                                            value={patientForm.state}
+                                                            onChange={e => setPatientForm({ ...patientForm, state: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div className="reg-field">
+                                                        <label className="reg-label">City *</label>
+                                                        <input
+                                                            className={`reg-input ${regErrors.city ? 'has-error' : ''}`}
+                                                            name="city"
+                                                            placeholder="City"
+                                                            value={patientForm.city}
+                                                            onBlur={handleBlur}
+                                                            onChange={e => setPatientForm({ ...patientForm, city: e.target.value })}
+                                                        />
+                                                        {regErrors.city && <p className="reg-err">{regErrors.city}</p>}
+                                                    </div>
+                                                </div>
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Pincode *</label>
+                                                    <input
+                                                        className={`reg-input ${regErrors.pincode ? 'has-error' : ''}`}
+                                                        name="pincode"
+                                                        placeholder="400001"
+                                                        value={patientForm.pincode}
+                                                        onBlur={handleBlur}
+                                                        onChange={e => setPatientForm({ ...patientForm, pincode: e.target.value.replace(/\D/g, '') })}
+                                                    />
+                                                    {regErrors.pincode && <p className="reg-err">{regErrors.pincode}</p>}
+                                                </div>
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Residential Address *</label>
+                                                    <textarea
+                                                        className={`reg-input reg-textarea ${regErrors.residential_address ? 'has-error' : ''}`}
+                                                        name="residential_address"
+                                                        placeholder="House No, Building, Area"
+                                                        value={patientForm.residential_address}
+                                                        onBlur={handleBlur}
+                                                        onChange={e => setPatientForm({ ...patientForm, residential_address: e.target.value })}
+                                                    />
+                                                    {regErrors.residential_address && <p className="reg-err">{regErrors.residential_address}</p>}
+                                                </div>
+                                            </div>
+
+                                            {/* â”€â”€ Preferred Doctor â”€â”€ */}
+                                            <div className="reg-section">
+                                                <h2 className="reg-section-title">Preferred Doctor *</h2>
+                                                <div className="reg-doctor-grid">
+                                                    {doctors.map((d, idx) => {
+                                                        const displayName = getDoctorDisplayName(d);
+                                                        const isSelected = patientForm.preferred_doctor === displayName;
+                                                        return (
+                                                            <button
+                                                                type="button"
+                                                                key={d._id || d.doctor_id || `doc-${idx}`}
+                                                                className={`reg-doctor-card ${isSelected ? 'selected' : ''}`}
+                                                                onClick={() => setPatientForm({ ...patientForm, preferred_doctor: displayName })}
+                                                            >
+                                                                <div className="reg-doctor-avatar">
+                                                                    {d.photo_url || d.profile_image
+                                                                        ? <img src={d.photo_url || d.profile_image} alt={displayName} />
+                                                                        : <span className="reg-doctor-initials">{displayName.charAt(0)}</span>
+                                                                    }
+                                                                </div>
+                                                                <span className="reg-doctor-name">{displayName}</span>
+                                                                <span className="reg-doctor-spec">Pediatrics</span>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                                {regErrors.preferred_doctor && <p className="reg-err">{regErrors.preferred_doctor}</p>}
+                                            </div>
+
+                                            {/* â”€â”€ Remarks & Enrollment â”€â”€ */}
+                                            <div className="reg-section">
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Remarks / Notes</label>
+                                                    <input
+                                                        className="reg-input"
+                                                        name="notes"
+                                                        placeholder="Optional extra info"
+                                                        value={patientForm.notes}
+                                                        onChange={e => setPatientForm({ ...patientForm, notes: e.target.value })}
+                                                    />
+                                                </div>
+
+                                                <div className="reg-field">
+                                                    <label className="reg-label">Enrollment Option</label>
+                                                    <div className="reg-select-wrap">
+                                                        <select
+                                                            className="reg-select"
+                                                            name="enrollment_option"
+                                                            value={patientForm.enrollment_option}
+                                                            onChange={e => setPatientForm({ ...patientForm, enrollment_option: e.target.value })}
+                                                        >
+                                                            {ENROLLMENT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                                        </select>
+                                                        <ChevronDown size={16} className="reg-select-icon" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* â”€â”€ Submit â”€â”€ */}
+                                            <div className="reg-submit-bar">
+                                                <button type="submit" disabled={loading} className="reg-submit-btn">
+                                                    {loading
+                                                        ? <RefreshCw className="animate-spin" size={20} />
+                                                        : <><span>Start Booking</span><ArrowRight size={20} /></>
+                                                    }
+                                                </button>
+                                            </div>
+                                        </form>
                                     )}
-                                    <button onClick={() => window.location.reload()} className="btn-main-v4">Go Back Home</button>
+
+                                    {step === 2 && (
+                                        <form onSubmit={handleBooking} className="booking-stage-v4">
+                                            <div className="booking-summary-v4">
+                                                <div className="p-badge-v4">
+                                                    <div className="p-avatar-v4"><User size={24} /></div>
+                                                    <div className="p-meta-v4">
+                                                        <strong>{registeredPatient?.child_name || patientForm.first_name}</strong>
+                                                        <span>{registeredPatient?.patient_id || 'New Patient'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="booking-grid-v4">
+                                                <div className="f-group-v4 col-2">
+                                                    <label>Select Clinician</label>
+                                                    <div className="sel-wrap-v4">
+                                                        <select
+                                                            value={bookingForm.doctor_name}
+                                                            onChange={e => setBookingForm({ ...bookingForm, doctor_name: e.target.value })}
+                                                        >
+                                                            {doctors.map((d, idx) => (
+                                                                <option key={d._id || d.doctor_id || `book-doc-${idx}`} value={getRawDoctorName(d)}>
+                                                                    {getDoctorDisplayName(d)}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <ChevronDown size={18} className="arrow-v4" />
+                                                    </div>
+                                                </div>
+                                                <div className="f-group-v4 col-2">
+                                                    <label>Appointment Date</label>
+                                                    <input type="date" min={todayStr} value={bookingForm.appointment_date} onChange={e => setBookingForm({ ...bookingForm, appointment_date: e.target.value })} />
+                                                </div>
+
+                                                <div className="f-group-v4 col-full">
+                                                    <div className="token-info-v4 card-premium-v3">
+                                                        <div className="token-header-v4">
+                                                            <h3>Clinic Queue Status</h3>
+                                                            {tokensLoading && <RefreshCw size={18} className="animate-spin text-primary" />}
+                                                        </div>
+
+                                                        {availableTokens ? (
+                                                            <div className="token-display-v4">
+                                                                <div className="token-card-v4 large">
+                                                                    <div className="token-count-v4">#{availableTokens.online_next_token ?? '--'}</div>
+                                                                    <div className="token-label-v4">Next Available Token</div>
+                                                                    <div className="token-sub-v4">For {new Date(bookingForm.appointment_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</div>
+                                                                    <div className="token-sub-v4">Tokens Available Online: {availableTokens.online_tokens_remaining}</div>
+                                                                </div>
+
+                                                                {availableTokens.online_tokens_remaining > 0 ? (
+                                                                    <div className="token-instruction-v4">
+                                                                        <CheckCircle className="text-success" size={20} />
+                                                                        <span>
+                                                                            Confirmed: {availableTokens.online_tokens_remaining} tokens available for today/selected date.
+                                                                            Your next token is {availableTokens.online_next_token ?? '--'} and the exact token will be assigned upon confirmation.
+                                                                        </span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="token-instruction-v4 error">
+                                                                        <AlertCircle className="text-danger" size={20} />
+                                                                        <span>Online tokens are not available for this date. Please <strong>try for another doctor</strong> or <strong>try for next days</strong>.</span>
+                                                                    </div>
+                                                                )}
+                                                                <div className="token-info-mini-v4" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                                                                    <Clock size={16} />
+                                                                    <span>Start Time: {availableTokens.start_time || '--:--'}</span>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="token-placeholder-v4">
+                                                                <Activity size={24} />
+                                                                <p>Checking live clinic availability...</p>
+                                                            </div>
+                                                        )}
+
+                                                        <div className="emergency-alert-v4">
+                                                            <div className="alert-content">
+                                                                <strong>Emergency?</strong>
+                                                                <p>If this is an emergency, please call the hospital directly at <b>+91-XXXXXXXXXX</b> to get the urgent appointment immediately.</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="f-group-v4 col-2">
+                                                    <label>Visit Category</label>
+                                                    <div className="sel-wrap-v4">
+                                                        <select value={bookingForm.visit_category} onChange={e => setBookingForm({ ...bookingForm, visit_category: e.target.value })}>
+                                                            <option value="First visit">First visit</option>
+                                                            <option value="Follow-up">Follow-up</option>
+                                                            <option value="Vaccination">Vaccination</option>
+                                                            <option value="Other">Other</option>
+                                                        </select>
+                                                        <ChevronDown size={18} className="arrow-v4" />
+                                                    </div>
+                                                </div>
+                                                <div className="f-group-v4 col-2">
+                                                    <label>Appointment Mode</label>
+                                                    <div className="sel-wrap-v4">
+                                                        <select value={bookingForm.appointment_mode} onChange={e => setBookingForm({ ...bookingForm, appointment_mode: e.target.value })}>
+                                                            <option value="OFFLINE">Clinic Visit (Offline)</option>
+                                                            <option value="ONLINE">Online Consultation</option>
+                                                        </select>
+                                                        <ChevronDown size={18} className="arrow-v4" />
+                                                    </div>
+                                                </div>
+                                                <div className="f-group-v4 col-full">
+                                                    <label>Reason (Optional)</label>
+                                                    <input placeholder="" value={bookingForm.reason} onChange={e => setBookingForm({ ...bookingForm, reason: e.target.value })} />
+                                                </div>
+                                            </div>
+
+                                            <div className="form-footer-v4">
+                                                <button
+                                                    type="submit"
+                                                    disabled={loading || (availableTokens && availableTokens.online_tokens_remaining <= 0)}
+                                                    className="btn-main-v4"
+                                                >
+                                                    {loading ? <RefreshCw className="animate-spin" /> : (
+                                                        availableTokens && availableTokens.online_tokens_remaining <= 0 ? (
+                                                            <><span>Fully Booked</span> <AlertCircle size={20} /></>
+                                                        ) : (
+                                                            <><span>Complete Booking</span> <CheckCircle size={20} /></>
+                                                        )
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    )}
+
+                                    {step === 4 && (
+                                        <div className="reschedule-panel-v4">
+                                            <div className="pan-header">
+                                                <h2>Reschedule Appointment</h2>
+                                                <p>Select an ongoing appointment to modify</p>
+                                            </div>
+                                            <div className="appt-list-v4">
+                                                {patientAppointments.length > 0 ? patientAppointments.map(appt => (
+                                                    <div key={appt._id} className="appt-card-v4">
+                                                        <div className="appt-info-v4">
+                                                            <div className="a-date-wrap">
+                                                                <Calendar size={18} className="a-icon" />
+                                                                <strong>{new Date(appt.appointment_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>
+                                                            </div>
+                                                            <div className="a-meta-wrap">
+                                                                <span>{formatTime12h(appt.start_time)} Ã¢â‚¬Â¢ {appt.doctor_name}</span>
+                                                            </div>
+                                                        </div>
+                                                        <button className="btn-reschedule-v4" onClick={() => {
+                                                            setBookingForm({
+                                                                ...bookingForm,
+                                                                wa_id: appt.wa_id,
+                                                                doctor_name: appt.doctor_name,
+                                                                reschedule_from: appt.appointment_id || appt._id
+                                                            });
+                                                            setStep(2);
+                                                        }}>
+                                                            <RefreshCw size={18} />
+                                                            <span>Reschedule</span>
+                                                        </button>
+                                                    </div>
+                                                )) : (
+                                                    <div className="no-appts-v4">
+                                                        <AlertCircle size={40} />
+                                                        <p>No pending appointments found</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {step === 3 && (
+                                        <div className="success-screen-v4">
+                                            <div className="success-blob">
+                                                <CheckCircle size={64} />
+                                            </div>
+                                            {bookingForm.reschedule_from ? (
+                                                <>
+                                                    <h1>Appointment Rescheduled!</h1>
+                                                    <p>Your appointment rescheduling has been done successfully. We have sent a confirmation message to your registered WhatsApp number.</p>
+                                                </>
+                                            ) : (patientForm.enrollment_option === 'just_enroll' && isNewPatient) ? (
+                                                <>
+                                                    <h1>Registration Complete!</h1>
+                                                    <div className="patient-id-card-v4">
+                                                        <span className="id-label">Patient ID</span>
+                                                        <span className="id-value">{registeredPatient?.patient_id}</span>
+                                                    </div>
+                                                    <p>Your registration has been done successfully. We have sent a confirmation message to your registered WhatsApp number.</p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <h1>Appointment Confirmed!</h1>
+                                                    <div className="patient-id-card-v4">
+                                                        <div className="id-row"><span>Patient ID</span> <strong>{registeredPatient?.patient_id}</strong></div>
+                                                        <div className="id-row"><span>Doctor Name</span> <strong>{registeredPatient?.doctor_name || 'N/A'}</strong></div>
+                                                        <div className="id-row"><span>Appointment Date</span> <strong>{registeredPatient?.appointment_date ? new Date(registeredPatient.appointment_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</strong></div>
+                                                        <div className="id-row"><span>Shift Start Time</span> <strong>{registeredPatient?.appointment_time || '14:00'}</strong></div>
+                                                        <div className="id-row"><span>Token Number</span> <strong>{registeredPatient?.token_display || registeredPatient?.token_number || 'T-XX'}</strong></div>
+                                                    </div>
+                                                    <p>Your appointment booking has been done successfully. We have sent a confirmation message to your registered WhatsApp number.</p>
+                                                </>
+                                            )}
+                                            <button onClick={() => window.location.reload()} className="btn-main-v4">Go Back Home</button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
-                    )}
+                    </div>
                 </div>
-            </div>
-
-
-        </div>
+            )}
+        </>
     );
 };
 
 export default PublicRegister;
-
-
-
