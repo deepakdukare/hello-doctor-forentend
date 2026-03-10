@@ -165,7 +165,7 @@ export const getAvailableTokens = (doctorId, date) => api.get('/appointments/tok
 export const getDailyTokens = (params) => api.get('/appointments/daily-tokens', { params });
 export const getClinicDisplayData = () => api.get('/appointments/clinic-display');
 export const nextToken = (doctorId) => api.get(`/appointments/next-token/${doctorId}`);
-export const checkInToken = (token) => api.post(`/appointments/token/${token}/check-in`);
+export const checkInToken = (token, data) => api.post(`/appointments/token/${token}/check-in`, data);
 export const updateTokenStatus = (token, data) => api.patch(`/appointments/token/${token}/status`, data);
 export const getTokenStatus = (token) => api.get(`/appointments/token-status/${token}`);
 export const autoReschedule = (data) => api.post('/appointments/auto-reschedule', data);
