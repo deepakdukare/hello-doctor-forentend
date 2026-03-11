@@ -621,7 +621,7 @@ const PublicRegister = () => {
                                                         <input
                                                             className={`reg-input ${regErrors.first_name ? 'has-error' : ''}`}
                                                             name="first_name"
-                                                            placeholder="Arjun"
+                                                            placeholder=""
                                                             value={patientForm.first_name}
                                                             onBlur={handleBlur}
                                                             onChange={e => setPatientForm({ ...patientForm, first_name: e.target.value })}
@@ -636,7 +636,7 @@ const PublicRegister = () => {
                                                         <input
                                                             className="reg-input"
                                                             name="middle_name"
-                                                            placeholder="Rohit"
+                                                            placeholder=""
                                                             value={patientForm.middle_name}
                                                             onChange={e => setPatientForm({ ...patientForm, middle_name: e.target.value })}
                                                         />
@@ -646,7 +646,7 @@ const PublicRegister = () => {
                                                         <input
                                                             className={`reg-input ${regErrors.last_name ? 'has-error' : ''}`}
                                                             name="last_name"
-                                                            placeholder="Sharma"
+                                                            placeholder=""
                                                             value={patientForm.last_name}
                                                             onBlur={handleBlur}
                                                             onChange={e => setPatientForm({ ...patientForm, last_name: e.target.value })}
@@ -661,7 +661,7 @@ const PublicRegister = () => {
                                                         className={`reg-input ${regErrors.dob ? 'has-error' : ''}`}
                                                         name="dob"
                                                         type="date"
-                                                        placeholder="dd-mm-yyyy"
+                                                        placeholder=""
                                                         max={todayStr}
                                                         value={patientForm.dob}
                                                         onBlur={handleBlur}
@@ -680,7 +680,7 @@ const PublicRegister = () => {
                                                     <input
                                                         className={`reg-input ${regErrors.father_name ? 'has-error' : ''}`}
                                                         name="father_name"
-                                                        placeholder="Father's Name"
+                                                        placeholder=""
                                                         value={patientForm.father_name}
                                                         onBlur={handleBlur}
                                                         onChange={e => setPatientForm({ ...patientForm, father_name: e.target.value })}
@@ -694,7 +694,7 @@ const PublicRegister = () => {
                                                     <input
                                                         className={`reg-input ${regErrors.mother_name ? 'has-error' : ''}`}
                                                         name="mother_name"
-                                                        placeholder="Full Name"
+                                                        placeholder=""
                                                         value={patientForm.mother_name}
                                                         onBlur={handleBlur}
                                                         onChange={e => setPatientForm({ ...patientForm, mother_name: e.target.value })}
@@ -713,7 +713,7 @@ const PublicRegister = () => {
                                                     <input
                                                         className={`reg-input ${regErrors.wa_id || waIdValidation.error ? 'has-error' : ''}`}
                                                         name="wa_id"
-                                                        placeholder="9545651222"
+                                                        placeholder=""
                                                         value={patientForm.wa_id}
                                                         onBlur={handleBlur}
                                                         onChange={e => {
@@ -747,7 +747,7 @@ const PublicRegister = () => {
                                                         className={`reg-input ${regErrors.email || emailValidation.error ? 'has-error' : ''}`}
                                                         name="email"
                                                         type="email"
-                                                        placeholder="parents@gmail.com"
+                                                        placeholder=""
                                                         value={patientForm.email}
                                                         onBlur={handleBlur}
                                                         onChange={e => {
@@ -764,7 +764,7 @@ const PublicRegister = () => {
                                                     <input
                                                         className="reg-input"
                                                         name="referred_by"
-                                                        placeholder="Friend or family name"
+                                                        placeholder=""
                                                         value={patientForm.referred_by}
                                                         onChange={e => setPatientForm({ ...patientForm, referred_by: e.target.value })}
                                                     />
@@ -781,7 +781,7 @@ const PublicRegister = () => {
                                                         <input
                                                             className="reg-input"
                                                             name="state"
-                                                            placeholder="State"
+                                                            placeholder=""
                                                             value={patientForm.state}
                                                             onChange={e => setPatientForm({ ...patientForm, state: e.target.value })}
                                                         />
@@ -791,7 +791,7 @@ const PublicRegister = () => {
                                                         <input
                                                             className={`reg-input ${regErrors.city ? 'has-error' : ''}`}
                                                             name="city"
-                                                            placeholder="City"
+                                                            placeholder=""
                                                             value={patientForm.city}
                                                             onBlur={handleBlur}
                                                             onChange={e => setPatientForm({ ...patientForm, city: e.target.value })}
@@ -805,7 +805,7 @@ const PublicRegister = () => {
                                                     <input
                                                         className={`reg-input ${regErrors.pincode ? 'has-error' : ''}`}
                                                         name="pincode"
-                                                        placeholder="400001"
+                                                        placeholder=""
                                                         value={patientForm.pincode}
                                                         onBlur={handleBlur}
                                                         onChange={e => setPatientForm({ ...patientForm, pincode: e.target.value.replace(/\D/g, '') })}
@@ -818,7 +818,7 @@ const PublicRegister = () => {
                                                     <textarea
                                                         className={`reg-input reg-textarea ${regErrors.residential_address ? 'has-error' : ''}`}
                                                         name="residential_address"
-                                                        placeholder="House No, Building, Area"
+                                                        placeholder=""
                                                         value={patientForm.residential_address}
                                                         onBlur={handleBlur}
                                                         onChange={e => setPatientForm({ ...patientForm, residential_address: e.target.value })}
@@ -863,7 +863,7 @@ const PublicRegister = () => {
                                                     <input
                                                         className="reg-input"
                                                         name="notes"
-                                                        placeholder="Optional extra info"
+                                                        placeholder=""
                                                         value={patientForm.notes}
                                                         onChange={e => setPatientForm({ ...patientForm, notes: e.target.value })}
                                                     />

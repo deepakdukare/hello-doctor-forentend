@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     Monitor, RefreshCw, CheckCircle2, AlertCircle, ChevronRight,
-    Clock, User, Hash, SkipForward, RotateCcw, ExternalLink,
+    Clock, User, UserCheck, PlayCircle, Hash, SkipForward, RotateCcw, ExternalLink,
     Search, Filter, Zap, ArrowRight, Check, X, Bell
 } from 'lucide-react';
 import {
