@@ -39,17 +39,18 @@ import {
     updateTokenConfig,
     getDoctorHistory
 } from '../api/index';
+import { getUser } from '../utils/auth';
 
 const DAY_NAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 const DEFAULT_WEEKLY_CONFIG = {
-    monday: { total_tokens: 40, online_limit: 20, start_time: '10:00', is_active: true },
-    tuesday: { total_tokens: 40, online_limit: 20, start_time: '10:00', is_active: true },
-    wednesday: { total_tokens: 40, online_limit: 20, start_time: '10:00', is_active: true },
-    thursday: { total_tokens: 40, online_limit: 20, start_time: '10:00', is_active: true },
-    friday: { total_tokens: 40, online_limit: 20, start_time: '10:00', is_active: true },
-    saturday: { total_tokens: 40, online_limit: 20, start_time: '10:00', is_active: true },
-    sunday: { total_tokens: 0, online_limit: 0, start_time: '10:00', is_active: false }
+    monday: { total_tokens: 40, online_limit: 40, start_time: '17:00', is_active: true },
+    tuesday: { total_tokens: 40, online_limit: 40, start_time: '16:00', is_active: true },
+    wednesday: { total_tokens: 40, online_limit: 40, start_time: '11:00', is_active: true },
+    thursday: { total_tokens: 40, online_limit: 40, start_time: '10:00', is_active: true },
+    friday: { total_tokens: 40, online_limit: 40, start_time: '10:00', is_active: true },
+    saturday: { total_tokens: 40, online_limit: 40, start_time: '10:00', is_active: true },
+    sunday: { total_tokens: 40, online_limit: 40, start_time: '18:00', is_active: true }
 };
 
 const STATUS_OPTIONS = ['PRESENT', 'LATE', 'ABSENT', 'ON_LEAVE'];
@@ -67,6 +68,8 @@ const getStatusColor = (status) => {
 
 const Doctors = () => {
     const navigate = useNavigate();
+    const currentUser = getUser();
+    const isSuperAdmin = currentUser?.role?.toLowerCase() === 'super_admin' || currentUser?.role?.toLowerCase() === 'superadmin';
     const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -95,6 +98,7 @@ const Doctors = () => {
     const [etaForm, setEtaForm] = useState({ eta_minutes: '', eta_time: '', reason: '' });
     const [delayNotifyForm, setDelayNotifyForm] = useState({ delay_minutes: '30' });
     const [cardAvailability, setCardAvailability] = useState({});
+    const [dailyLimit, setDailyLimit] = useState('');
 
     // Token Config State
     const [weeklyConfig, setWeeklyConfig] = useState(null);
@@ -201,6 +205,7 @@ const Doctors = () => {
                 eta_time: avRes.data?.data?.eta_time || '',
                 reason: avRes.data?.data?.reason || ''
             });
+            setDailyLimit(avRes.data?.data?.online_limit || '');
 
         } catch (err) {
             console.error("Hub data fetch failed:", err);
@@ -245,6 +250,7 @@ const Doctors = () => {
             setDashboard(dashRes.data?.data || null);
             setHistory(histRes.data?.data || []);
             setStatusForm({ status: av?.status || 'PRESENT', notes: av?.notes || '' });
+            setDailyLimit(av?.online_limit || '');
         } catch (e) {
             setError(e.response?.data?.message || e.response?.data?.error || 'Failed to load availability');
         } finally {
@@ -431,7 +437,9 @@ const Doctors = () => {
                                             </div>
                                             <div className="doc-card-head-actions" onClick={e => e.stopPropagation()}>
                                                 <button onClick={() => openEdit(doc)} title="Edit Profile"><Edit2 size={15} /></button>
-                                                <button onClick={() => removeDoctor(doc.doctor_id)} title="Delete Profile"><Trash2 size={15} /></button>
+                                                {isSuperAdmin && (
+                                                    <button onClick={() => removeDoctor(doc.doctor_id)} title="Delete Profile"><Trash2 size={15} /></button>
+                                                )}
                                             </div>
                                         </div>
 
@@ -484,7 +492,19 @@ const Doctors = () => {
                                     </p>
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                                <div className="hub-header-date-selector">
+                                    <CalendarIcon size={16} />
+                                    <input
+                                        type="date"
+                                        value={selectedDate}
+                                        onChange={(e) => {
+                                            const d = e.target.value;
+                                            setSelectedDate(d);
+                                            fetchAvailabilityData(editingId, d);
+                                        }}
+                                    />
+                                </div>
                                 <div className="doc-status-pill large" style={{
                                     background: getStatusColor(statusForm.status).bg,
                                     color: getStatusColor(statusForm.status).color,
@@ -572,6 +592,36 @@ const Doctors = () => {
                                                         >Apply</button>
                                                     </div>
                                                 </div>
+
+                                                <div className="delay-management-box mt-3" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
+                                                    <div className="delay-header">
+                                                        <div>
+                                                            <h4>Date-Specific Limit</h4>
+                                                            <p>Override online limit for <strong>{selectedDate}</strong></p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="delay-input-row">
+                                                        <div className="delay-input-wrap">
+                                                            <label>Limit for {selectedDate}</label>
+                                                            <input
+                                                                type="number"
+                                                                placeholder="e.g. 40"
+                                                                value={dailyLimit}
+                                                                onChange={(e) => setDailyLimit(e.target.value)}
+                                                            />
+                                                        </div>
+                                                        <button
+                                                            className="apply-btn"
+                                                            style={{ background: '#3b82f6' }}
+                                                            onClick={() => runAvailabilityAction(() => addDateOverride({
+                                                                doctor_id: editingId,
+                                                                date: selectedDate,
+                                                                online_limit: parseInt(dailyLimit) || 0,
+                                                                status: statusForm.status
+                                                            }), 'Limit overridden for ' + selectedDate)}
+                                                        >Save Limit</button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -598,7 +648,7 @@ const Doctors = () => {
                                                         <thead>
                                                             <tr>
                                                                 <th>WORKING DAY</th>
-                                                                <th>STATUS</th>
+                                                                <th className="text-center">STATUS</th>
                                                                 <th>START TIME</th>
                                                                 <th>ONLINE LIMIT</th>
 
@@ -609,29 +659,46 @@ const Doctors = () => {
                                                                 const dayConf = weeklyConfig?.[day] || { is_active: false, start_time: '10:00', online_limit: 0 };
                                                                 return (
                                                                     <tr key={day} className={dayConf.is_active ? '' : 'disabled-row'}>
-                                                                        <td className="day-name">{day.charAt(0).toUpperCase() + day.slice(1)}</td>
-                                                                        <td>
-                                                                            {dayConf.is_active ? (
-                                                                                <span className="status-badge active" onClick={() => setWeeklyConfig(prev => ({ ...prev, [day]: { ...prev[day], is_active: false } }))}>Active</span>
-                                                                            ) : (
-                                                                                <span className="status-badge off" onClick={() => setWeeklyConfig(prev => ({ ...prev, [day]: { ...prev[day], is_active: true } }))}>OFF</span>
-                                                                            )}
+                                                                        <td className="day-name">
+                                                                            <span>{day.charAt(0).toUpperCase() + day.slice(1)}</span>
+                                                                        </td>
+                                                                        <td className="text-center">
+                                                                            <label className="toggle-switch">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    checked={dayConf.is_active}
+                                                                                    onChange={(e) => setWeeklyConfig(prev => ({ ...prev, [day]: { ...prev[day], is_active: e.target.checked } }))}
+                                                                                />
+                                                                                <span className="slider round"></span>
+                                                                            </label>
                                                                         </td>
                                                                         <td>
-                                                                            {dayConf.is_active ? (
-                                                                                <input type="time" value={dayConf.start_time || '10:00'} onChange={(e) => setWeeklyConfig(prev => ({ ...prev, [day]: { ...prev[day], start_time: e.target.value } }))} className="invisible-input" />
-                                                                            ) : '-'}
+                                                                            <input
+                                                                                type="time"
+                                                                                value={dayConf.start_time || '10:00'}
+                                                                                onChange={(e) => setWeeklyConfig(prev => ({ ...prev, [day]: { ...prev[day], start_time: e.target.value } }))}
+                                                                                className="invisible-input"
+                                                                                disabled={!dayConf.is_active}
+                                                                            />
                                                                         </td>
                                                                         <td>
-                                                                            {dayConf.is_active ? (
-                                                                                <input type="number" value={dayConf.online_limit || 0} onChange={(e) => setWeeklyConfig(prev => ({ ...prev, [day]: { ...prev[day], online_limit: parseInt(e.target.value) || 0 } }))} min="0" className="invisible-input w-50" />
-                                                                            ) : '-'}
+                                                                            <input
+                                                                                type="number"
+                                                                                value={dayConf.online_limit || 0}
+                                                                                onChange={(e) => setWeeklyConfig(prev => ({ ...prev, [day]: { ...prev[day], online_limit: parseInt(e.target.value) || 0 } }))}
+                                                                                min="0"
+                                                                                className="invisible-input w-50"
+                                                                                disabled={!dayConf.is_active}
+                                                                            />
                                                                         </td>
                                                                     </tr>
                                                                 );
                                                             })}
                                                         </tbody>
                                                     </table>
+                                                    <div className="p-3 bg-slate-50 border-top text-slate-500 text-[10px] fw-600 uppercase tracking-wider">
+                                                        Note: These settings define your recurring weekly pattern. Use "Date-Specific Limit" above for exceptions.
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>

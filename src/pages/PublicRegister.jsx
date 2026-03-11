@@ -3,10 +3,10 @@ import {
     User, Calendar, Phone, MapPin, FileText, CheckCircle,
     AlertCircle, Stethoscope, Baby, Users, Briefcase, Mail,
     Clock, Smartphone, MapPinned, ChevronRight, ChevronLeft,
-    Check, RefreshCw, Activity, Clipboard, Edit2, Plus,
+    Check, RefreshCw, Activity, Clipboard, Edit2, Plus, XCircle,
     ArrowRight, Map, ShieldCheck, ArrowLeft, Zap, Shield, ChevronDown, UserPlus, CalendarClock
 } from 'lucide-react';
-import { registerFromForm, bookByForm, getAvailableTokens, getDoctors, getReferringDoctors, getPatientByWa, getPatientByEmail, getAppointmentsByWaId, updateAppointment } from '../api/index';
+import { registerFromForm, bookByForm, getAvailableTokens, getTokenConfig, getDoctors, getReferringDoctors, getPatientByWa, getPatientByEmail, getAppointmentsByWaId, updateAppointment } from '../api/index';
 import '../glass-landing.css';
 
 const SALUTATIONS = ['Baby', 'Baby of', 'Mr.', 'Mrs.', 'Ms.', 'Master', 'Miss', 'Dr.'];
@@ -122,8 +122,25 @@ const PublicRegister = () => {
             // Find doctor id
             const doc = doctors.find(d => getRawDoctorName(d) === doctorRef || getDoctorDisplayName(d) === doctorRef);
             if (!doc) return;
-            const res = await getAvailableTokens(doc.doctor_id, date);
-            setAvailableTokens(res.data.data);
+
+            const [tokenRes, configRes] = await Promise.all([
+                getAvailableTokens(doc.doctor_id, date),
+                getTokenConfig(doc.doctor_id)
+            ]);
+
+            const tokens = tokenRes.data.data;
+            const config = configRes.data.data;
+
+            // Map day of week to our config key
+            const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const selectedDay = days[new Date(date + 'T00:00:00').getDay()];
+            const dayConfig = config?.weekly_config?.[selectedDay];
+
+            if (dayConfig && dayConfig.is_active === false) {
+                setAvailableTokens({ ...tokens, is_offline: true });
+            } else {
+                setAvailableTokens(tokens);
+            }
         } catch (err) {
             console.error("Failed to fetch tokens", err);
             setAvailableTokens(null);
@@ -922,33 +939,45 @@ const PublicRegister = () => {
                                                         </div>
 
                                                         {availableTokens ? (
-                                                            <div className="token-display-v4">
-                                                                <div className="token-card-v4 large">
-                                                                    <div className="token-count-v4">#{availableTokens.online_next_token ?? '--'}</div>
-                                                                    <div className="token-label-v4">Next Available Token</div>
-                                                                    <div className="token-sub-v4">For {new Date(bookingForm.appointment_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</div>
-                                                                    <div className="token-sub-v4">Tokens Available Online for this date</div>
-                                                                </div>
-
-                                                                {availableTokens.online_tokens_remaining > 0 ? (
-                                                                    <div className="token-instruction-v4">
-                                                                        <CheckCircle className="text-success" size={20} />
-                                                                        <span>
-                                                                            Confirmed: Tokens available for today/selected date.
-                                                                            Your next token is {availableTokens.online_next_token ?? '--'} and the exact token will be assigned upon confirmation.
-                                                                        </span>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="token-instruction-v4 error">
+                                                            availableTokens.is_offline ? (
+                                                                <div className="token-display-v4">
+                                                                    <div className="token-instruction-v4 error" style={{ padding: '1.25rem', background: '#fff1f2', border: '1px solid #fecaca' }}>
                                                                         <AlertCircle className="text-danger" size={20} />
-                                                                        <span>Online tokens are not available for this date. Please <strong>try for another doctor</strong> or <strong>try for next days</strong>.</span>
+                                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                                            <strong style={{ color: '#e11d48' }}>Doctor is OFF Today</strong>
+                                                                            <span style={{ fontSize: '0.85rem', color: '#be123c' }}>Not available due to weekly schedule.</span>
+                                                                        </div>
                                                                     </div>
-                                                                )}
-                                                                <div className="token-info-mini-v4" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                                                    <Clock size={16} />
-                                                                    <span>Start Time: {availableTokens.start_time || '--:--'}</span>
                                                                 </div>
-                                                            </div>
+                                                            ) : (
+                                                                <div className="token-display-v4">
+                                                                    <div className="token-card-v4 large">
+                                                                        <div className="token-count-v4">#{availableTokens.online_next_token ?? '--'}</div>
+                                                                        <div className="token-label-v4">Next Available Token</div>
+                                                                        <div className="token-sub-v4">For {new Date(bookingForm.appointment_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</div>
+                                                                        <div className="token-sub-v4">Tokens Available Online for this date</div>
+                                                                    </div>
+
+                                                                    {availableTokens.online_tokens_remaining > 0 ? (
+                                                                        <div className="token-instruction-v4">
+                                                                            <CheckCircle className="text-success" size={20} />
+                                                                            <span>
+                                                                                Confirmed: Tokens available for today/selected date.
+                                                                                Your next token is {availableTokens.online_next_token ?? '--'} and the exact token will be assigned upon confirmation.
+                                                                            </span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="token-instruction-v4 error">
+                                                                            <AlertCircle className="text-danger" size={20} />
+                                                                            <span>Online tokens are not available for this date. Please <strong>try for another doctor</strong> or <strong>try for next days</strong>.</span>
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="token-info-mini-v4" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                                                                        <Clock size={16} />
+                                                                        <span>Start Time: {availableTokens.start_time || '--:--'}</span>
+                                                                    </div>
+                                                                </div>
+                                                            )
                                                         ) : (
                                                             <div className="token-placeholder-v4">
                                                                 <Activity size={24} />
@@ -1001,11 +1030,13 @@ const PublicRegister = () => {
                                             <div className="form-footer-v4">
                                                 <button
                                                     type="submit"
-                                                    disabled={loading || (availableTokens && availableTokens.online_tokens_remaining <= 0)}
+                                                    disabled={loading || (availableTokens && (availableTokens.is_offline || availableTokens.online_tokens_remaining <= 0))}
                                                     className="btn-main-v4"
                                                 >
                                                     {loading ? <RefreshCw className="animate-spin" /> : (
-                                                        availableTokens && availableTokens.online_tokens_remaining <= 0 ? (
+                                                        availableTokens && availableTokens.is_offline ? (
+                                                            <><span>Doctor Offline</span> <XCircle size={20} /></>
+                                                        ) : availableTokens && availableTokens.online_tokens_remaining <= 0 ? (
                                                             <><span>Fully Booked</span> <AlertCircle size={20} /></>
                                                         ) : (
                                                             <><span>Complete Booking</span> <CheckCircle size={20} /></>

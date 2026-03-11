@@ -35,6 +35,7 @@ import {
     registerPatient,
     bookAppointmentWithToken,
     getAvailableTokens,
+    getTokenConfig,
     toIsoDate
 } from '../api/index';
 import { removeSalutation } from '../utils/formatters';
@@ -279,8 +280,24 @@ const Appointments = () => {
         if (!form.appointment_date || !form.doctor_id) return;
         setTokensLoading(true);
         try {
-            const res = await getAvailableTokens(form.doctor_id, form.appointment_date);
-            setAvailableTokens(res.data.data);
+            const [tokenRes, configRes] = await Promise.all([
+                getAvailableTokens(form.doctor_id, form.appointment_date),
+                getTokenConfig(form.doctor_id)
+            ]);
+
+            const tokens = tokenRes.data.data;
+            const config = configRes.data.data;
+
+            // Map day of week to our config key
+            const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const selectedDay = days[new Date(form.appointment_date + 'T00:00:00').getDay()];
+            const dayConfig = config?.weekly_config?.[selectedDay];
+
+            if (dayConfig && dayConfig.is_active === false) {
+                setAvailableTokens({ ...tokens, is_offline: true });
+            } else {
+                setAvailableTokens(tokens);
+            }
         } catch (err) {
             setError(getApiErrorMessage(err, "Unable to load token availability."));
         } finally {
@@ -894,16 +911,23 @@ const Appointments = () => {
                                                 </div>
 
                                                 {availableTokens ? (
-                                                    <div className="token-stats-grid" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                        <div className="token-stat-pill" style={{ padding: '6px 12px', backgroundColor: '#eff6ff', border: '1.5px solid #6366f1', borderRadius: '10px', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                                                            <div style={{ fontSize: '10px', fontWeight: 800, color: '#6366f1', textTransform: 'uppercase' }}>Walk-in</div>
-                                                            <div style={{ fontSize: '20px', fontWeight: 950, color: '#1e293b' }}>#{availableTokens.walkin_next_token || '--'}</div>
+                                                    availableTokens.is_offline ? (
+                                                        <div className="alert-offline" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: '#fff1f2', borderRadius: '10px', border: '1px solid #fecaca' }}>
+                                                            <AlertTriangle size={16} color="#e11d48" />
+                                                            <span style={{ fontSize: '11px', fontWeight: 700, color: '#e11d48' }}>Doctor is OFF on this day (Weekly Schedule)</span>
                                                         </div>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#94a3b8', fontWeight: 700 }}>
-                                                            <Clock size={10} />
-                                                            <span>Shift Start: {availableTokens.start_time || '--:--'}</span>
+                                                    ) : (
+                                                        <div className="token-stats-grid" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                            <div className="token-stat-pill" style={{ padding: '6px 12px', backgroundColor: '#eff6ff', border: '1.5px solid #6366f1', borderRadius: '10px', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                                                                <div style={{ fontSize: '10px', fontWeight: 800, color: '#6366f1', textTransform: 'uppercase' }}>Walk-in</div>
+                                                                <div style={{ fontSize: '20px', fontWeight: 950, color: '#1e293b' }}>#{availableTokens.walkin_next_token || '--'}</div>
+                                                            </div>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#94a3b8', fontWeight: 700 }}>
+                                                                <Clock size={10} />
+                                                                <span>Shift Start: {availableTokens.start_time || '--:--'}</span>
+                                                            </div>
                                                         </div>
-                                                    </div>
+                                                    )
                                                 ) : (
                                                     <div className="token-placeholder" style={{ textAlign: 'center', padding: '10px', color: '#94a3b8' }}>
                                                         <p style={{ fontSize: '11px', fontWeight: 600 }}>Select clinician to view tokens</p>
@@ -948,7 +972,7 @@ const Appointments = () => {
                                         <button type="button" onClick={() => setActiveView('queue')} style={{ flex: 1, height: '42px', borderRadius: '10px', border: '1.5px solid #e2e8f0', backgroundColor: '#fff', fontSize: '13px', fontWeight: 800, color: '#64748b', cursor: 'pointer' }}>
                                             Discard Changes
                                         </button>
-                                        <button type="submit" disabled={submitting} style={{ flex: 2, height: '42px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', fontSize: '13px', fontWeight: 900, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)' }}>
+                                        <button type="submit" disabled={submitting || (availableTokens && availableTokens.is_offline)} style={{ flex: 2, height: '42px', borderRadius: '10px', border: 'none', backgroundColor: (availableTokens && availableTokens.is_offline) ? '#cbd5e1' : '#6366f1', fontSize: '13px', fontWeight: 900, color: '#fff', cursor: (availableTokens && availableTokens.is_offline) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: (availableTokens && availableTokens.is_offline) ? 'none' : '0 4px 12px rgba(99, 102, 241, 0.2)' }}>
                                             {submitting ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                                             <span>{editMode ? 'Update Record' : 'Confirm Appointment'}</span>
                                         </button>
