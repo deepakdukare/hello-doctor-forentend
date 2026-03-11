@@ -17485,4 +17485,251 @@ input:checked+.slider:before {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
-}
+}
+
+/* ── Clinic Display V2 Premium Styles ── */
+.clinic-display-v2 {
+  background: radial-gradient(circle at top right, #0f172a, #020617);
+  height: 100vh;
+  color: #fff;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.clinic-display-header {
+  height: 10vh;
+  padding: 0 2rem;
+  background: rgba(15, 23, 42, 0.98);
+  backdrop-filter: blur(30px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.clinic-display-logo-box {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.clinic-display-logo-img {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid #6366f1;
+}
+
+.clinic-display-brand h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: #ffffff;
+}
+
+.clinic-display-brand p {
+  margin: 0.1rem 0 0 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #818cf8;
+}
+
+.clinic-display-clock {
+  text-align: right;
+  border-left: 2px solid rgba(255, 255, 255, 0.15);
+  padding-left: 1.5rem;
+}
+
+.clinic-display-clock .time {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.clinic-display-clock .date {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-top: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.clinic-display-main {
+  flex: 1;
+  height: 90vh;
+  padding: 1.5rem;
+  overflow: hidden !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clinic-display-grid-v2 {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)) !important;
+  grid-auto-rows: 1fr;
+  gap: 1.5rem !important;
+  width: 100%;
+  height: 100%;
+}
+
+.doctor-card-v2 {
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 28px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.doctor-card-v2::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+}
+
+.doctor-card-v2 h2 {
+  color: #ffffff !important;
+  font-size: 1.75rem !important;
+  font-weight: 900 !important;
+  margin: 0 !important;
+}
+
+.doctor-card-v2 .specialty-label {
+  color: #818cf8 !important;
+  font-weight: 800 !important;
+  font-size: 0.85rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
+.serving-section-v2 {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.5rem !important;
+  border-radius: 20px !important;
+  margin: 1.25rem 0 !important;
+}
+
+.serving-section-v2 span {
+  color: #ffffff !important;
+  font-size: 5rem !important;
+  font-weight: 950 !important;
+  text-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+}
+
+.serving-section-v2 .patient-label {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+}
+
+.stat-box-v2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stat-box-v2 .icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #818cf8;
+}
+
+.stat-box-v2 .val {
+  font-size: 1rem !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+}
+
+.next-up-v2 {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.next-up-v2 span {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  font-size: 0.9rem !important;
+}
+
+/* ── RESPONSIVE OVERRIDES (Mobile/Tablet/Laptops) ── */
+@media (max-width: 1600px) {
+  .clinic-display-header { padding: 0 3rem; }
+  .clinic-display-main { padding: 2rem; }
+  .clinic-display-brand h1 { font-size: 2.25rem; }
+  .clinic-display-clock .time { font-size: 3rem; }
+  .doctor-card-v2 { padding: 3rem; }
+}
+
+@media (max-width: 1200px) {
+  .clinic-display-v2 { height: auto; min-height: 100vh; overflow: auto !important; }
+  .clinic-display-header { height: auto; padding: 2rem; flex-direction: column; gap: 1.5rem; }
+  .clinic-display-clock { border-left: none; padding-left: 0; text-align: center; }
+  .clinic-display-main { height: auto; display: block; }
+  .clinic-display-grid-v2 { 
+    grid-template-columns: 1fr !important; 
+    grid-auto-rows: auto;
+    height: auto; 
+    gap: 2rem !important;
+  }
+  .doctor-card-v2 { border-radius: 32px; }
+}
+
+@media (max-width: 768px) {
+  .clinic-display-logo-img { width: 70px; height: 70px; }
+  .clinic-display-brand h1 { font-size: 1.75rem; letter-spacing: -0.02em; }
+  .clinic-display-brand p { font-size: 0.8rem; letter-spacing: 0.1em; }
+  .clinic-display-clock .time { font-size: 2.5rem; }
+  .clinic-display-clock .date { font-size: 1rem; }
+  
+  .doctor-card-v2 { padding: 2rem; }
+  .doctor-card-v2 h2 { font-size: 2.25rem !important; }
+  .doctor-card-v2 div[style*="font-size: 1.5rem"] { font-size: 1.1rem !important; }
+  
+  .serving-section-v2 { padding: 1.5rem !important; border-radius: 24px !important; }
+  .serving-section-v2 span[style*="font-size: 10rem"] { font-size: 6rem !important; }
+  .serving-section-v2 div[style*="font-size: 2.5rem"] { font-size: 1.5rem !important; }
+  
+  .doctor-card-v2 div[style*="gap: 3rem"] { gap: 1.5rem !important; flex-direction: column; }
+}
+
+@media (max-width: 480px) {
+  .clinic-display-header { padding: 1.5rem; }
+  .clinic-display-brand h1 { font-size: 1.5rem; }
+  .clinic-display-clock .time { font-size: 2rem; }
+  .serving-section-v2 span[style*="font-size: 6rem"] { font-size: 4rem !important; }
+}
+
+
