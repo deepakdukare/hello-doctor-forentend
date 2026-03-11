@@ -7,6 +7,7 @@ const Login = ({ onLogin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
@@ -21,8 +22,11 @@ const Login = ({ onLogin }) => {
 
             if (response.data.success) {
                 const { access_token, user } = response.data;
-                localStorage.setItem('token', access_token);
-                localStorage.setItem('user', JSON.stringify(user || {}));
+                const storage = rememberMe ? localStorage : sessionStorage;
+
+                storage.setItem('token', access_token);
+                storage.setItem('user', JSON.stringify(user || {}));
+
                 onLogin(access_token);
                 navigate('/');
             } else {
@@ -89,7 +93,7 @@ const Login = ({ onLogin }) => {
                                         id="email"
                                         type="email"
                                         autoComplete="username"
-                                        placeholder="name@example.com"
+                                        placeholder=""
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
@@ -105,7 +109,7 @@ const Login = ({ onLogin }) => {
                                         id="password"
                                         type={showPassword ? 'text' : 'password'}
                                         autoComplete="current-password"
-                                        placeholder="••••••••"
+                                        placeholder=""
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
@@ -121,10 +125,15 @@ const Login = ({ onLogin }) => {
                             </div>
 
                             <div className="login-actions">
-                                <div className="remember-me">
-                                    <input type="checkbox" id="remember" />
-                                    <label htmlFor="remember">Remember me</label>
-                                </div>
+                                <label className="remember-me" htmlFor="remember">
+                                    <input
+                                        type="checkbox"
+                                        id="remember"
+                                        checked={rememberMe}
+                                        onChange={(e) => setRememberMe(e.target.checked)}
+                                    />
+                                    <span>Remember me</span>
+                                </label>
                                 <a href="#" className="forgot-password">Forgot password?</a>
                             </div>
 

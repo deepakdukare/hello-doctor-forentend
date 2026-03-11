@@ -1,10 +1,14 @@
 export const getUser = () => {
     try {
-        const userStr = localStorage.getItem('user');
+        const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
         return userStr ? JSON.parse(userStr) : {};
     } catch (e) {
         return {};
     }
+};
+
+export const getToken = () => {
+    return localStorage.getItem('token') || sessionStorage.getItem('token');
 };
 
 export const hasPermission = (permission) => {

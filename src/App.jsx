@@ -43,7 +43,7 @@ const Feedback = lazy(() => import('./pages/Feedback'));
 const FeedbackReports = lazy(() => import('./pages/FeedbackReports'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 import clinicLogo from './assets/logo.jpg';
-import { hasPermission } from './utils/auth';
+import { hasPermission, getUser, getToken } from './utils/auth';
 import { removeSalutation } from './utils/formatters';
 
 const MobileNav = () => {
@@ -74,7 +74,7 @@ const MobileNav = () => {
 
 const Sidebar = ({ onLogout, isCollapsed }) => {
     const location = useLocation();
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = getUser();
     const displayName = removeSalutation(user.full_name || user.username || 'Admin');
     const initial = displayName.charAt(0).toUpperCase();
 
@@ -155,7 +155,7 @@ const Sidebar = ({ onLogout, isCollapsed }) => {
 };
 
 const Header = () => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = getUser();
     const displayName = user.full_name || user.username || 'Admin';
     const displayRole = user.role ? user.role.charAt(0) + user.role.slice(1).toLowerCase() : 'Admin';
     const initial = displayName.charAt(0).toUpperCase();
@@ -368,7 +368,7 @@ const ProtectedRoute = ({ children, permission }) => {
 };
 
 const App = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+    const [isAuthenticated, setIsAuthenticated] = useState(!!getToken());
 
     const handleLogin = (token) => {
         setIsAuthenticated(true);
@@ -377,6 +377,8 @@ const App = () => {
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
         setIsAuthenticated(false);
     };
 
