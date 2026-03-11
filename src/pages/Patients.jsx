@@ -4,11 +4,11 @@ import {
     User, Phone, Mail, MapPin, Calendar as CalendarIcon,
     FileText, Share2, Shield, Heart, MoreVertical,
     ChevronRight, Info, Filter, CheckCircle2, Camera,
-    Activity, ArrowRight, Baby, Users, Clipboard, Zap, Stethoscope
+    Activity, ArrowRight, Baby, Users, Clipboard, Zap, Stethoscope, Clock, History
 } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import PatientForm, { EMPTY_FORM } from '../components/PatientForm';
-import { getPatients, registerPatient, updatePatient, getDoctors, getReferringDoctors, uploadPatientPhoto, toIsoDate, getMRDByPatientId } from '../api/index';
+import { getPatients, registerPatient, updatePatient, getDoctors, getReferringDoctors, uploadPatientPhoto, toIsoDate, getMRDByPatientId, getAppointments } from '../api/index';
 import { removeSalutation } from '../utils/formatters';
 import { hasPermission } from '../utils/auth';
 
@@ -19,9 +19,11 @@ const Patients = () => {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
     const [selected, setSelected] = useState(null);
-    const [patientTab, setPatientTab] = useState('summary'); // summary, documents
+    const [patientTab, setPatientTab] = useState('summary'); // summary, documents, history
     const [patientDocs, setPatientDocs] = useState([]);
+    const [patientAppointments, setPatientAppointments] = useState([]);
     const [docsLoading, setDocsLoading] = useState(false);
+    const [apptsLoading, setApptsLoading] = useState(false);
 
     // Filters & Pagination
     const [search, setSearch] = useState('');
@@ -407,10 +409,11 @@ const Patients = () => {
                             <table className="table-premium-v3">
                                 <thead>
                                     <tr>
+                                        <th>Token ID</th>
                                         <th>Patient Identity</th>
+                                        <th>Gender</th>
                                         <th>Parental Profile</th>
                                         {hasPermission('view_patient_mobile') && <th>Mobile</th>}
-                                        <th>Contact & Location</th>
                                         <th>Enrollment</th>
                                         <th style={{ textAlign: 'center' }}>Management</th>
                                     </tr>
@@ -419,12 +422,12 @@ const Patients = () => {
                                     {loading && !patients.length ? (
                                         Array(6).fill(0).map((_, i) => (
                                             <tr key={i}>
-                                                <td colSpan={hasPermission('view_patient_mobile') ? 6 : 5}><div className="skeleton-row-premium"></div></td>
+                                                <td colSpan={hasPermission('view_patient_mobile') ? 7 : 6}><div className="skeleton-row-premium"></div></td>
                                             </tr>
                                         ))
                                     ) : patients.length === 0 ? (
                                         <tr>
-                                            <td colSpan={hasPermission('view_patient_mobile') ? 6 : 5} className="empty-state-cell">
+                                            <td colSpan={hasPermission('view_patient_mobile') ? 7 : 6} className="empty-state-cell">
                                                 <div className="empty-box-premium">
                                                     <Info size={48} />
                                                     <h3>No patients found</h3>
@@ -436,18 +439,23 @@ const Patients = () => {
                                         <React.Fragment key={p._id}>
                                             <tr className={`patient-row-v2 ${selected?._id === p._id ? 'is-active' : ''}`}>
                                                 <td>
+                                                    <div className="id-tag-premium">
+                                                        <span className="id-label" style={{ background: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{p.token_id || 'T-XX'}</span>
+                                                    </div>
+                                                </td>
+                                                <td>
                                                     <div className="patient-meta-box">
-                                                        <div className={`avatar-premium ${String(p.gender || '').toLowerCase() === 'female' || String(p.gender || '').toLowerCase() === 'girl' ? 'pink' : 'blue'}`}>
-                                                            {p.first_name?.charAt(0) || 'P'}
-                                                        </div>
                                                         <div className="patient-name-stack">
                                                             <div className="name-bold-v2">{removeSalutation(p.full_name)}</div>
                                                             <div className="id-tag-premium">
-                                                                <span className="id-label">{p.patient_id}</span>
-                                                                <span className="dot">•</span>
-                                                                <span className="age-label">{p.gender}, {calculateAge(p.dob)}</span>
+                                                                <span className="age-label">{calculateAge(p.dob)}</span>
                                                             </div>
                                                         </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div className="gender-tag-v2" style={{ textTransform: 'capitalize', fontWeight: 700, color: '#64748b' }}>
+                                                        {p.gender}
                                                     </div>
                                                 </td>
                                                 <td>
@@ -465,17 +473,6 @@ const Patients = () => {
                                                     </td>
                                                 )}
                                                 <td>
-                                                    <div className="contact-inline">
-                                                        <div className="loc-box-mini">
-                                                            <MapPin size={12} />
-                                                            {p.city || 'Remote'}
-                                                        </div>
-                                                        <div className="area-box-mini">
-                                                            <span>{p.area || 'N/A'}</span>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>
                                                     <div className="status-badge-stack">
                                                         <span className={`status-chip-v3 ${p.registration_status === 'COMPLETE' ? 'complete' : 'pending'}`}>
                                                             {p.registration_status}
@@ -487,12 +484,17 @@ const Patients = () => {
                                                 </td>
                                                 <td>
                                                     <div className="action-hub-premium">
-                                                        <label className="hub-btn-info" style={{ cursor: 'pointer' }}>
-                                                            <Camera size={18} />
-                                                            <input type="file" hidden accept="image/*" onChange={(e) => handlePhotoUpload(p.patient_id, e)} />
-                                                        </label>
-                                                        <button className={`hub-btn-info ${selected?._id === p._id ? 'active' : ''}`} onClick={() => setSelected(selected?._id === p._id ? null : p)}>
-                                                            {selected?._id === p._id ? <X size={18} /> : <Clipboard size={18} />}
+                                                        <button className={`hub-btn-info ${selected?._id === p._id ? 'active' : ''}`} onClick={() => {
+                                                            if (selected?._id === p._id) {
+                                                                setSelected(null);
+                                                            } else {
+                                                                setSelected(p);
+                                                                setPatientTab('summary');
+                                                                setPatientDocs([]);
+                                                                setPatientAppointments([]);
+                                                            }
+                                                        }}>
+                                                            {selected?._id === p._id ? <X size={18} /> : <MoreVertical size={18} />}
                                                         </button>
                                                         <button className="hub-btn-edit" onClick={() => startEdit(p)}>
                                                             <Edit2 size={18} />
@@ -502,7 +504,7 @@ const Patients = () => {
                                             </tr>
                                             {selected?._id === p._id && (
                                                 <tr className="expansion-row">
-                                                    <td colSpan={hasPermission('view_patient_mobile') ? 6 : 5}>
+                                                    <td colSpan={hasPermission('view_patient_mobile') ? 7 : 6}>
                                                         <div className="expansion-content-premium" style={{ paddingTop: '1rem' }}>
                                                             <div className="expansion-tabs" style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', borderBottom: '1px solid #f1f5f9', padding: '0 1rem' }}>
                                                                 <button
@@ -529,26 +531,30 @@ const Patients = () => {
                                                                 >
                                                                     Patient Documents
                                                                 </button>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        setPatientTab('history');
+                                                                        if (patientAppointments.length === 0 || selected?.patient_id !== p.patient_id) {
+                                                                            setApptsLoading(true);
+                                                                            try {
+                                                                                const r = await getAppointments({ patient_id: p.patient_id, search: p.patient_id, limit: 100 });
+                                                                                const allAppts = r.data?.data || [];
+                                                                                const patientOnlyAppts = allAppts.filter(a => a.patient_id === p.patient_id);
+                                                                                setPatientAppointments(patientOnlyAppts);
+                                                                            } catch (e) { console.error(e); }
+                                                                            finally { setApptsLoading(false); }
+                                                                        }
+                                                                    }}
+                                                                    style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === 'history' ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === 'history' ? '2px solid #6366f1' : 'none', transition: '0.2s' }}
+                                                                >
+                                                                    Appointment History
+                                                                </button>
                                                             </div>
 
                                                             {patientTab === 'summary' ? (
                                                                 <>
                                                                     <div className="expansion-grid">
                                                                         <div className="expansion-card" style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
-                                                                            <div className="avatar-preview-box">
-                                                                                <div className="large-avatar-premium" style={{ width: '100px', height: '100px', borderRadius: '24px', background: '#f8fafc', overflow: 'hidden', border: '2px solid #eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                                                    {p.patient_photo ? (
-                                                                                        <img src={p.patient_photo} alt="Patient" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                                                    ) : (
-                                                                                        <User size={48} color="#cbd5e1" />
-                                                                                    )}
-                                                                                </div>
-                                                                                <label className="btn-upload-avatar" style={{ marginTop: '0.75rem', width: '100%', padding: '0.5rem', borderRadius: '10px', background: '#f1f5f9', border: 'none', color: '#64748b', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-                                                                                    <Camera size={14} />
-                                                                                    <span>Upload</span>
-                                                                                    <input type="file" hidden accept="image/*" onChange={(e) => handlePhotoUpload(p.patient_id, e)} />
-                                                                                </label>
-                                                                            </div>
                                                                             <div style={{ flex: 1 }}>
                                                                                 <div className="exp-card-header"><Activity size={18} /> <span>Medical Profile</span></div>
                                                                                 <div className="exp-info-list">
@@ -589,7 +595,7 @@ const Patients = () => {
                                                                         </div>
                                                                     )}
                                                                 </>
-                                                            ) : (
+                                                            ) : patientTab === 'documents' ? (
                                                                 <div className="documents-view-premium">
                                                                     {docsLoading ? (
                                                                         <div style={{ padding: '4rem', textAlign: 'center' }}><RefreshCw size={24} className="animate-spin" /></div>
@@ -620,7 +626,62 @@ const Patients = () => {
                                                                         </div>
                                                                     )}
                                                                 </div>
-                                                            )}
+                                                            ) : patientTab === 'history' ? (
+                                                                <div className="history-view-premium" style={{ marginTop: '1.5rem' }}>
+                                                                    {apptsLoading ? (
+                                                                        <div style={{ padding: '4rem', textAlign: 'center' }}><RefreshCw size={24} className="animate-spin" color="#6366f1" /></div>
+                                                                    ) : patientAppointments.length === 0 ? (
+                                                                        <div className="empty-history-premium" style={{ padding: '4rem', textAlign: 'center', opacity: 0.5 }}>
+                                                                            <History size={48} style={{ marginBottom: '1rem', color: '#94a3b8' }} />
+                                                                            <p style={{ color: '#64748b', fontWeight: 600 }}>No past appointments found for this patient.</p>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="doc-history-timeline" style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                                                                            <table className="table-premium-v3" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                                                                                <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                                                                    <tr>
+                                                                                        <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Date & Time</th>
+                                                                                        <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Type</th>
+                                                                                        <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Doctor</th>
+                                                                                        <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    {patientAppointments.map((appt, idx) => (
+                                                                                        <tr key={appt._id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                                                            <td style={{ padding: '1rem' }}>
+                                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                                                                                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>
+                                                                                                        {new Date(appt.appointment_date || appt.start_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                                                                    </span>
+                                                                                                    <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.2rem', fontWeight: 600 }}>
+                                                                                                        <Clock size={12} /> {appt.appointment_time || appt.start_time || 'N/A'}
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                            <td style={{ padding: '1rem' }}>
+                                                                                                <span style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569', padding: '0.25rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize' }}>
+                                                                                                    {(appt.visit_category || appt.visit_type || 'Consultation').replace('_', ' ')}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                            <td style={{ padding: '1rem' }}>
+                                                                                                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155' }}>
+                                                                                                    {appt.doctor_name || appt.attending_doctor || 'Clinic'}
+                                                                                                </div>
+                                                                                            </td>
+                                                                                            <td style={{ padding: '1rem' }}>
+                                                                                                <span className={`status-chip-v3 ${String(appt.status || 'PENDING').toLowerCase()}`}>
+                                                                                                    {appt.status || 'PENDING'}
+                                                                                                </span>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    ))}
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ) : null}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -632,12 +693,12 @@ const Patients = () => {
                         </div>
 
                         {pagination.pages > 1 && (
-                            <div className="pagination-v2-premium">
+                            <div className="pagination-v2-premium" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div className="pag-info">
                                     Showing <strong>{(page - 1) * 20 + 1}</strong> to <strong>{Math.min(page * 20, pagination.total)}</strong> of <strong>{pagination.total}</strong>
-                                    <span className="pag-total">patients in registry</span>
+                                    <span className="pag-total"> patients in registry</span>
                                 </div>
-                                <div style={{ display: 'flex', gap: '1rem' }}>
+                                <div style={{ display: 'flex', gap: '1rem', marginLeft: 'auto' }}>
                                     <button className="pag-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
                                         <ChevronRight size={20} style={{ transform: 'rotate(180deg)' }} />
                                         <span>Previous</span>

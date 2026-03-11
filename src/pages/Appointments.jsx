@@ -620,6 +620,7 @@ const Appointments = () => {
                                         <tr style={{ backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0' }}>
                                             <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Token</th>
                                             <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Patient</th>
+                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Gender</th>
                                             <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Time</th>
                                             <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Doctor</th>
                                             <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Category</th>
@@ -631,11 +632,11 @@ const Appointments = () => {
                                     <tbody>
                                         {loading && !appointments.length ? (
                                             Array(6).fill(0).map((_, i) => (
-                                                <tr key={i}><td colSpan={6}><div className="skeleton-line-v3"></div></td></tr>
+                                                <tr key={i}><td colSpan={9}><div className="skeleton-line-v3"></div></td></tr>
                                             ))
                                         ) : filteredAppointments.length === 0 ? (
                                             <tr>
-                                                <td colSpan={6} className="empty-state-card">
+                                                <td colSpan={9} className="empty-state-card">
                                                     <div className="empty-content">
                                                         <div className="empty-icon-wrap">
                                                             <CalendarIcon size={48} />

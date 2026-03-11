@@ -51,22 +51,23 @@ const AppointmentRow = ({ appt, onEdit, onCancel }) => {
                 </span>
             </td>
 
-            {/* 2. Patient (Child Name) */}
             <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: '#64748b' }}>
-                        {(removeSalutation(appt?.child_name) || 'W')[0].toUpperCase()}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
-                            {removeSalutation(appt?.child_name) || 'Walk-in Patient'}
-                        </span>
-                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>#{String(ptId).slice(-6)}</span>
-                    </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                        {removeSalutation(appt?.child_name) || 'Walk-in Patient'}
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>#{String(ptId).slice(-6)}</span>
                 </div>
             </td>
 
-            {/* 3. Time */}
+            {/* 3. Gender */}
+            <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
+                <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700, textTransform: 'capitalize' }}>
+                    {appt?.gender || 'Boy'}
+                </span>
+            </td>
+
+            {/* 4. Time */}
             <td style={{ padding: '16px 20px', verticalAlign: 'middle', fontSize: '13px', color: '#475569', fontWeight: 600 }}>
                 {formatTime12h(appt?.appointment_time || appt?.start_time)}
             </td>

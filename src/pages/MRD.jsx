@@ -364,8 +364,8 @@ const MRD = () => {
                                     className={`patient-item-v3 ${isSelected ? 'selected' : ''}`}
                                     onClick={() => selectPatientRecord(p)}
                                 >
-                                    <div className="avatar" style={{ background: isSelected ? avatarColor(ini) : '#f1f5f9', color: isSelected ? '#fff' : '#64748b' }}>
-                                        {ini}
+                                    <div className="avatar" style={{ background: isSelected ? avatarColor(ini) : '#f1f5f9', color: isSelected ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <User size={14} />
                                     </div>
                                     <div className="info">
                                         <div className="p-name">{pname(p)}</div>
