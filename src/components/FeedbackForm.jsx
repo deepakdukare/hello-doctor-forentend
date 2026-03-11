@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Star, Send, User, Phone, Smile, RefreshCw, Activity, ArrowRight, BriefcaseMedical, Headphones, HeartPulse } from 'lucide-react';
+import { Send, User, Phone, Smile, RefreshCw, Activity, ArrowRight, BriefcaseMedical, Headphones, HeartPulse } from 'lucide-react';
 import { submitFeedback } from '../api/index';
 import doctorAvatar from '../assets/doctor-avatar.png';
 import frontdeskAvatar from '../assets/frontdesk-avatar.png';
@@ -11,7 +11,6 @@ const FeedbackForm = ({ appointmentId = null, onComplete = null }) => {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [hover, setHover] = useState({ doctor: 0, frontdesk: 0, hospital: 0 });
 
     const [form, setForm] = useState({
         name: '',
@@ -23,9 +22,9 @@ const FeedbackForm = ({ appointmentId = null, onComplete = null }) => {
     });
 
     const categories = [
-        { key: 'doctor_rating', label: 'Doctor Interaction', hoverKey: 'doctor', title: 'Doctor' },
-        { key: 'frontdesk_rating', label: 'Front-desk Service', hoverKey: 'frontdesk', title: 'Front-desk' },
-        { key: 'hospital_rating', label: 'Clinic Atmosphere', hoverKey: 'hospital', title: 'Clinic' }
+        { key: 'doctor_rating', label: 'Doctor Interaction', title: 'Doctor' },
+        { key: 'frontdesk_rating', label: 'Front-desk Service', title: 'Front-desk' },
+        { key: 'hospital_rating', label: 'Clinic Atmosphere', title: 'Clinic' }
     ];
 
     const handleSubmit = async (e) => {
@@ -80,12 +79,16 @@ const FeedbackForm = ({ appointmentId = null, onComplete = null }) => {
                     <div className="feedback-branding">
                         <img src={clinicIcon} alt="Logo" className="feedback-logo-mini" />
                         <div className="feedback-branding-text">
-                            <span className="feedback-brand-main">Dr. Indu's</span>
-                            <span className="feedback-brand-sub">New Born & Childcare Center</span>
+                            <span className="feedback-brand-main">DR. INDU'S NEW BORN</span>
+                            <span className="feedback-brand-sub">CHILDCARE CENTER</span>
                         </div>
                     </div>
-                    <h2>Share Experience</h2>
-                    <p>Help us calibrate our care standards for you.</p>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#1e293b' }}>
+                        Patient Feedback
+                    </h2>
+                    <p style={{ fontSize: '0.95rem', color: '#64748b', marginTop: '0.25rem' }}>
+                        Your feedback helps us deliver the highest quality pediatric care.
+                    </p>
                 </div>
 
                 <div className="feedback-divider-v2"></div>
@@ -97,7 +100,6 @@ const FeedbackForm = ({ appointmentId = null, onComplete = null }) => {
                             <input
                                 type="text"
                                 required
-                                placeholder="Full Name"
                                 value={form.name}
                                 onChange={e => setForm({ ...form, name: e.target.value })}
                                 className="feedback-field"
@@ -108,7 +110,6 @@ const FeedbackForm = ({ appointmentId = null, onComplete = null }) => {
                             <input
                                 type="tel"
                                 required
-                                placeholder="Registered mobile"
                                 value={form.mobile}
                                 onChange={e => setForm({ ...form, mobile: e.target.value.replace(/\D/g, '') })}
                                 className="feedback-field"
@@ -118,7 +119,6 @@ const FeedbackForm = ({ appointmentId = null, onComplete = null }) => {
                             <label>Email Address</label>
                             <input
                                 type="email"
-                                placeholder="Email (optional)"
                                 value={form.email || ''}
                                 onChange={e => setForm({ ...form, email: e.target.value })}
                                 className="feedback-field"
@@ -150,17 +150,10 @@ const FeedbackForm = ({ appointmentId = null, onComplete = null }) => {
                                         <button
                                             key={s}
                                             type="button"
-                                            className={`star-btn-v2-mini ${(hover[cat.hoverKey] || form[cat.key]) >= s ? 'active' : ''}`}
+                                            className={`rating-btn-v2 ${form[cat.key] === s ? 'active' : ''}`}
                                             onClick={() => setForm({ ...form, [cat.key]: s })}
-                                            onMouseEnter={() => setHover({ ...hover, [cat.hoverKey]: s })}
-                                            onMouseLeave={() => setHover({ ...hover, [cat.hoverKey]: 0 })}
                                         >
-                                            <Star
-                                                size={36}
-                                                fill={(hover[cat.hoverKey] || form[cat.key]) >= s ? '#FFB84D' : 'transparent'}
-                                                stroke={(hover[cat.hoverKey] || form[cat.key]) >= s ? '#FFB84D' : '#CBD5E1'}
-                                                strokeWidth={1.5}
-                                            />
+                                            {s}
                                         </button>
                                     ))}
                                 </div>
