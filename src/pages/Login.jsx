@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, Loader2, CheckCircle2, Zap, ShieldCheck, Activity } from 'lucide-react';
 import api from '../api';
 
 const Login = ({ onLogin }) => {
@@ -52,15 +52,15 @@ const Login = ({ onLogin }) => {
                         </div>
                         <div className="branding-highlights">
                             <div className="highlight-item">
-                                <div className="highlight-dot"></div>
+                                <Activity className="highlight-icon" size={20} />
                                 <p>Specialized Patient Management</p>
                             </div>
                             <div className="highlight-item">
-                                <div className="highlight-dot"></div>
+                                <Zap className="highlight-icon" size={20} />
                                 <p>Real-time Appointment Tracking</p>
                             </div>
                             <div className="highlight-item">
-                                <div className="highlight-dot"></div>
+                                <ShieldCheck className="highlight-icon" size={20} />
                                 <p>Digital Clinical Records (MRD)</p>
                             </div>
                         </div>
