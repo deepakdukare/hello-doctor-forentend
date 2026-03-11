@@ -1108,3 +1108,100 @@ input {
     font-weight: 500 !important;
     padding-right: 20px !important;
 }
+/* MOBILE RESPONSIVE FIXES */
+@media (max-width: 1024px) {
+    .dashboard-layout-v3 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+    }
+    
+    .sidebar-section-v3 {
+        width: 100% !important;
+        margin-top: 1.5rem !important;
+        flex-direction: row !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column !important;
+    }
+    
+    .sidebar {
+        display: none !important;
+    }
+    
+    .mobile-hide {
+        display: none !important;
+    }
+    
+    .main-content {
+        margin-left: 0 !important;
+        max-width: 100vw !important;
+        padding: 1rem !important;
+        margin-bottom: 70px !important;
+    }
+    
+    .dashboard-layout-v3 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+    
+    .sidebar-section-v3 {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+    
+    .stat-grid-v3, .analytics-stat-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .section-header-v3, .header-section-premium {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem !important;
+        padding: 1rem !important;
+    }
+    
+    .table-wrapper-v3, .table-container-premium {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        border-radius: 8px !important;
+        width: 100% !important;
+    }
+    
+    .table-v3, .table-premium {
+        min-width: 600px !important;
+        width: 100% !important;
+    }
+    
+    .action-stack-v3 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+    
+    .analytics-stats-row {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .analytics-main-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .doc-snapshot-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    svg {
+        max-width: 100% !important;
+    }
+    
+    img {
+        max-width: 100% !important;
+        height: auto;
+    }
+}
+
