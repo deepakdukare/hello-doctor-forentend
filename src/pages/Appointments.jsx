@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import {
     Calendar as CalendarIcon,
     Users,
@@ -190,6 +191,7 @@ const InlineCalendar = ({ value, onChange }) => {
 };
 
 const Appointments = () => {
+    const navigate = useNavigate();
     // Shared State
     const [appointments, setAppointments] = useState([]);
     const [stats, setStats] = useState(null);
@@ -197,7 +199,6 @@ const Appointments = () => {
     const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [enrollErrors, setEnrollErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
 
     // Queue Filters
@@ -221,17 +222,6 @@ const Appointments = () => {
     const [queueSearch, setQueueSearch] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [selectedPatient, setSelectedPatient] = useState(null);
-    const [newPatient, setNewPatient] = useState({
-        first_name: '',
-        last_name: '',
-        gender: 'boy',
-        dob: '',
-        wa_id: '',
-        state: 'Maharashtra',
-        city: 'Mumbai',
-        pincode: '',
-        address: ''
-    });
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [editMode, setEditMode] = useState(false);
 
@@ -363,53 +353,7 @@ const Appointments = () => {
         setActiveTab('visit');
     };
 
-    const handleQuickRegister = async (e) => {
-        if (e) e.preventDefault();
-        setEnrollErrors({});
-        setError(null);
 
-        const errors = {};
-        if (!newPatient.first_name?.trim()) errors.first_name = "First name required";
-        if (!newPatient.last_name?.trim()) errors.last_name = "Last name required";
-        if (!newPatient.gender?.trim()) errors.gender = "Gender required";
-        if (!newPatient.dob?.trim()) errors.dob = "Birth date required";
-        if (!newPatient.wa_id?.trim()) errors.wa_id = "Mobile required";
-        else if (newPatient.wa_id.length < 10) errors.wa_id = "10-digit required";
-        if (!newPatient.city?.trim()) errors.city = "City required";
-        if (!newPatient.pincode?.trim()) errors.pincode = "Pincode required";
-        else if (newPatient.pincode.length < 6) errors.pincode = "6-digit required";
-        if (!newPatient.address?.trim()) errors.address = "Address required";
-
-        if (Object.keys(errors).length > 0) {
-            setEnrollErrors(errors);
-            const first = Object.keys(errors)[0];
-            const el = document.getElementsByName(first)[0];
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            return;
-        }
-
-        setSubmitting(true);
-        try {
-            const res = await registerPatient({
-                first_name: newPatient.first_name,
-                last_name: newPatient.last_name,
-                gender: newPatient.gender,
-                dob: newPatient.dob,
-                wa_id: newPatient.wa_id,
-                city: newPatient.city || 'Mumbai',
-                pincode: newPatient.pincode,
-                address: newPatient.address,
-                state: newPatient.state || 'Maharashtra',
-                doctor: form.doctor_name
-            });
-            selectPatient(res.data.data);
-            setActiveTab('visit');
-        } catch (err) {
-            setError(err.response?.data?.message || "Enrollment failed");
-        } finally {
-            setSubmitting(false);
-        }
-    };
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();
@@ -501,19 +445,7 @@ const Appointments = () => {
                 appointment_mode: 'OFFLINE',
                 reason: ''
             });
-            setNewPatient({
-                salutation: 'Master',
-                first_name: '',
-                last_name: '',
-                gender: 'boy',
-                dob: '',
-                wa_id: '',
-                state: 'Maharashtra',
-                city: 'Mumbai',
-                pincode: '',
-                address: '',
-                registration_source: 'dashboard'
-            });
+
             setSelectedPatient(null);
             setActiveTab('patient');
         }
@@ -822,8 +754,8 @@ const Appointments = () => {
                                                     <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>Patient not found</h3>
                                                     <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, margin: 0 }}>The identity could not be located.</p>
                                                 </div>
-                                                <button
-                                                    onClick={() => setActiveTab('new-patient')}
+                                                <Link
+                                                    to="/patients"
                                                     className="btn-save"
                                                     style={{
                                                         backgroundColor: '#6366f1',
@@ -831,71 +763,20 @@ const Appointments = () => {
                                                         padding: '6px 14px',
                                                         borderRadius: '6px',
                                                         fontWeight: 700,
-                                                        border: 'none',
+                                                        textDecoration: 'none',
+                                                        display: 'inline-block',
                                                         cursor: 'pointer',
                                                         boxShadow: '0 2px 8px rgba(99, 102, 241, 0.2)',
                                                         fontSize: '12px',
                                                         marginTop: '8px'
                                                     }}
                                                 >
-                                                    + Create New Profile
-                                                </button>
+                                                    + Go to Patients
+                                                </Link>
                                             </div>
                                         )}
                                     </div>
                                 </div>
-                            ) : activeTab === 'new-patient' ? (
-                                <form onSubmit={handleQuickRegister} className="wizard-form-v3" noValidate style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                                    <div className="form-grid-v2" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem' }}>
-                                        <div className="f-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>First Name *</label>
-                                            <input name="first_name" placeholder="Enter first name" value={newPatient.first_name} onChange={e => setNewPatient({ ...newPatient, first_name: e.target.value })} style={{ height: '48px', padding: '0 16px', borderRadius: '10px', border: enrollErrors.first_name ? '2px solid #ef4444' : '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: 500, outline: 'none', transition: 'all 0.2s' }} />
-                                            {enrollErrors.first_name && <p style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600, margin: '2px 0 0 4px' }}>{enrollErrors.first_name}</p>}
-                                        </div>
-                                        <div className="f-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>Last Name *</label>
-                                            <input name="last_name" placeholder="Enter last name" value={newPatient.last_name} onChange={e => setNewPatient({ ...newPatient, last_name: e.target.value })} style={{ height: '48px', padding: '0 16px', borderRadius: '10px', border: enrollErrors.last_name ? '2px solid #ef4444' : '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: 500, outline: 'none', transition: 'all 0.2s' }} />
-                                            {enrollErrors.last_name && <p style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600, margin: '2px 0 0 4px' }}>{enrollErrors.last_name}</p>}
-                                        </div>
-                                        <div className="f-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>Gender *</label>
-                                            <select name="gender" value={newPatient.gender} onChange={e => setNewPatient({ ...newPatient, gender: e.target.value })} style={{ height: '48px', padding: '0 16px', borderRadius: '10px', border: enrollErrors.gender ? '2px solid #ef4444' : '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: 500, outline: 'none', cursor: 'pointer' }}>
-                                                <option value="boy">Boy</option>
-                                                <option value="girl">Girl</option>
-                                            </select>
-                                            {enrollErrors.gender && <p style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600, margin: '2px 0 0 4px' }}>{enrollErrors.gender}</p>}
-                                        </div>
-                                        <div className="f-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>Date of Birth *</label>
-                                            <input name="dob" type="date" value={newPatient.dob} onChange={e => setNewPatient({ ...newPatient, dob: e.target.value })} style={{ height: '48px', padding: '0 16px', borderRadius: '10px', border: enrollErrors.dob ? '2px solid #ef4444' : '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: 500, outline: 'none' }} />
-                                            {enrollErrors.dob && <p style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600, margin: '2px 0 0 4px' }}>{enrollErrors.dob}</p>}
-                                        </div>
-                                        <div className="f-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>WhatsApp Mobile *</label>
-                                            <input name="wa_id" placeholder="10-digit mobile number" value={newPatient.wa_id} onChange={e => setNewPatient({ ...newPatient, wa_id: e.target.value.replace(/\D/g, '') })} style={{ height: '48px', padding: '0 16px', borderRadius: '10px', border: enrollErrors.wa_id ? '2px solid #ef4444' : '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: 500, outline: 'none' }} />
-                                            {enrollErrors.wa_id && <p style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600, margin: '2px 0 0 4px' }}>{enrollErrors.wa_id}</p>}
-                                        </div>
-                                        <div className="f-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>City *</label>
-                                            <input name="city" placeholder="e.g. Mumbai" value={newPatient.city || 'Mumbai'} onChange={e => setNewPatient({ ...newPatient, city: e.target.value })} style={{ height: '48px', padding: '0 16px', borderRadius: '10px', border: enrollErrors.city ? '2px solid #ef4444' : '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: 500, outline: 'none' }} />
-                                            {enrollErrors.city && <p style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600, margin: '2px 0 0 4px' }}>{enrollErrors.city}</p>}
-                                        </div>
-                                        <div className="f-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>Pincode *</label>
-                                            <input name="pincode" placeholder="6-digit pincode" value={newPatient.pincode || ''} onChange={e => setNewPatient({ ...newPatient, pincode: e.target.value.replace(/\D/g, '') })} style={{ height: '48px', padding: '0 16px', borderRadius: '10px', border: enrollErrors.pincode ? '2px solid #ef4444' : '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: 500, outline: 'none' }} />
-                                            {enrollErrors.pincode && <p style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600, margin: '2px 0 0 4px' }}>{enrollErrors.pincode}</p>}
-                                        </div>
-                                        <div className="f-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: 'span 2' }}>
-                                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.025em' }}>Address *</label>
-                                            <textarea name="address" placeholder="Full residential address" value={newPatient.address || ''} onChange={e => setNewPatient({ ...newPatient, address: e.target.value })} style={{ height: '80px', padding: '12px 16px', borderRadius: '10px', border: enrollErrors.address ? '2px solid #ef4444' : '1.5px solid #e2e8f0', backgroundColor: '#f8fafc', fontSize: '14px', fontWeight: 500, outline: 'none', resize: 'vertical' }} />
-                                            {enrollErrors.address && <p style={{ fontSize: '11px', color: '#ef4444', fontWeight: 600, margin: '2px 0 0 4px' }}>{enrollErrors.address}</p>}
-                                        </div>
-                                    </div>
-                                    <div className="wizard-footer-v3" style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                                        <button type="button" onClick={() => setActiveTab('patient')} style={{ height: '44px', padding: '0 24px', borderRadius: '10px', border: '1.5px solid #e2e8f0', backgroundColor: '#fff', fontSize: '14px', fontWeight: 700, color: '#475569', cursor: 'pointer' }}>Back to Search</button>
-                                        <button type="submit" disabled={submitting} style={{ height: '44px', padding: '0 24px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', fontSize: '14px', fontWeight: 700, color: '#fff', cursor: 'pointer', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)' }}>{submitting ? 'Enrolling...' : 'Enroll & Proceed'}</button>
-                                    </div>
-                                </form>
                             ) : (
                                 <form onSubmit={handleFormSubmit} className="wizard-form-v3" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                     <div className="selected-patient-v3" style={{ marginBottom: '1rem', border: '1.5px solid #f1f5f9', borderRadius: '14px', background: '#f8fafc', padding: '0.6rem 1rem' }}>
@@ -910,10 +791,10 @@ const Appointments = () => {
                                                 </div>
                                             </div>
                                             {!editMode && (
-                                                <button type="button" onClick={() => setActiveTab('patient')} style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#fff', border: '1px solid #E0E7FF', padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800, color: '#4F46E5', cursor: 'pointer' }}>
+                                                <Link to="/patients" style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#fff', border: '1px solid #E0E7FF', padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 800, color: '#4F46E5', cursor: 'pointer', textDecoration: 'none' }}>
                                                     <Edit2 size={10} />
                                                     <span>Change</span>
-                                                </button>
+                                                </Link>
                                             )}
                                         </div>
                                     </div>
