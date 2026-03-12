@@ -239,6 +239,7 @@ const Appointments = () => {
 
     const [cancelModal, setCancelModal] = useState({ show: false, id: null, reason: '' });
     const dateInputRef = useRef(null);
+    const searchTimeoutRef = useRef(null);
 
     const filteredAppointments = appointments.filter((appt) => {
         const q = queueSearch.trim().toLowerCase();
@@ -253,47 +254,63 @@ const Appointments = () => {
         ].some((value) => String(value || '').toLowerCase().includes(q));
     });
 
-    const fetchData = useCallback(async () => {
+    const fetchQueueData = useCallback(async () => {
         setLoading(true);
         try {
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-            const sevenDaysAgoDate = toIsoDate(sevenDaysAgo);
-
-            const [apptRes, statsRes, pastStatsRes, doctorRes] = await Promise.all([
+            const [apptRes, statsRes] = await Promise.all([
                 getAppointments(filters),
-                getAppointmentStats(filters.date),
-                getAppointmentStats(sevenDaysAgoDate),
-                getDoctors({ all: true })
+                getAppointmentStats(filters.date)
             ]);
             
             const currentStats = statsRes.data.data || {};
-            const pastStats = pastStatsRes.data.data || {};
-
             setAppointments(apptRes.data.data || []);
             setStats(currentStats);
-            setDoctors(doctorRes.data.data || []);
 
             const calcTrend = (curr, prev) => {
                 if (!prev || prev === 0) return curr > 0 ? 100 : 0;
                 return Math.round(((curr - prev) / prev) * 100);
             };
 
-            setTrends({
-                load: calcTrend(currentStats.total_today || 0, pastStats.total_today || 0),
-                completed: calcTrend(currentStats.completed || 0, pastStats.completed || 0),
-                cancelled: calcTrend(currentStats.cancelled || 0, pastStats.cancelled || 0)
-            });
+            const past = trends.pastStats || {};
+            setTrends(prev => ({
+                ...prev,
+                load: calcTrend(currentStats.total_today || 0, past.total_today || 0),
+                completed: calcTrend(currentStats.completed || 0, past.completed || 0),
+                cancelled: calcTrend(currentStats.cancelled || 0, past.cancelled || 0)
+            }));
         } catch (err) {
             setError("Failed to fetch clinic data. Please check connection.");
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, [filters, trends.pastStats]);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        fetchQueueData();
+    }, [fetchQueueData]);
+
+    // Fetch initial static data once
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            try {
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                const sevenDaysAgoDate = toIsoDate(sevenDaysAgo);
+
+                const [doctorRes, pastStatsRes] = await Promise.all([
+                    getDoctors({ all: true }),
+                    getAppointmentStats(sevenDaysAgoDate)
+                ]);
+
+                setDoctors(doctorRes.data.data || []);
+                const past = pastStatsRes.data.data || {};
+                setTrends(prev => ({ ...prev, pastStats: past }));
+            } catch (err) {
+                console.error("Failed to fetch initial data", err);
+            }
+        };
+        fetchInitialData();
+    }, []);
 
     const fetchTokens = useCallback(async () => {
         if (!form.appointment_date || !form.doctor_id) return;
@@ -325,7 +342,10 @@ const Appointments = () => {
     }, [form.appointment_date, form.doctor_id]);
 
     const handlePatientSearch = useCallback(async (val) => {
-        setPatientSearch(val);
+        if (!val || val.trim().length < 2) {
+            setSearchResults([]);
+            return;
+        }
         setSearching(true);
         try {
             const res = await searchPatients(val);
@@ -337,15 +357,22 @@ const Appointments = () => {
         }
     }, []);
 
+    // Debounced search effect
     useEffect(() => {
-        if (activeView === 'authorizer') {
-            if (activeTab === 'visit') {
-                fetchTokens();
-            } else if (activeTab === 'patient') {
+        if (activeView === 'authorizer' && activeTab === 'patient' && patientSearch) {
+            const timer = setTimeout(() => {
                 handlePatientSearch(patientSearch);
-            }
+            }, 400); // 400ms debounce
+            return () => clearTimeout(timer);
         }
-    }, [activeView, activeTab, fetchTokens, handlePatientSearch, patientSearch]);
+    }, [activeView, activeTab, patientSearch, handlePatientSearch]);
+
+    // Fetch tokens when relevant form fields change
+    useEffect(() => {
+        if (activeView === 'authorizer' && activeTab === 'visit') {
+            fetchTokens();
+        }
+    }, [activeView, activeTab, fetchTokens]);
 
     const selectPatient = (patient) => {
         setSelectedPatient(patient);
@@ -381,7 +408,7 @@ const Appointments = () => {
             }
             setError(null);
             setActiveView('queue');
-            fetchData();
+            fetchQueueData();
         } catch (err) {
             console.error(err);
             setError(getApiErrorMessage(err, "Operation failed."));
@@ -395,7 +422,7 @@ const Appointments = () => {
             await cancelAppointment(cancelModal.id, { cancellation_reason: cancelModal.reason });
             setCancelModal({ show: false, id: null, reason: '' });
             setError(null);
-            fetchData();
+            fetchQueueData();
         } catch (err) {
             setError(getApiErrorMessage(err, "Cancellation request rejected."));
         }
@@ -685,7 +712,7 @@ const Appointments = () => {
                                             type="text"
                                             placeholder="Search by name, ID or mobile..."
                                             value={patientSearch}
-                                            onChange={(e) => handlePatientSearch(e.target.value)}
+                                            onChange={(e) => setPatientSearch(e.target.value)}
                                             style={{
                                                 border: 'none',
                                                 background: 'transparent',
