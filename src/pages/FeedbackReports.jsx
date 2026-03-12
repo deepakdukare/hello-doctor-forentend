@@ -64,7 +64,7 @@ const FeedbackReports = () => {
         <div className="reports-container-v5">
             <div className="header-section-premium">
                 <div className="header-content-premium">
-                    <h1 className="header-title-premium">Feedback Analytics</h1>
+                    <h1 className="header-title-premium">Feedback Hub</h1>
                     <p className="header-subtitle-premium">Patient satisfaction and service quality metrics</p>
                 </div>
                 <div className="header-actions-premium">

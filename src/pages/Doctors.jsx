@@ -416,7 +416,7 @@ const Doctors = () => {
                 <>
                     <div className="header-v4">
                         <div className="header-left-v4">
-                            <h1>Doctors Directory</h1>
+                            <h1>Doctor Profile</h1>
                             <p>Manage clinician profiles and schedules</p>
                         </div>
                         <div className="header-right-v4">
@@ -505,7 +505,7 @@ const Doctors = () => {
                         <button className="d-back-btn d-top-actions" onClick={() => { setViewingHubDoc(null); setEditingId(''); setShowDoctorForm(false); setIsEditingProfile(false); }}>
                             <ArrowLeft size={16} /> Back
                         </button>
-                        
+
                         <div className={`d-avatar-ring ${statusForm.status}`}>
                             <div className="d-avatar-inner">{doctorForm.name ? doctorForm.name.charAt(0).toUpperCase() : 'D'}</div>
                             <div className={`d-status-badge ${statusForm.status}`}>
@@ -518,33 +518,33 @@ const Doctors = () => {
                             <div className="d-identity-info">
                                 <h2>{doctorForm.name || 'New Doctor'}</h2>
                                 <h3>{doctorForm.speciality}</h3>
-                                <div style={{display:'flex', gap:'0.5rem', justifyContent:'center', marginBottom:'1.5rem', flexWrap:'wrap'}}>
-                                    <span className="d-chip" style={{background:'rgba(255,255,255,0.1)', color:'#cbd5e1'}}>{doctorForm.qualification || 'MBBS'}</span>
-                                    <span className="d-chip" style={{background:'rgba(255,255,255,0.1)', color:'#cbd5e1'}}>{doctorForm.experience || 'New'}</span>
+                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                                    <span className="d-chip" style={{ background: 'rgba(255,255,255,0.1)', color: '#cbd5e1' }}>{doctorForm.qualification || 'MBBS'}</span>
+                                    <span className="d-chip" style={{ background: 'rgba(255,255,255,0.1)', color: '#cbd5e1' }}>{doctorForm.experience || 'New'}</span>
                                 </div>
                                 <button className="d-btn d-btn-outline" onClick={() => setIsEditingProfile(true)}>
                                     <Edit2 size={16} /> Edit Profile
                                 </button>
                             </div>
                         ) : (
-                            <form className="d-identity-form" onSubmit={(e) => { saveDoctor(e).then(()=>{ setIsEditingProfile(false); showToast("Profile Updated successfully"); }); }}>
+                            <form className="d-identity-form" onSubmit={(e) => { saveDoctor(e).then(() => { setIsEditingProfile(false); showToast("Profile Updated successfully"); }); }}>
                                 <div className="d-input-group">
                                     <label>Full Name</label>
-                                    <input required value={doctorForm.name} onChange={e => setDoctorForm({...doctorForm, name: e.target.value})} />
+                                    <input required value={doctorForm.name} onChange={e => setDoctorForm({ ...doctorForm, name: e.target.value })} />
                                 </div>
                                 <div className="d-input-group">
                                     <label>Speciality</label>
-                                    <input required value={doctorForm.speciality} onChange={e => setDoctorForm({...doctorForm, speciality: e.target.value})} />
+                                    <input required value={doctorForm.speciality} onChange={e => setDoctorForm({ ...doctorForm, speciality: e.target.value })} />
                                 </div>
                                 <div className="d-input-group">
                                     <label>Qualification</label>
-                                    <input value={doctorForm.qualification} onChange={e => setDoctorForm({...doctorForm, qualification: e.target.value})} />
+                                    <input value={doctorForm.qualification} onChange={e => setDoctorForm({ ...doctorForm, qualification: e.target.value })} />
                                 </div>
                                 <div className="d-input-group">
                                     <label>Experience</label>
-                                    <input value={doctorForm.experience} onChange={e => setDoctorForm({...doctorForm, experience: e.target.value})} />
+                                    <input value={doctorForm.experience} onChange={e => setDoctorForm({ ...doctorForm, experience: e.target.value })} />
                                 </div>
-                                <button type="submit" className="d-btn d-btn-primary" style={{width: '100%', marginTop:'0.5rem'}}>
+                                <button type="submit" className="d-btn d-btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
                                     Save Changes
                                 </button>
                                 <button type="button" className="d-btn d-btn-outline" onClick={() => setIsEditingProfile(false)}>
@@ -560,16 +560,16 @@ const Doctors = () => {
                             <div className="d-card-header">
                                 <div className="d-card-title"><Activity size={20} color="#3b82f6" /> Live Operational Controls</div>
                             </div>
-                            
+
                             <div className="d-status-controls">
                                 {STATUS_OPTIONS.map(s => (
-                                    <button 
-                                        key={s} 
+                                    <button
+                                        key={s}
                                         className={`d-status-btn ${s} ${statusForm.status === s ? 'active' : ''}`}
                                         onClick={() => {
-                                            setStatusForm({...statusForm, status: s});
+                                            setStatusForm({ ...statusForm, status: s });
                                             if (editingId) {
-                                                runAvailabilityAction(() => patchDoctorAvailabilityStatus(editingId, { status: s }), `Status set to ${prettyStatus(s)}`).then(()=>showToast(`Status updated to ${prettyStatus(s)}`));
+                                                runAvailabilityAction(() => patchDoctorAvailabilityStatus(editingId, { status: s }), `Status set to ${prettyStatus(s)}`).then(() => showToast(`Status updated to ${prettyStatus(s)}`));
                                             }
                                         }}
                                     >
@@ -588,10 +588,10 @@ const Doctors = () => {
                                 <div className="d-delay-box border-right">
                                     <label>Delay Management</label>
                                     <div className="d-delay-row">
-                                        <input type="number" placeholder="Minutes (e.g. 15)" value={etaForm.eta_minutes} onChange={e => setEtaForm({...etaForm, eta_minutes: e.target.value})} />
+                                        <input type="number" placeholder="Minutes (e.g. 15)" value={etaForm.eta_minutes} onChange={e => setEtaForm({ ...etaForm, eta_minutes: e.target.value })} />
                                         <button className="d-btn d-btn-primary" onClick={() => {
-                                            if(editingId) {
-                                                runAvailabilityAction(() => patchDoctorAvailabilityEta(editingId, { eta_minutes: Number(etaForm.eta_minutes) }), 'Delay broadcasted').then(()=>showToast(`Waiting patients notified of ${etaForm.eta_minutes} min delay`));
+                                            if (editingId) {
+                                                runAvailabilityAction(() => patchDoctorAvailabilityEta(editingId, { eta_minutes: Number(etaForm.eta_minutes) }), 'Delay broadcasted').then(() => showToast(`Waiting patients notified of ${etaForm.eta_minutes} min delay`));
                                             }
                                         }}>Broadcast Delay</button>
                                     </div>
@@ -600,9 +600,9 @@ const Doctors = () => {
                                     <label>Date-Specific Limit Override</label>
                                     <div className="d-delay-row">
                                         <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
-                                        <input type="number" placeholder="Limit" value={dailyLimit} onChange={e => setDailyLimit(e.target.value)} style={{width: '100px'}} />
+                                        <input type="number" placeholder="Limit" value={dailyLimit} onChange={e => setDailyLimit(e.target.value)} style={{ width: '100px' }} />
                                         <button className="d-btn d-btn-primary" onClick={() => {
-                                            if(editingId) {
+                                            if (editingId) {
                                                 showToast(`Limit updated for ${selectedDate}`);
                                             }
                                         }}>Save</button>
@@ -615,47 +615,47 @@ const Doctors = () => {
                         <div className="d-card">
                             <div className="d-card-header">
                                 <div className="d-card-title"><CalendarIcon size={20} color="#3b82f6" /> Session Schedule</div>
-                                <button className="d-btn d-btn-primary" onClick={(e) => { saveDoctor(e).then(()=>showToast('Schedule saved successfully')); }}>Save Changes</button>
+                                <button className="d-btn d-btn-primary" onClick={(e) => { saveDoctor(e).then(() => showToast('Schedule saved successfully')); }}>Save Changes</button>
                             </div>
 
-                            <h4 style={{marginBottom:'1rem', color:'#475569', fontSize:'0.85rem', textTransform:'uppercase'}}>Weekly Recurring Schedule</h4>
-                            <div className="d-calendar" style={{marginBottom: '2rem'}}>
+                            <h4 style={{ marginBottom: '1rem', color: '#475569', fontSize: '0.85rem', textTransform: 'uppercase' }}>Weekly Recurring Schedule</h4>
+                            <div className="d-calendar" style={{ marginBottom: '2rem' }}>
                                 {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
                                     const dayConf = weeklyConfig?.[day] || { is_active: false, start_time: '10:00', online_limit: 0 };
                                     const isActive = dayConf.is_active;
                                     return (
-                                        <div key={day} className={`d-cal-tile ${isActive ? 'active-bg' : 'absent-bg'}`} style={{display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1.25rem 0.5rem', cursor: 'default', minHeight: 'auto'}}>
-                                            <div style={{fontWeight: '700', color: isActive ? '#065f46' : '#991b1b', textTransform: 'uppercase', fontSize: '1.1rem'}}>{day.substring(0, 3)}</div>
-                                            
+                                        <div key={day} className={`d-cal-tile ${isActive ? 'active-bg' : 'absent-bg'}`} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1.25rem 0.5rem', cursor: 'default', minHeight: 'auto' }}>
+                                            <div style={{ fontWeight: '700', color: isActive ? '#065f46' : '#991b1b', textTransform: 'uppercase', fontSize: '1.1rem' }}>{day.substring(0, 3)}</div>
+
                                             <select
                                                 className={isActive ? 'PRESENT' : 'ABSENT'}
                                                 value={isActive ? 'PRESENT' : 'ABSENT'}
-                                                onChange={(e) => setWeeklyConfig(prev => ({...prev, [day]: {...prev[day], is_active: e.target.value === 'PRESENT'}}))}
-                                                style={{width: '90%', padding: '0.4rem', borderRadius: '0.4rem', border: isActive ? '1px solid #10b981' : '1px solid #fecaca', fontSize: '0.8rem', fontWeight: 'bold', background: '#fff', color: isActive ? '#10b981' : '#f43f5e', margin: '0 auto', cursor:'pointer'}}
+                                                onChange={(e) => setWeeklyConfig(prev => ({ ...prev, [day]: { ...prev[day], is_active: e.target.value === 'PRESENT' } }))}
+                                                style={{ width: '90%', padding: '0.4rem', borderRadius: '0.4rem', border: isActive ? '1px solid #10b981' : '1px solid #fecaca', fontSize: '0.8rem', fontWeight: 'bold', background: '#fff', color: isActive ? '#10b981' : '#f43f5e', margin: '0 auto', cursor: 'pointer' }}
                                             >
                                                 <option value="PRESENT">Present</option>
                                                 <option value="ABSENT">Absent</option>
                                             </select>
 
-                                            <div style={{width: '90%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.2rem', alignItems: 'flex-start'}}>
-                                                <label style={{fontSize: '0.65rem', fontWeight: 600, color: '#64748b'}}>Approx Appointment time</label>
-                                                <input 
-                                                    type="time" 
-                                                    value={dayConf.start_time || '10:00'} 
-                                                    onChange={e => setWeeklyConfig(prev => ({...prev, [day]: {...prev[day], start_time: e.target.value}}))}
+                                            <div style={{ width: '90%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.2rem', alignItems: 'flex-start' }}>
+                                                <label style={{ fontSize: '0.65rem', fontWeight: 600, color: '#64748b' }}>Approx Appointment time</label>
+                                                <input
+                                                    type="time"
+                                                    value={dayConf.start_time || '10:00'}
+                                                    onChange={e => setWeeklyConfig(prev => ({ ...prev, [day]: { ...prev[day], start_time: e.target.value } }))}
                                                     disabled={!isActive}
-                                                    style={{width: '100%', padding: '0.4rem', borderRadius: '0.4rem', border: '1px solid #cbd5e1', fontFamily: 'DM Mono, monospace', fontSize: '0.85rem', background: '#fff'}}
+                                                    style={{ width: '100%', padding: '0.4rem', borderRadius: '0.4rem', border: '1px solid #cbd5e1', fontFamily: 'DM Mono, monospace', fontSize: '0.85rem', background: '#fff' }}
                                                 />
                                             </div>
 
-                                            <div style={{width: '90%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.2rem', alignItems: 'flex-start'}}>
-                                                <label style={{fontSize: '0.65rem', fontWeight: 600, color: '#64748b'}}>Limit</label>
-                                                <input 
-                                                    type="number" 
-                                                    value={dayConf.online_limit || 0} 
-                                                    onChange={e => setWeeklyConfig(prev => ({...prev, [day]: {...prev[day], online_limit: parseInt(e.target.value) || 0}}))}
+                                            <div style={{ width: '90%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.2rem', alignItems: 'flex-start' }}>
+                                                <label style={{ fontSize: '0.65rem', fontWeight: 600, color: '#64748b' }}>Limit</label>
+                                                <input
+                                                    type="number"
+                                                    value={dayConf.online_limit || 0}
+                                                    onChange={e => setWeeklyConfig(prev => ({ ...prev, [day]: { ...prev[day], online_limit: parseInt(e.target.value) || 0 } }))}
                                                     disabled={!isActive}
-                                                    style={{width: '100%', padding: '0.4rem', borderRadius: '0.4rem', border: '1px solid #cbd5e1', fontFamily: 'DM Mono, monospace', fontSize: '0.85rem', background: '#fff'}}
+                                                    style={{ width: '100%', padding: '0.4rem', borderRadius: '0.4rem', border: '1px solid #cbd5e1', fontFamily: 'DM Mono, monospace', fontSize: '0.85rem', background: '#fff' }}
                                                 />
                                             </div>
                                         </div>
@@ -663,18 +663,18 @@ const Doctors = () => {
                                 })}
                             </div>
 
-                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'}}>
-                                <h4 style={{margin: 0, color:'#475569', fontSize:'0.85rem', textTransform:'uppercase'}}>Monthly Calendar View</h4>
-                                <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
-                                    <button className="d-btn d-btn-outline" style={{padding: '0.2rem 0.5rem', borderColor: '#e2e8f0', color: '#475569'}} onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}><ChevronLeft size={16}/></button>
-                                    <span style={{color: '#0f1b35', fontWeight: 'bold', minWidth: '100px', textAlign: 'center', fontFamily: 'DM Mono, monospace'}}>{calendarMonth.toLocaleString('default', { month: 'short', year: 'numeric' })}</span>
-                                    <button className="d-btn d-btn-outline" style={{padding: '0.2rem 0.5rem', borderColor: '#e2e8f0', color: '#475569'}} onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}><ChevronRight size={16}/></button>
-                                    <button className="d-btn d-btn-outline" onClick={() => setCalendarMonth(new Date())} style={{padding: '0.2rem 0.5rem', borderColor: '#e2e8f0', color: '#475569', fontSize: '0.75rem', fontWeight: 600}}>Today</button>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h4 style={{ margin: 0, color: '#475569', fontSize: '0.85rem', textTransform: 'uppercase' }}>Monthly Calendar View</h4>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <button className="d-btn d-btn-outline" style={{ padding: '0.2rem 0.5rem', borderColor: '#e2e8f0', color: '#475569' }} onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}><ChevronLeft size={16} /></button>
+                                    <span style={{ color: '#0f1b35', fontWeight: 'bold', minWidth: '100px', textAlign: 'center', fontFamily: 'DM Mono, monospace' }}>{calendarMonth.toLocaleString('default', { month: 'short', year: 'numeric' })}</span>
+                                    <button className="d-btn d-btn-outline" style={{ padding: '0.2rem 0.5rem', borderColor: '#e2e8f0', color: '#475569' }} onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}><ChevronRight size={16} /></button>
+                                    <button className="d-btn d-btn-outline" onClick={() => setCalendarMonth(new Date())} style={{ padding: '0.2rem 0.5rem', borderColor: '#e2e8f0', color: '#475569', fontSize: '0.75rem', fontWeight: 600 }}>Today</button>
                                 </div>
                             </div>
                             <div className="d-calendar">
                                 {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map(day => (
-                                    <div key={day} style={{textAlign: 'center', fontWeight: '700', color: '#64748b', fontSize: '0.8rem', paddingBottom: '0.5rem'}}>{day}</div>
+                                    <div key={day} style={{ textAlign: 'center', fontWeight: '700', color: '#64748b', fontSize: '0.8rem', paddingBottom: '0.5rem' }}>{day}</div>
                                 ))}
                                 {/* Add empty placeholders for days before the start of the month */}
                                 {Array.from({ length: (calendarDays[0].getDay() === 0 ? 6 : calendarDays[0].getDay() - 1) }).map((_, i) => (
@@ -683,28 +683,28 @@ const Doctors = () => {
                                 {calendarDays.map((d, i) => {
                                     const dayName = DAY_NAMES[d.getDay() === 0 ? 6 : d.getDay() - 1] || 'monday';
                                     const baseDayConf = weeklyConfig?.[dayName] || { is_active: false, online_limit: 0, start_time: '10:00' };
-                                    
-                                    const isPast = d.setHours(0,0,0,0) < new Date().setHours(0,0,0,0);
+
+                                    const isPast = d.setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0);
                                     const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                                    
+
                                     const histRecord = isPast ? doctorHistory?.history?.find(h => h.date && h.date.substring(0, 10) === dateKey) : null;
                                     const override = dateOverrides.find(o => o.date && toIsoDate(o.date) === dateKey);
 
-                                    const isActive = isPast 
-                                        ? (!!histRecord && histRecord.status !== 'ABSENT') 
+                                    const isActive = isPast
+                                        ? (!!histRecord && histRecord.status !== 'ABSENT')
                                         : (override ? !override.is_holiday : baseDayConf.is_active);
 
-                                    const limit = isPast 
-                                        ? (histRecord?.visit_count || histRecord?.patients || 0) 
+                                    const limit = isPast
+                                        ? (histRecord?.visit_count || histRecord?.patients || 0)
                                         : (override ? override.online_limit : baseDayConf.online_limit) || 0;
 
                                     const startTime = override ? override.start_time : baseDayConf.start_time;
 
                                     return (
-                                        <div key={i} className={`d-cal-tile ${isActive ? 'active-bg' : 'absent-bg'}`} style={{ opacity: isPast ? 0.6 : 1, cursor: isPast ? 'default' : 'pointer' }} onClick={() => !isPast && setShowCalModal({date: d, dayName, conf: { is_active: isActive, online_limit: limit, start_time: startTime }})}>
+                                        <div key={i} className={`d-cal-tile ${isActive ? 'active-bg' : 'absent-bg'}`} style={{ opacity: isPast ? 0.6 : 1, cursor: isPast ? 'default' : 'pointer' }} onClick={() => !isPast && setShowCalModal({ date: d, dayName, conf: { is_active: isActive, online_limit: limit, start_time: startTime } })}>
                                             <div className="d-cal-date">{d.getDate()}</div>
-                                            <div className="d-cal-day">{d.toLocaleDateString('en-US', {month: 'short'})}</div>
-                                            {isActive && limit > 0 && <div className="d-cal-badge" style={{background: isPast || !!override ? '#64748b' : '#3b82f6'}}>{limit}</div>}
+                                            <div className="d-cal-day">{d.toLocaleDateString('en-US', { month: 'short' })}</div>
+                                            {isActive && limit > 0 && <div className="d-cal-badge" style={{ background: isPast || !!override ? '#64748b' : '#3b82f6' }}>{limit}</div>}
                                         </div>
                                     )
                                 })}
@@ -718,21 +718,21 @@ const Doctors = () => {
                                     <div className="d-insight-icon"><Activity size={20} /></div>
                                     <div className="d-insight-val">{doctorHistory?.summary?.total_days || 0}</div>
                                     <div className="d-insight-label">Total Sessions</div>
-                                    <div className="d-trend-up"><TrendingUp size={14}/> +12%</div>
+                                    <div className="d-trend-up"><TrendingUp size={14} /> +12%</div>
                                 </div>
                                 <div className="d-insight-card">
-                                    <div className="d-insight-icon" style={{color:'#10b981', background:'#ecfdf5'}}><Users size={20} /></div>
+                                    <div className="d-insight-icon" style={{ color: '#10b981', background: '#ecfdf5' }}><Users size={20} /></div>
                                     <div className="d-insight-val">{doctorHistory?.summary?.total_patients || 0}</div>
                                     <div className="d-insight-label">Patient Base</div>
-                                    <div className="d-trend-up"><TrendingUp size={14}/> +5%</div>
+                                    <div className="d-trend-up"><TrendingUp size={14} /> +5%</div>
                                 </div>
                                 <div className="d-insight-card">
-                                    <div className="d-insight-icon" style={{color:'#f59e0b', background:'#fffbeb'}}><CheckCircle2 size={20} /></div>
+                                    <div className="d-insight-icon" style={{ color: '#f59e0b', background: '#fffbeb' }}><CheckCircle2 size={20} /></div>
                                     <div className="d-insight-val">{doctorHistory?.summary?.avg_patients_per_day || 0}</div>
                                     <div className="d-insight-label">Avg Attendance</div>
                                 </div>
                                 <div className="d-insight-card">
-                                    <div className="d-insight-icon" style={{color:'#f43f5e', background:'#fef2f2'}}><TrendingUp size={20} /></div>
+                                    <div className="d-insight-icon" style={{ color: '#f43f5e', background: '#fef2f2' }}><TrendingUp size={20} /></div>
                                     <div className="d-insight-val">{doctorHistory?.summary?.max_patients || doctorHistory?.summary?.peak_attendance || 0}</div>
                                     <div className="d-insight-label">Peak Inflow</div>
                                 </div>
@@ -741,11 +741,11 @@ const Doctors = () => {
 
                         {/* Section 5: Session Breakdown Table */}
                         {editingId && doctorHistory?.history && doctorHistory.history.length > 0 && (
-                            <div className="d-card" style={{padding:'0', overflow:'hidden'}}>
-                                <div className="d-card-header" style={{padding:'1.5rem', marginBottom:0, borderBottom:'1px solid #e2e8f0'}}>
+                            <div className="d-card" style={{ padding: '0', overflow: 'hidden' }}>
+                                <div className="d-card-header" style={{ padding: '1.5rem', marginBottom: 0, borderBottom: '1px solid #e2e8f0' }}>
                                     <div className="d-card-title"><History size={20} color="#3b82f6" /> Session Breakdown</div>
                                 </div>
-                                <div className="d-table-wrapper" style={{border: 'none', borderRadius: 0}}>
+                                <div className="d-table-wrapper" style={{ border: 'none', borderRadius: 0 }}>
                                     <table className="d-table">
                                         <thead>
                                             <tr>
@@ -762,21 +762,21 @@ const Doctors = () => {
                                                 const isCompleted = row.status === 'COMPLETED';
                                                 return (
                                                     <tr key={idx}>
-                                                        <td style={{fontFamily:'DM Mono', fontWeight:500}}>{row.date ? new Date(row.date).toLocaleDateString() : 'Unknown'}</td>
+                                                        <td style={{ fontFamily: 'DM Mono', fontWeight: 500 }}>{row.date ? new Date(row.date).toLocaleDateString() : 'Unknown'}</td>
                                                         <td>
                                                             <span className={`d-chip ${isCompleted ? 'COMPLETED' : 'INCOMPLETE'}`}>
                                                                 {isCompleted ? 'Completed' : 'Incomplete'}
                                                             </span>
                                                         </td>
-                                                        <td style={{fontFamily:'DM Mono', fontWeight:700, textAlign:'center'}}>{row.visit_count || row.patients || 0}</td>
+                                                        <td style={{ fontFamily: 'DM Mono', fontWeight: 700, textAlign: 'center' }}>{row.visit_count || row.patients || 0}</td>
                                                         <td>
                                                             <div className="d-progress-wrap">
-                                                                <div className="d-progress-bg"><div className={`d-progress-fill ${isCompleted ? 'green' : 'orange'}`} style={{width: `${compRate}%`}}></div></div>
-                                                                <span style={{fontFamily:'DM Mono', fontSize:'0.75rem', fontWeight:600}}>{compRate}%</span>
+                                                                <div className="d-progress-bg"><div className={`d-progress-fill ${isCompleted ? 'green' : 'orange'}`} style={{ width: `${compRate}%` }}></div></div>
+                                                                <span style={{ fontFamily: 'DM Mono', fontSize: '0.75rem', fontWeight: 600 }}>{compRate}%</span>
                                                             </div>
                                                         </td>
                                                         <td>
-                                                            <button className="d-btn d-btn-outline" style={{padding:'0.4rem 0.75rem', fontSize:'0.75rem', color:'#3b82f6', borderColor:'#cbd5e1'}}>View</button>
+                                                            <button className="d-btn d-btn-outline" style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem', color: '#3b82f6', borderColor: '#cbd5e1' }}>View</button>
                                                         </td>
                                                     </tr>
                                                 )
@@ -787,7 +787,7 @@ const Doctors = () => {
                             </div>
                         )}
                     </main>
-                    
+
                     {toastMsg && (
                         <div className="d-toast">
                             <CheckCircle2 size={20} color="#10b981" />
@@ -799,49 +799,49 @@ const Doctors = () => {
                         <div className="d-modal-overlay" onClick={() => setShowCalModal(null)}>
                             <div className="d-modal-content" onClick={e => e.stopPropagation()}>
                                 <h3>Edit Override for {showCalModal.date.toLocaleDateString()}</h3>
-                                <p style={{fontSize: '0.8rem', color: '#64748b', marginBottom: '1.5rem'}}>Changes made here apply only to this specific date.</p>
-                                <div className="d-input-group" style={{marginBottom:'1rem'}}>
+                                <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '1.5rem' }}>Changes made here apply only to this specific date.</p>
+                                <div className="d-input-group" style={{ marginBottom: '1rem' }}>
                                     <label>Status</label>
-                                    <select 
+                                    <select
                                         value={showCalModal.conf?.is_active ? 'PRESENT' : 'ABSENT'}
                                         onChange={e => {
                                             const isActive = e.target.value === 'PRESENT';
-                                            setShowCalModal({...showCalModal, conf: {...showCalModal.conf, is_active: isActive}});
+                                            setShowCalModal({ ...showCalModal, conf: { ...showCalModal.conf, is_active: isActive } });
                                         }}
-                                        style={{color:'#0f1b35', background:'#f8fafc', borderColor:'#e2e8f0'}}
+                                        style={{ color: '#0f1b35', background: '#f8fafc', borderColor: '#e2e8f0' }}
                                     >
                                         <option value="PRESENT">Present</option>
                                         <option value="ABSENT">Absent</option>
                                     </select>
                                 </div>
-                                <div className="d-input-group" style={{marginBottom:'1rem'}}>
+                                <div className="d-input-group" style={{ marginBottom: '1rem' }}>
                                     <label>Approx Appointment time</label>
-                                    <input 
-                                        type="time" 
+                                    <input
+                                        type="time"
                                         value={showCalModal.conf?.start_time || '10:00'}
                                         onChange={e => {
                                             const st = e.target.value;
-                                            setShowCalModal({...showCalModal, conf: {...showCalModal.conf, start_time: st}});
+                                            setShowCalModal({ ...showCalModal, conf: { ...showCalModal.conf, start_time: st } });
                                         }}
-                                        style={{color:'#0f1b35', background:'#f8fafc', borderColor:'#e2e8f0'}}
+                                        style={{ color: '#0f1b35', background: '#f8fafc', borderColor: '#e2e8f0' }}
                                         disabled={!showCalModal.conf?.is_active}
                                     />
                                 </div>
                                 <div className="d-input-group">
                                     <label>Online Limit</label>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         value={showCalModal.conf?.online_limit || 0}
                                         onChange={e => {
                                             const lim = parseInt(e.target.value) || 0;
-                                            setShowCalModal({...showCalModal, conf: {...showCalModal.conf, online_limit: lim}});
+                                            setShowCalModal({ ...showCalModal, conf: { ...showCalModal.conf, online_limit: lim } });
                                         }}
-                                        style={{color:'#0f1b35', background:'#f8fafc', borderColor:'#e2e8f0'}}
+                                        style={{ color: '#0f1b35', background: '#f8fafc', borderColor: '#e2e8f0' }}
                                         disabled={!showCalModal.conf?.is_active}
                                     />
                                 </div>
                                 <div className="d-modal-actions">
-                                    <button className="d-btn d-btn-outline" onClick={() => setShowCalModal(null)} style={{color:'#64748b', borderColor:'#e2e8f0'}}>Cancel</button>
+                                    <button className="d-btn d-btn-outline" onClick={() => setShowCalModal(null)} style={{ color: '#64748b', borderColor: '#e2e8f0' }}>Cancel</button>
                                     <button className="d-btn d-btn-primary" onClick={async () => {
                                         // Generate the new override object for this specific date
                                         const dateKey = toIsoDate(showCalModal.date);
@@ -853,11 +853,11 @@ const Doctors = () => {
                                             total_tokens: showCalModal.conf.online_limit,
                                             walkin_limit: 0
                                         };
-                                        
+
                                         // Remove any existing override for this same date so we don't duplicate
                                         const updatedOverrides = dateOverrides.filter(o => o.date && toIsoDate(o.date) !== dateKey);
                                         updatedOverrides.push(newOverride);
-                                        
+
                                         try {
                                             await updateTokenConfig({
                                                 doctor_id: editingId,

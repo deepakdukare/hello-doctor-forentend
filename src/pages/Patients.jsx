@@ -282,7 +282,7 @@ const Patients = () => {
         <div className="appointments-page-v4">
             <div className="header-v4">
                 <div className="header-left-v4">
-                    <h1>Patients Registry</h1>
+                    <h1>Patients</h1>
                     <p>{pagination.total} total profiles in records</p>
                 </div>
 
@@ -310,405 +310,405 @@ const Patients = () => {
 
 
 
-            {error && (
-                <div className="alert-premium error">
-                    <AlertCircle size={22} />
-                    <span>{error}</span>
-                    <button onClick={() => setError(null)} className="alert-close">×</button>
-                </div>
-            )}
-
-            {success && (
-                <div className="alert-premium success">
-                    <CheckCircle2 size={22} />
-                    <span>{success}</span>
-                </div>
-            )}
-
-            {viewMode === 'add' && showInlineForm && (
-                <div className="inline-form-premium" style={{ animation: 'slideDown 0.4s ease' }}>
-
-                    <PatientForm
-                        form={form}
-                        setForm={setForm}
-                        onSubmit={handleFormSubmit}
-                        onBlur={(e) => validateForm(e.target.name)}
-                        onCancel={() => { setShowInlineForm(false); setViewMode('list'); setEditId(null); setForm(EMPTY_FORM); setFormErrors({}); }}
-                        submitting={submitting}
-                        editId={editId}
-                        doctors={doctors}
-                        referringDoctors={referringDoctors}
-                        errors={formErrors}
-                    />
-                </div>
-            )}
-
-            {viewMode === 'list' && (
-                <>
-                    <div className="search-filter-section">
-                        <div className="search-container-premium">
-                            <Search className="search-icon-premium" size={22} />
-                            <input
-                                type="text"
-                                placeholder="Search by name, Patient ID, or mobile..."
-                                value={search}
-                                onChange={e => { setSearch(e.target.value); setPage(1); }}
-                                className="search-input-premium"
-                            />
-                        </div>
-                        <div className="filters-group-premium">
-                            <div className="filter-select-wrap">
-                                <Filter size={16} className="filter-icon" />
-                                <select
-                                    value={filters.source}
-                                    onChange={e => setFilters({ ...filters, source: e.target.value })}
-                                    className="filter-select-premium"
-                                >
-                                    <option value="">All Sources</option>
-                                    <option value="dashboard">Dashboard</option>
-                                    <option value="whatsapp">WhatsApp</option>
-                                    <option value="form">Form Integration</option>
-                                </select>
-                            </div>
-                            <div className="filter-select-wrap">
-                                <Stethoscope size={16} className="filter-icon" />
-                                <select
-                                    value={filters.doctor}
-                                    onChange={e => setFilters({ ...filters, doctor: e.target.value })}
-                                    className="filter-select-premium"
-                                >
-                                    <option value="">All Doctors</option>
-                                    {doctors.map(d => (
-                                        <option key={d.doctor_id} value={d.name}>{d.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="filter-select-wrap">
-                                <div className={`status-dot-mini ${filters.status === 'COMPLETE' ? 'success' : filters.status === 'PENDING' ? 'warning' : ''}`}></div>
-                                <select
-                                    value={filters.status}
-                                    onChange={e => setFilters({ ...filters, status: e.target.value })}
-                                    className="filter-select-premium"
-                                >
-                                    <option value="">All Status</option>
-                                    <option value="COMPLETE">Complete</option>
-                                    <option value="PENDING">Pending Info</option>
-                                </select>
-                            </div>
-                            <button className="refresh-btn-v2" onClick={fetchData} title="Sync Repository">
-                                <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
-                            </button>
-                        </div>
+                {error && (
+                    <div className="alert-premium error">
+                        <AlertCircle size={22} />
+                        <span>{error}</span>
+                        <button onClick={() => setError(null)} className="alert-close">×</button>
                     </div>
-                    <div className="repository-card-premium">
-                        <div className="table-wrapper-v2">
-                            <table className="table-premium-v3">
-                                <thead>
-                                    <tr>
-                                        <th>Token ID</th>
-                                        <th>Patient Identity</th>
-                                        <th>Gender</th>
-                                        <th>Parental Profile</th>
-                                        {hasPermission('view_patient_mobile') && <th>Mobile</th>}
-                                        <th>Enrollment</th>
-                                        <th style={{ textAlign: 'center' }}>Management</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {loading && !patients.length ? (
-                                        Array(6).fill(0).map((_, i) => (
-                                            <tr key={i}>
-                                                <td colSpan={hasPermission('view_patient_mobile') ? 7 : 6}><div className="skeleton-row-premium"></div></td>
-                                            </tr>
-                                        ))
-                                    ) : patients.length === 0 ? (
+                )}
+
+                {success && (
+                    <div className="alert-premium success">
+                        <CheckCircle2 size={22} />
+                        <span>{success}</span>
+                    </div>
+                )}
+
+                {viewMode === 'add' && showInlineForm && (
+                    <div className="inline-form-premium" style={{ animation: 'slideDown 0.4s ease' }}>
+
+                        <PatientForm
+                            form={form}
+                            setForm={setForm}
+                            onSubmit={handleFormSubmit}
+                            onBlur={(e) => validateForm(e.target.name)}
+                            onCancel={() => { setShowInlineForm(false); setViewMode('list'); setEditId(null); setForm(EMPTY_FORM); setFormErrors({}); }}
+                            submitting={submitting}
+                            editId={editId}
+                            doctors={doctors}
+                            referringDoctors={referringDoctors}
+                            errors={formErrors}
+                        />
+                    </div>
+                )}
+
+                {viewMode === 'list' && (
+                    <>
+                        <div className="search-filter-section">
+                            <div className="search-container-premium">
+                                <Search className="search-icon-premium" size={22} />
+                                <input
+                                    type="text"
+                                    placeholder="Search by name, Patient ID, or mobile..."
+                                    value={search}
+                                    onChange={e => { setSearch(e.target.value); setPage(1); }}
+                                    className="search-input-premium"
+                                />
+                            </div>
+                            <div className="filters-group-premium">
+                                <div className="filter-select-wrap">
+                                    <Filter size={16} className="filter-icon" />
+                                    <select
+                                        value={filters.source}
+                                        onChange={e => setFilters({ ...filters, source: e.target.value })}
+                                        className="filter-select-premium"
+                                    >
+                                        <option value="">All Sources</option>
+                                        <option value="dashboard">Dashboard</option>
+                                        <option value="whatsapp">WhatsApp</option>
+                                        <option value="form">Form Integration</option>
+                                    </select>
+                                </div>
+                                <div className="filter-select-wrap">
+                                    <Stethoscope size={16} className="filter-icon" />
+                                    <select
+                                        value={filters.doctor}
+                                        onChange={e => setFilters({ ...filters, doctor: e.target.value })}
+                                        className="filter-select-premium"
+                                    >
+                                        <option value="">All Doctors</option>
+                                        {doctors.map(d => (
+                                            <option key={d.doctor_id} value={d.name}>{d.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="filter-select-wrap">
+                                    <div className={`status-dot-mini ${filters.status === 'COMPLETE' ? 'success' : filters.status === 'PENDING' ? 'warning' : ''}`}></div>
+                                    <select
+                                        value={filters.status}
+                                        onChange={e => setFilters({ ...filters, status: e.target.value })}
+                                        className="filter-select-premium"
+                                    >
+                                        <option value="">All Status</option>
+                                        <option value="COMPLETE">Complete</option>
+                                        <option value="PENDING">Pending Info</option>
+                                    </select>
+                                </div>
+                                <button className="refresh-btn-v2" onClick={fetchData} title="Sync Repository">
+                                    <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="repository-card-premium">
+                            <div className="table-wrapper-v2">
+                                <table className="table-premium-v3">
+                                    <thead>
                                         <tr>
-                                            <td colSpan={hasPermission('view_patient_mobile') ? 7 : 6} className="empty-state-cell">
-                                                <div className="empty-box-premium">
-                                                    <Info size={48} />
-                                                    <h3>No patients found</h3>
-                                                    <p>No patient records found matching your current filters.</p>
-                                                </div>
-                                            </td>
+                                            <th>Patient ID</th>
+                                            <th>Patient Name</th>
+                                            <th>Gender</th>
+                                            <th>Parental Info</th>
+                                            {hasPermission('view_patient_mobile') && <th>Mobile</th>}
+                                            <th>Enrollment</th>
+                                            <th style={{ textAlign: 'center' }}>Management</th>
                                         </tr>
-                                    ) : patients.map(p => (
-                                        <React.Fragment key={p._id}>
-                                            <tr className={`patient-row-v2 ${selected?._id === p._id ? 'is-active' : ''}`}>
-                                                <td>
-                                                    <div className="id-tag-premium">
-                                                        <span className="id-label" style={{ background: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{p.patient_id || 'T-XX'}</span>
+                                    </thead>
+                                    <tbody>
+                                        {loading && !patients.length ? (
+                                            Array(6).fill(0).map((_, i) => (
+                                                <tr key={i}>
+                                                    <td colSpan={hasPermission('view_patient_mobile') ? 7 : 6}><div className="skeleton-row-premium"></div></td>
+                                                </tr>
+                                            ))
+                                        ) : patients.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={hasPermission('view_patient_mobile') ? 7 : 6} className="empty-state-cell">
+                                                    <div className="empty-box-premium">
+                                                        <Info size={48} />
+                                                        <h3>No patients found</h3>
+                                                        <p>No patient records found matching your current filters.</p>
                                                     </div>
                                                 </td>
-                                                <td>
-                                                    <div className="patient-meta-box">
-                                                        <div className="patient-name-stack">
-                                                            <div className="name-bold-v2">{removeSalutation(p.full_name)}</div>
-                                                            <div className="id-tag-premium">
-                                                                <span className="age-label">{calculateAge(p.dob)}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div className="gender-tag-v2" style={{ textTransform: 'capitalize', fontWeight: 700, color: '#64748b' }}>
-                                                        {p.gender}
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div className="parent-inline">
-                                                        <div className="parent-main">{p.father_name || p.parent_name || 'Anonymous'}</div>
-                                                        <div className="parent-sub">{p.mother_name ? `Mother: ${p.mother_name}` : 'Parent profile'}</div>
-                                                    </div>
-                                                </td>
-                                                {hasPermission('view_patient_mobile') && (
+                                            </tr>
+                                        ) : patients.map(p => (
+                                            <React.Fragment key={p._id}>
+                                                <tr className={`patient-row-v2 ${selected?._id === p._id ? 'is-active' : ''}`}>
                                                     <td>
-                                                        <div className="wa-box-mini mobile-col-v2">
-                                                            <Phone size={14} className="wa-icon-glow" />
-                                                            <strong>{p.wa_id}</strong>
+                                                        <div className="id-tag-premium">
+                                                            <span className="id-label" style={{ background: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{p.patient_id || 'T-XX'}</span>
                                                         </div>
                                                     </td>
-                                                )}
-                                                <td>
-                                                    <div className="status-badge-stack">
-                                                        <span className={`status-chip-v3 ${p.registration_status === 'COMPLETE' ? 'complete' : 'pending'}`}>
-                                                            {p.registration_status}
-                                                        </span>
-                                                        <span className="source-meta">Via {p.enrollment_source || p.registration_source || 'Dashboard'}</span>
-                                                        <span className="source-meta" style={{ color: '#6366f1', fontWeight: 700 }}>Doc: {p.doctor || 'Clinic'}</span>
-                                                        {p.balance > 0 && <span className="source-meta" style={{ color: '#ef4444' }}>Bal: ₹{p.balance}</span>}
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div className="action-hub-premium">
-                                                        <button className={`hub-btn-info ${selected?._id === p._id ? 'active' : ''}`} onClick={() => {
-                                                            if (selected?._id === p._id) {
-                                                                setSelected(null);
-                                                            } else {
-                                                                setSelected(p);
-                                                                setPatientTab('summary');
-                                                                setPatientDocs([]);
-                                                                setPatientAppointments([]);
-                                                            }
-                                                        }}>
-                                                            {selected?._id === p._id ? <X size={18} /> : <MoreVertical size={18} />}
-                                                        </button>
-                                                        <button className="hub-btn-edit" onClick={() => startEdit(p)}>
-                                                            <Edit2 size={18} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            {selected?._id === p._id && (
-                                                <tr className="expansion-row">
-                                                    <td colSpan={hasPermission('view_patient_mobile') ? 7 : 6}>
-                                                        <div className="expansion-content-premium" style={{ paddingTop: '1rem' }}>
-                                                            <div className="expansion-tabs" style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', borderBottom: '1px solid #f1f5f9', padding: '0 1rem' }}>
-                                                                <button
-                                                                    onClick={() => setPatientTab('summary')}
-                                                                    style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === 'summary' ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === 'summary' ? '2px solid #6366f1' : 'none', transition: '0.2s' }}
-                                                                >
-                                                                    Profile Summary
-                                                                </button>
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        setPatientTab('documents');
-                                                                        if (patientDocs.length === 0 || selected?.patient_id !== p.patient_id) {
-                                                                            setDocsLoading(true);
-                                                                            try {
-                                                                                const r = await getMRDByPatientId(p.patient_id);
-                                                                                const entries = r.data?.data?.entries || [];
-                                                                                const docs = entries.flatMap(e => (e.attachments || []).map(a => ({ ...a, date: e.visit_date || e.createdAt, diagnosis: e.diagnosis })));
-                                                                                setPatientDocs(docs);
-                                                                            } catch (e) { console.error(e); }
-                                                                            finally { setDocsLoading(false); }
-                                                                        }
-                                                                    }}
-                                                                    style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === 'documents' ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === 'documents' ? '2px solid #6366f1' : 'none', transition: '0.2s' }}
-                                                                >
-                                                                    Patient Documents
-                                                                </button>
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        setPatientTab('history');
-                                                                        if (patientAppointments.length === 0 || selected?.patient_id !== p.patient_id) {
-                                                                            setApptsLoading(true);
-                                                                            try {
-                                                                                const r = await getAppointments({ patient_id: p.patient_id, search: p.patient_id, limit: 100 });
-                                                                                const allAppts = r.data?.data || [];
-                                                                                const patientOnlyAppts = allAppts.filter(a => a.patient_id === p.patient_id);
-                                                                                setPatientAppointments(patientOnlyAppts);
-                                                                            } catch (e) { console.error(e); }
-                                                                            finally { setApptsLoading(false); }
-                                                                        }
-                                                                    }}
-                                                                    style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === 'history' ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === 'history' ? '2px solid #6366f1' : 'none', transition: '0.2s' }}
-                                                                >
-                                                                    Appointment History
-                                                                </button>
+                                                    <td>
+                                                        <div className="patient-meta-box">
+                                                            <div className="patient-name-stack">
+                                                                <div className="name-bold-v2">{removeSalutation(p.full_name)}</div>
+                                                                <div className="id-tag-premium">
+                                                                    <span className="age-label">{calculateAge(p.dob)}</span>
+                                                                </div>
                                                             </div>
-
-                                                            {patientTab === 'summary' ? (
-                                                                <>
-                                                                    <div className="expansion-grid">
-                                                                        <div className="expansion-card" style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
-                                                                            <div style={{ flex: 1 }}>
-                                                                                <div className="exp-card-header"><Activity size={18} /> <span>Medical Profile</span></div>
-                                                                                <div className="exp-info-list">
-                                                                                    <div className="exp-info-item"><span>Full Name</span><strong>{removeSalutation(p.full_name)}</strong></div>
-                                                                                    <div className="exp-info-item"><span>Status</span><strong>{p.is_active ? 'Active' : 'Inactive'}</strong></div>
-                                                                                    <div className="exp-info-item"><span>Birth Date</span><strong>{p.dob ? new Date(p.dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Unknown'}</strong></div>
-                                                                                    <div className="exp-info-item"><span>Patient ID</span><strong>{p.patient_id}</strong></div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="expansion-card">
-                                                                            <div className="exp-card-header"><Users size={18} /> <span>Family Details</span></div>
-                                                                            <div className="exp-info-list">
-                                                                                <div className="exp-info-item"><span>Father</span><strong>{p.father_name || '—'}</strong></div>
-                                                                                <div className="exp-info-item"><span>Mother</span><strong>{p.mother_name || '—'}</strong></div>
-                                                                                <div className="exp-info-item"><span>WhatsApp</span><strong>{hasPermission('view_patient_mobile') ? (p.wa_id || '—') : '**********'}</strong></div>
-                                                                                <div className="exp-info-item"><span>Email</span><strong>{hasPermission('view_patient_email') ? (p.email || '—') : '**********'}</strong></div>
-                                                                                <div className="exp-info-item"><span>Preferences</span><strong>{p.communication_preference || 'WhatsApp'}</strong></div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="expansion-card">
-                                                                            <div className="exp-card-header"><MapPin size={18} /> <span>Address & Assignments</span></div>
-                                                                            <div className="exp-info-list" style={{ gap: '0.5rem' }}>
-                                                                                <div className="exp-info-item"><span>Area</span><strong>{p.area || '—'}</strong></div>
-                                                                                <div className="exp-info-item"><span>City</span><strong>{p.city || '—'}</strong></div>
-                                                                                <div className="exp-info-item"><span>State</span><strong>{p.state || '—'}</strong></div>
-                                                                                <div className="exp-info-item" style={{ marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem' }}><span>Doctor</span><strong>{p.doctor || 'Clinic'}</strong></div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    {p.remarks && (
-                                                                        <div key="remarks" style={{ display: 'flex', gap: '0.75rem', padding: '1rem', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                                                                            <FileText size={18} color="#6366f1" style={{ flexShrink: 0 }} />
-                                                                            <div>
-                                                                                <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Clinical Note / Remarks</div>
-                                                                                <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.9rem', color: '#475569', fontWeight: 600, lineHeight: 1.5 }}>{p.remarks}</p>
-                                                                            </div>
-                                                                        </div>
-                                                                    )}
-                                                                </>
-                                                            ) : patientTab === 'documents' ? (
-                                                                <div className="documents-view-premium">
-                                                                    {docsLoading ? (
-                                                                        <div style={{ padding: '4rem', textAlign: 'center' }}><RefreshCw size={24} className="animate-spin" /></div>
-                                                                    ) : patientDocs.length === 0 ? (
-                                                                        <div className="empty-docs-premium" style={{ padding: '4rem', textAlign: 'center', opacity: 0.5 }}>
-                                                                            <FileText size={48} style={{ marginBottom: '1rem' }} />
-                                                                            <p>No medical documents found for this patient.</p>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div className="doc-grid-premium" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem', padding: '1rem' }}>
-                                                                            {patientDocs.map((doc, idx) => (
-                                                                                <div key={idx} className="doc-card-premium" style={{ background: '#fff', border: '1.5px solid #f1f5f9', borderRadius: '16px', overflow: 'hidden', transition: '0.2s' }}>
-                                                                                    <div style={{ height: '140px', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                                                        {doc.file_type === 'application/pdf' ? <FileText size={40} color="#94a3b8" /> : <img src={doc.url} alt={doc.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                                                                                    </div>
-                                                                                    <div style={{ padding: '1rem' }}>
-                                                                                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#1e293b', marginBottom: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{doc.name}</div>
-                                                                                        <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#94a3b8' }}>{new Date(doc.date).toLocaleDateString()} • {doc.diagnosis || 'Visit'}</div>
-                                                                                        <button
-                                                                                            onClick={() => window.open(doc.url, '_blank')}
-                                                                                            style={{ marginTop: '1rem', width: '100%', padding: '0.5rem', background: '#f1f5f9', border: 'none', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 800, color: '#4338ca', cursor: 'pointer' }}
-                                                                                        >
-                                                                                            View Original
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            ) : patientTab === 'history' ? (
-                                                                <div className="history-view-premium" style={{ marginTop: '1.5rem' }}>
-                                                                    {apptsLoading ? (
-                                                                        <div style={{ padding: '4rem', textAlign: 'center' }}><RefreshCw size={24} className="animate-spin" color="#6366f1" /></div>
-                                                                    ) : patientAppointments.length === 0 ? (
-                                                                        <div className="empty-history-premium" style={{ padding: '4rem', textAlign: 'center', opacity: 0.5 }}>
-                                                                            <History size={48} style={{ marginBottom: '1rem', color: '#94a3b8' }} />
-                                                                            <p style={{ color: '#64748b', fontWeight: 600 }}>No past appointments found for this patient.</p>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div className="doc-history-timeline" style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-                                                                            <table className="table-premium-v3" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-                                                                                <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                                                                    <tr>
-                                                                                        <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Date & Time</th>
-                                                                                        <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Type</th>
-                                                                                        <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Doctor</th>
-                                                                                        <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
-                                                                                    </tr>
-                                                                                </thead>
-                                                                                <tbody>
-                                                                                    {patientAppointments.map((appt, idx) => (
-                                                                                        <tr key={appt._id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                                                            <td style={{ padding: '1rem' }}>
-                                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                                                                                                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>
-                                                                                                        {new Date(appt.appointment_date || appt.start_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                                                                    </span>
-                                                                                                    <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.2rem', fontWeight: 600 }}>
-                                                                                                        <Clock size={12} /> {appt.appointment_time || appt.start_time || 'N/A'}
-                                                                                                    </span>
-                                                                                                </div>
-                                                                                            </td>
-                                                                                            <td style={{ padding: '1rem' }}>
-                                                                                                <span style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569', padding: '0.25rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize' }}>
-                                                                                                    {(appt.visit_category || appt.visit_type || 'Consultation').replace('_', ' ')}
-                                                                                                </span>
-                                                                                            </td>
-                                                                                            <td style={{ padding: '1rem' }}>
-                                                                                                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155' }}>
-                                                                                                    {appt.doctor_name || appt.attending_doctor || 'Clinic'}
-                                                                                                </div>
-                                                                                            </td>
-                                                                                            <td style={{ padding: '1rem' }}>
-                                                                                                <span className={`status-chip-v3 ${String(appt.status || 'PENDING').toLowerCase()}`}>
-                                                                                                    {appt.status || 'PENDING'}
-                                                                                                </span>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    ))}
-                                                                                </tbody>
-                                                                            </table>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            ) : null}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div className="gender-tag-v2" style={{ textTransform: 'capitalize', fontWeight: 700, color: '#64748b' }}>
+                                                            {p.gender}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div className="parent-inline">
+                                                            <div className="parent-main">{p.father_name || p.parent_name || 'Anonymous'}</div>
+                                                            <div className="parent-sub">{p.mother_name ? `Mother: ${p.mother_name}` : 'Parent profile'}</div>
+                                                        </div>
+                                                    </td>
+                                                    {hasPermission('view_patient_mobile') && (
+                                                        <td>
+                                                            <div className="wa-box-mini mobile-col-v2">
+                                                                <Phone size={14} className="wa-icon-glow" />
+                                                                <strong>{p.wa_id}</strong>
+                                                            </div>
+                                                        </td>
+                                                    )}
+                                                    <td>
+                                                        <div className="status-badge-stack">
+                                                            <span className={`status-chip-v3 ${p.registration_status === 'COMPLETE' ? 'complete' : 'pending'}`}>
+                                                                {p.registration_status}
+                                                            </span>
+                                                            <span className="source-meta">Via {p.enrollment_source || p.registration_source || 'Dashboard'}</span>
+                                                            <span className="source-meta" style={{ color: '#6366f1', fontWeight: 700 }}>Doc: {p.doctor || 'Clinic'}</span>
+                                                            {p.balance > 0 && <span className="source-meta" style={{ color: '#ef4444' }}>Bal: ₹{p.balance}</span>}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div className="action-hub-premium">
+                                                            <button className={`hub-btn-info ${selected?._id === p._id ? 'active' : ''}`} onClick={() => {
+                                                                if (selected?._id === p._id) {
+                                                                    setSelected(null);
+                                                                } else {
+                                                                    setSelected(p);
+                                                                    setPatientTab('summary');
+                                                                    setPatientDocs([]);
+                                                                    setPatientAppointments([]);
+                                                                }
+                                                            }}>
+                                                                {selected?._id === p._id ? <X size={18} /> : <MoreVertical size={18} />}
+                                                            </button>
+                                                            <button className="hub-btn-edit" onClick={() => startEdit(p)}>
+                                                                <Edit2 size={18} />
+                                                            </button>
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            )}
-                                        </React.Fragment>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                                {selected?._id === p._id && (
+                                                    <tr className="expansion-row">
+                                                        <td colSpan={hasPermission('view_patient_mobile') ? 7 : 6}>
+                                                            <div className="expansion-content-premium" style={{ paddingTop: '1rem' }}>
+                                                                <div className="expansion-tabs" style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', borderBottom: '1px solid #f1f5f9', padding: '0 1rem' }}>
+                                                                    <button
+                                                                        onClick={() => setPatientTab('summary')}
+                                                                        style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === 'summary' ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === 'summary' ? '2px solid #6366f1' : 'none', transition: '0.2s' }}
+                                                                    >
+                                                                        Profile Summary
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            setPatientTab('documents');
+                                                                            if (patientDocs.length === 0 || selected?.patient_id !== p.patient_id) {
+                                                                                setDocsLoading(true);
+                                                                                try {
+                                                                                    const r = await getMRDByPatientId(p.patient_id);
+                                                                                    const entries = r.data?.data?.entries || [];
+                                                                                    const docs = entries.flatMap(e => (e.attachments || []).map(a => ({ ...a, date: e.visit_date || e.createdAt, diagnosis: e.diagnosis })));
+                                                                                    setPatientDocs(docs);
+                                                                                } catch (e) { console.error(e); }
+                                                                                finally { setDocsLoading(false); }
+                                                                            }
+                                                                        }}
+                                                                        style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === 'documents' ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === 'documents' ? '2px solid #6366f1' : 'none', transition: '0.2s' }}
+                                                                    >
+                                                                        Patient Documents
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            setPatientTab('history');
+                                                                            if (patientAppointments.length === 0 || selected?.patient_id !== p.patient_id) {
+                                                                                setApptsLoading(true);
+                                                                                try {
+                                                                                    const r = await getAppointments({ patient_id: p.patient_id, search: p.patient_id, limit: 100 });
+                                                                                    const allAppts = r.data?.data || [];
+                                                                                    const patientOnlyAppts = allAppts.filter(a => a.patient_id === p.patient_id);
+                                                                                    setPatientAppointments(patientOnlyAppts);
+                                                                                } catch (e) { console.error(e); }
+                                                                                finally { setApptsLoading(false); }
+                                                                            }
+                                                                        }}
+                                                                        style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === 'history' ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === 'history' ? '2px solid #6366f1' : 'none', transition: '0.2s' }}
+                                                                    >
+                                                                        Appointment History
+                                                                    </button>
+                                                                </div>
 
-                        {pagination.pages > 1 && (
-                            <div className="pagination-v2-premium" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div className="pag-info">
-                                    Showing <strong>{(page - 1) * 20 + 1}</strong> to <strong>{Math.min(page * 20, pagination.total)}</strong> of <strong>{pagination.total}</strong>
-                                    <span className="pag-total"> patients in registry</span>
-                                </div>
-                                <div style={{ display: 'flex', gap: '1rem', marginLeft: 'auto' }}>
-                                    <button className="pag-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
-                                        <ChevronRight size={20} style={{ transform: 'rotate(180deg)' }} />
-                                        <span>Previous</span>
-                                    </button>
-                                    <button className="pag-btn" onClick={() => setPage(p => Math.min(pagination.pages, p + 1))} disabled={page === pagination.pages}>
-                                        <span>Next</span>
-                                        <ChevronRight size={20} />
-                                    </button>
-                                </div>
+                                                                {patientTab === 'summary' ? (
+                                                                    <>
+                                                                        <div className="expansion-grid">
+                                                                            <div className="expansion-card" style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
+                                                                                <div style={{ flex: 1 }}>
+                                                                                    <div className="exp-card-header"><Activity size={18} /> <span>Medical Profile</span></div>
+                                                                                    <div className="exp-info-list">
+                                                                                        <div className="exp-info-item"><span>Full Name</span><strong>{removeSalutation(p.full_name)}</strong></div>
+                                                                                        <div className="exp-info-item"><span>Status</span><strong>{p.is_active ? 'Active' : 'Inactive'}</strong></div>
+                                                                                        <div className="exp-info-item"><span>Birth Date</span><strong>{p.dob ? new Date(p.dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Unknown'}</strong></div>
+                                                                                        <div className="exp-info-item"><span>Patient ID</span><strong>{p.patient_id}</strong></div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="expansion-card">
+                                                                                <div className="exp-card-header"><Users size={18} /> <span>Family Details</span></div>
+                                                                                <div className="exp-info-list">
+                                                                                    <div className="exp-info-item"><span>Father</span><strong>{p.father_name || '—'}</strong></div>
+                                                                                    <div className="exp-info-item"><span>Mother</span><strong>{p.mother_name || '—'}</strong></div>
+                                                                                    <div className="exp-info-item"><span>WhatsApp</span><strong>{hasPermission('view_patient_mobile') ? (p.wa_id || '—') : '**********'}</strong></div>
+                                                                                    <div className="exp-info-item"><span>Email</span><strong>{hasPermission('view_patient_email') ? (p.email || '—') : '**********'}</strong></div>
+                                                                                    <div className="exp-info-item"><span>Preferences</span><strong>{p.communication_preference || 'WhatsApp'}</strong></div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="expansion-card">
+                                                                                <div className="exp-card-header"><MapPin size={18} /> <span>Address & Assignments</span></div>
+                                                                                <div className="exp-info-list" style={{ gap: '0.5rem' }}>
+                                                                                    <div className="exp-info-item"><span>Area</span><strong>{p.area || '—'}</strong></div>
+                                                                                    <div className="exp-info-item"><span>City</span><strong>{p.city || '—'}</strong></div>
+                                                                                    <div className="exp-info-item"><span>State</span><strong>{p.state || '—'}</strong></div>
+                                                                                    <div className="exp-info-item" style={{ marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem' }}><span>Doctor</span><strong>{p.doctor || 'Clinic'}</strong></div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        {p.remarks && (
+                                                                            <div key="remarks" style={{ display: 'flex', gap: '0.75rem', padding: '1rem', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                                                                                <FileText size={18} color="#6366f1" style={{ flexShrink: 0 }} />
+                                                                                <div>
+                                                                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Clinical Note / Remarks</div>
+                                                                                    <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.9rem', color: '#475569', fontWeight: 600, lineHeight: 1.5 }}>{p.remarks}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </>
+                                                                ) : patientTab === 'documents' ? (
+                                                                    <div className="documents-view-premium">
+                                                                        {docsLoading ? (
+                                                                            <div style={{ padding: '4rem', textAlign: 'center' }}><RefreshCw size={24} className="animate-spin" /></div>
+                                                                        ) : patientDocs.length === 0 ? (
+                                                                            <div className="empty-docs-premium" style={{ padding: '4rem', textAlign: 'center', opacity: 0.5 }}>
+                                                                                <FileText size={48} style={{ marginBottom: '1rem' }} />
+                                                                                <p>No medical documents found for this patient.</p>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="doc-grid-premium" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem', padding: '1rem' }}>
+                                                                                {patientDocs.map((doc, idx) => (
+                                                                                    <div key={idx} className="doc-card-premium" style={{ background: '#fff', border: '1.5px solid #f1f5f9', borderRadius: '16px', overflow: 'hidden', transition: '0.2s' }}>
+                                                                                        <div style={{ height: '140px', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                                                            {doc.file_type === 'application/pdf' ? <FileText size={40} color="#94a3b8" /> : <img src={doc.url} alt={doc.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                                                                                        </div>
+                                                                                        <div style={{ padding: '1rem' }}>
+                                                                                            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#1e293b', marginBottom: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{doc.name}</div>
+                                                                                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#94a3b8' }}>{new Date(doc.date).toLocaleDateString()} • {doc.diagnosis || 'Visit'}</div>
+                                                                                            <button
+                                                                                                onClick={() => window.open(doc.url, '_blank')}
+                                                                                                style={{ marginTop: '1rem', width: '100%', padding: '0.5rem', background: '#f1f5f9', border: 'none', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 800, color: '#4338ca', cursor: 'pointer' }}
+                                                                                            >
+                                                                                                View Original
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                ) : patientTab === 'history' ? (
+                                                                    <div className="history-view-premium" style={{ marginTop: '1.5rem' }}>
+                                                                        {apptsLoading ? (
+                                                                            <div style={{ padding: '4rem', textAlign: 'center' }}><RefreshCw size={24} className="animate-spin" color="#6366f1" /></div>
+                                                                        ) : patientAppointments.length === 0 ? (
+                                                                            <div className="empty-history-premium" style={{ padding: '4rem', textAlign: 'center', opacity: 0.5 }}>
+                                                                                <History size={48} style={{ marginBottom: '1rem', color: '#94a3b8' }} />
+                                                                                <p style={{ color: '#64748b', fontWeight: 600 }}>No past appointments found for this patient.</p>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="doc-history-timeline" style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                                                                                <table className="table-premium-v3" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+                                                                                    <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                                                                        <tr>
+                                                                                            <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Date & Time</th>
+                                                                                            <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Type</th>
+                                                                                            <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Doctor</th>
+                                                                                            <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
+                                                                                        </tr>
+                                                                                    </thead>
+                                                                                    <tbody>
+                                                                                        {patientAppointments.map((appt, idx) => (
+                                                                                            <tr key={appt._id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                                                                <td style={{ padding: '1rem' }}>
+                                                                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                                                                                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>
+                                                                                                            {new Date(appt.appointment_date || appt.start_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                                                                        </span>
+                                                                                                        <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.2rem', fontWeight: 600 }}>
+                                                                                                            <Clock size={12} /> {appt.appointment_time || appt.start_time || 'N/A'}
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                </td>
+                                                                                                <td style={{ padding: '1rem' }}>
+                                                                                                    <span style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569', padding: '0.25rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize' }}>
+                                                                                                        {(appt.visit_category || appt.visit_type || 'Consultation').replace('_', ' ')}
+                                                                                                    </span>
+                                                                                                </td>
+                                                                                                <td style={{ padding: '1rem' }}>
+                                                                                                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155' }}>
+                                                                                                        {appt.doctor_name || appt.attending_doctor || 'Clinic'}
+                                                                                                    </div>
+                                                                                                </td>
+                                                                                                <td style={{ padding: '1rem' }}>
+                                                                                                    <span className={`status-chip-v3 ${String(appt.status || 'PENDING').toLowerCase()}`}>
+                                                                                                        {appt.status || 'PENDING'}
+                                                                                                    </span>
+                                                                                                </td>
+                                                                                            </tr>
+                                                                                        ))}
+                                                                                    </tbody>
+                                                                                </table>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                ) : null}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
-                        )}
-                    </div>
-                </>
-            )}
+
+                            {pagination.pages > 1 && (
+                                <div className="pagination-v2-premium" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div className="pag-info">
+                                        Showing <strong>{(page - 1) * 20 + 1}</strong> to <strong>{Math.min(page * 20, pagination.total)}</strong> of <strong>{pagination.total}</strong>
+                                        <span className="pag-total"> patients in registry</span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '1rem', marginLeft: 'auto' }}>
+                                        <button className="pag-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+                                            <ChevronRight size={20} style={{ transform: 'rotate(180deg)' }} />
+                                            <span>Previous</span>
+                                        </button>
+                                        <button className="pag-btn" onClick={() => setPage(p => Math.min(pagination.pages, p + 1))} disabled={page === pagination.pages}>
+                                            <span>Next</span>
+                                            <ChevronRight size={20} />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </>
+                )}
 
             </div>
         </div>
