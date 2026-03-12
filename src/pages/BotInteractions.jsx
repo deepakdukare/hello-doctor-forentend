@@ -104,58 +104,41 @@ const BotInteractions = () => {
     };
 
     return (
-        <div style={{ padding: '1.5rem', maxWidth: '1400px', margin: '0 auto' }}>
-            <div className="header-section-premium">
-                <div className="header-content-premium">
-                    <h1 className="header-title-premium">Bot Hub</h1>
-                    <p className="header-subtitle-premium">Monitor automated interactions and escalations</p>
+        <div className="appointments-page-v4">
+            <div className="header-v4">
+                <div className="header-left-v4">
+                    <h1>Bot Hub</h1>
+                    <p>Monitor automated interactions and escalations</p>
                 </div>
-                <div style={{ display: 'flex', gap: '1rem' }}>
+                <div className="header-right-v4">
                     <button
                         onClick={tab === 'history' ? fetchHistory : fetchData}
-                        className="btn btn-secondary"
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.9rem', borderRadius: '12px', background: '#fff', border: '1px solid var(--border-color)', fontWeight: 600, fontSize: '0.85rem' }}
+                        className="btn-header-v4"
                     >
                         <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                        Sync Bot Data
+                        <span>Sync Data</span>
                     </button>
-                    <div style={{ display: 'flex', background: '#f8fafc', padding: '0.3rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', background: '#f8fafc', padding: '4px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                         <button
                             onClick={() => setTab('leads')}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.45rem 1rem', borderRadius: '9px',
-                                border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
-                                background: tab === 'leads' ? 'var(--primary)' : 'transparent',
-                                color: tab === 'leads' ? '#fff' : '#64748b',
-                                transition: 'all 0.2s'
-                            }}
+                            className={`btn-header-v4 ${tab === 'leads' ? 'active' : ''}`}
+                            style={{ border: 'none', background: tab === 'leads' ? '#fff' : 'transparent', boxShadow: tab === 'leads' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none' }}
                         >
-                            <Zap size={14} /> Insights
+                            <Zap size={14} /> <span>Insights</span>
                         </button>
                         <button
                             onClick={() => setTab('escalations')}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.45rem 1rem', borderRadius: '9px',
-                                border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
-                                background: tab === 'escalations' ? '#ef4444' : 'transparent',
-                                color: tab === 'escalations' ? '#fff' : '#64748b',
-                                transition: 'all 0.2s'
-                            }}
+                            className={`btn-header-v4 ${tab === 'escalations' ? 'active' : ''}`}
+                            style={{ border: 'none', background: tab === 'escalations' ? '#ef4444' : 'transparent', color: tab === 'escalations' ? '#fff' : '#64748b', boxShadow: tab === 'escalations' ? '0 2px 8px rgba(239, 68, 68, 0.2)' : 'none' }}
                         >
-                            <Headphones size={14} /> Escalations
-                            {data.escalations.length > 0 && <span style={{ background: tab === 'escalations' ? '#fff' : '#ef4444', color: tab === 'escalations' ? '#ef4444' : '#fff', padding: '1px 5px', borderRadius: '6px', fontSize: '0.65rem', marginLeft: '0.2rem' }}>{data.escalations.length}</span>}
+                            <Headphones size={14} /> <span>Escalations</span>
                         </button>
                         <button
                             onClick={() => setTab('history')}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.45rem 1rem', borderRadius: '9px',
-                                border: 'none', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer',
-                                background: tab === 'history' ? '#0f172a' : 'transparent',
-                                color: tab === 'history' ? '#fff' : '#64748b',
-                                transition: 'all 0.2s'
-                            }}
+                            className={`btn-header-v4 ${tab === 'history' ? 'active' : ''}`}
+                            style={{ border: 'none', background: tab === 'history' ? '#0f172a' : 'transparent', color: tab === 'history' ? '#fff' : '#64748b', boxShadow: tab === 'history' ? '0 2px 8px rgba(15, 23, 42, 0.2)' : 'none' }}
                         >
-                            <Clock size={14} /> Chat History
+                            <Clock size={14} /> <span>History</span>
                         </button>
                     </div>
                 </div>
@@ -168,33 +151,32 @@ const BotInteractions = () => {
                 </div>
             )}
 
-            {/* Quick Stats Summary */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div className="card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.5)', backdropFilter: 'blur(20px)', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                    <div style={{ padding: '0.75rem', borderRadius: '14px', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)' }}>
-                        <Bot size={20} />
+            <div className="stats-grid-v4" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '24px' }}>
+                <div className="stat-card-v4">
+                    <div className="stat-icon-v4" style={{ backgroundColor: `rgba(99, 102, 241, 0.1)`, color: '#6366f1' }}>
+                        <Bot size={24} />
                     </div>
-                    <div>
-                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bot Captures</div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>{data.leads.length} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-muted)' }}>Unregistered</span></div>
-                    </div>
-                </div>
-                <div className="card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.5)', backdropFilter: 'blur(20px)', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                    <div style={{ padding: '0.75rem', borderRadius: '14px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
-                        <ShieldAlert size={20} />
-                    </div>
-                    <div>
-                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Help Needed</div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ef4444' }}>{data.escalations.length} <span style={{ fontSize: '0.8rem', fontWeight: 500, color: '#64748b' }}>Pending Support</span></div>
+                    <div className="stat-info-v4">
+                        <span className="stat-label-v4">Bot Captures</span>
+                        <div className="stat-value-v4">{data.leads.length} <small style={{ fontSize: '0.7rem', color: '#64748b' }}>Unregistered</small></div>
                     </div>
                 </div>
-                <div className="card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.5)', backdropFilter: 'blur(20px)', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                    <div style={{ padding: '0.75rem', borderRadius: '14px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                        <ShieldCheck size={20} />
+                <div className="stat-card-v4">
+                    <div className="stat-icon-v4" style={{ backgroundColor: `rgba(239, 68, 68, 0.1)`, color: '#ef4444' }}>
+                        <ShieldAlert size={24} />
                     </div>
-                    <div>
-                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bot Health</div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#10b981' }}>Optimal <span style={{ fontSize: '0.8rem', fontWeight: 500, color: '#64748b' }}>No Errors</span></div>
+                    <div className="stat-info-v4">
+                        <span className="stat-label-v4">Support Escalations</span>
+                        <div className="stat-value-v4" style={{ color: '#ef4444' }}>{data.escalations.length} <small style={{ fontSize: '0.7rem', color: '#64748b' }}>Pending</small></div>
+                    </div>
+                </div>
+                <div className="stat-card-v4">
+                    <div className="stat-icon-v4" style={{ backgroundColor: `rgba(16, 185, 129, 0.1)`, color: '#10b981' }}>
+                        <ShieldCheck size={24} />
+                    </div>
+                    <div className="stat-info-v4">
+                        <span className="stat-label-v4">System Status</span>
+                        <div className="stat-value-v4" style={{ color: '#10b981' }}>Healthy <small style={{ fontSize: '0.7rem', color: '#64748b' }}>Operational</small></div>
                     </div>
                 </div>
             </div>

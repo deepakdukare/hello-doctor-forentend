@@ -42,6 +42,7 @@ import {
     addDateOverride,
     getDoctorHistory
 } from '../api/index';
+import StatCard from '../components/StatCard';
 import { getUser } from '../utils/auth';
 import '../doctors.css';
 
@@ -410,25 +411,26 @@ const Doctors = () => {
     };
 
     return (
-        <div className="doc-page">
+        <div className="appointments-page-v4">
             {!showDoctorForm ? (
                 <>
-                    <div className="header-section-premium">
-                        <div className="header-content-premium">
-                            <h1 className="header-title-premium">Doctors</h1>
-                            <p className="header-subtitle-premium">Manage clinician profiles and schedules</p>
+                    <div className="header-v4">
+                        <div className="header-left-v4">
+                            <h1>Doctors Directory</h1>
+                            <p>Manage clinician profiles and schedules</p>
                         </div>
-                        <div className="doc-head-actions">
-                            <button className="btn-doc-action secondary" onClick={fetchDoctorsData}>
+                        <div className="header-right-v4">
+                            <button className="btn-header-v4" onClick={fetchDoctorsData}>
                                 <RotateCw size={18} className={loading ? 'spinning' : ''} />
-                                Sync Data
+                                <span>Sync Data</span>
                             </button>
-                            <button className="btn-doc-action primary" onClick={openCreate}>
+                            <button className="btn-header-v4 btn-primary-v4" onClick={openCreate}>
                                 <Plus size={18} />
-                                Register Doctor
+                                <span>Register Doctor</span>
                             </button>
                         </div>
                     </div>
+
 
                     {loading ? (
                         <div className="modal-loading" style={{ height: '400px' }}>

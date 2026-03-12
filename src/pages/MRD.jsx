@@ -291,16 +291,20 @@ const MRD = () => {
     const prescriptionLines = selectedRecord?.prescription?.split('\n').filter(Boolean) || [];
 
     return (
-        <div className="mrd-page-v3">
-            <div className="header-section-premium">
-                <div className="header-content-premium">
-                    <h1 className="header-title-premium">Medical Documentation</h1>
-                    <p className="header-subtitle-premium">Longitudinal health records and clinical history</p>
+        <div className="appointments-page-v4">
+            <div className="header-v4">
+                <div className="header-left-v4">
+                    <h1>Medical Documentation</h1>
+                    <p>Longitudinal health records and clinical history</p>
                 </div>
-                <div className="header-actions-premium">
-                    <button className="btn-sync-v3" onClick={() => loadDirectory()}>
-                        <RefreshCw size={14} className={dirLoading ? 'spinning' : ''} />
+                <div className="header-right-v4">
+                    <button className="btn-header-v4" onClick={() => loadDirectory()}>
+                        <RefreshCw size={16} className={dirLoading ? 'spinning' : ''} />
                         <span>Sync Directory</span>
+                    </button>
+                    <button className="btn-header-v4 btn-primary-v4" onClick={openEntryModal}>
+                        <Plus size={16} />
+                        <span>New Entry</span>
                     </button>
                 </div>
             </div>

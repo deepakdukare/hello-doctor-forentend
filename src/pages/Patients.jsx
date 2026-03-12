@@ -279,35 +279,34 @@ const Patients = () => {
     };
 
     return (
-        <div className="patients-page-v2">
-            <div className="header-section-premium">
-                <div className="header-content-premium">
-                    <h1 className="header-title-premium">Patients</h1>
-                    <p className="header-subtitle-premium">{pagination.total} total profiles in records</p>
+        <div className="appointments-page-v4">
+            <div className="header-v4">
+                <div className="header-left-v4">
+                    <h1>Patients Registry</h1>
+                    <p>{pagination.total} total profiles in records</p>
                 </div>
 
-                <div className="header-actions-premium">
-                    <div className="filter-group-premium">
-                        <button
-                            className={`filter-tab-premium ${viewMode === 'list' ? 'active' : ''}`}
-                            onClick={() => { setViewMode('list'); setShowInlineForm(false); setEditId(null); }}
-                        >
-                            <Users size={18} />
-                            <span>View Patients</span>
-                        </button>
-                        <button
-                            className={`filter-tab-premium ${viewMode === 'add' ? 'active' : ''}`}
-                            onClick={() => { setViewMode('add'); setShowInlineForm(true); setEditId(null); setForm(EMPTY_FORM); }}
-                        >
-                            <UserPlus size={18} />
-                            <span>New Enrollment</span>
-                        </button>
-                    </div>
-                    <button className="refresh-btn-premium" onClick={copyFormLink} title="Copy Public Form Link">
-                        <Share2 size={18} />
+                <div className="header-right-v4">
+                    <button
+                        className={`btn-header-v4 ${viewMode === 'list' ? 'active' : ''}`}
+                        onClick={() => { setViewMode('list'); setShowInlineForm(false); setEditId(null); }}
+                    >
+                        <Users size={16} />
+                        <span>View Patients</span>
+                    </button>
+                    <button
+                        className={`btn-header-v4 btn-primary-v4 ${viewMode === 'add' ? 'active' : ''}`}
+                        onClick={() => { setViewMode('add'); setShowInlineForm(true); setEditId(null); setForm(EMPTY_FORM); }}
+                    >
+                        <UserPlus size={16} />
+                        <span>New Enrollment</span>
+                    </button>
+                    <button className="btn-header-v4" onClick={copyFormLink} title="Copy Public Form Link">
+                        <Share2 size={16} />
                     </button>
                 </div>
             </div>
+            <div className="view-content-v3">
 
 
 
@@ -711,7 +710,7 @@ const Patients = () => {
                 </>
             )}
 
-
+            </div>
         </div>
     );
 };

@@ -48,16 +48,23 @@ const TOKEN_STATUS_ACTIONS = {
 const StatBadge = ({ label, value, color, isActive, onClick }) => (
     <div
         onClick={onClick}
-        className="stat-badge-custom"
+        className="stat-card-v4"
         style={{
-            border: isActive ? `2px solid ${color}` : '1.5px solid #e2e8f0',
-            transform: isActive ? 'translateY(-2px)' : 'none',
-            boxShadow: isActive ? `0 4px 12px ${color}20` : 'none',
+            flex: 1,
+            cursor: 'pointer',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            padding: '16px',
+            border: isActive ? `2.5px solid ${color}` : '1px solid #e2e8f0',
+            boxShadow: isActive ? `0 10px 25px ${color}15` : 'none',
+            position: 'relative',
+            overflow: 'hidden',
+            background: isActive ? `${color}05` : '#fff'
         }}>
-        <div className="stat-badge-value" style={{ color }}>{value}</div>
-        <div className="stat-badge-label" style={{ color: isActive ? color : '#94a3b8' }}>{label}</div>
+        <div style={{ fontSize: '1.75rem', fontWeight: 900, color: isActive ? color : '#0f172a', textAlign: 'center', lineHeight: 1 }}>{value}</div>
+        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: isActive ? color : '#94a3b8', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>{label}</div>
         {isActive && (
-            <div style={{ position: 'absolute', bottom: 0, left: '25%', right: '25%', height: '3px', background: color, borderRadius: '3px 3px 0 0' }} />
+            <div style={{ position: 'absolute', bottom: 0, left: '20%', right: '20%', height: '4px', background: color, borderRadius: '4px 4px 0 0' }} />
         )}
     </div>
 );
@@ -90,22 +97,20 @@ const TokenRow = ({ token, onCheckin, onStatusChange, onNext, isNext, isToday })
             {/* Inline action buttons — only shown for today's date */}
             {isToday && (
                 <td>
-                    <div className="actions-cell">
+                    <div className="actions-cell" style={{ display: 'flex', gap: '6px' }}>
                         {token.status === 'WAITING' && (
                             <>
                                 <button
                                     onClick={() => token.token && onCheckin(token.token, token.doctor_id)}
                                     disabled={!token.token}
-                                    className="btn-token-check"
-                                    style={{ opacity: !token.token ? 0.5 : 1 }}>
-                                    <Check size={11} /> Check In
+                                    style={{ background: '#fff', border: '1px solid #6366f1', color: '#6366f1', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                                    <Check size={14} /> Check In
                                 </button>
                                 <button
                                     onClick={() => token.token && onStatusChange(token.token, 'NO_SHOW', token.doctor_id)}
                                     disabled={!token.token}
-                                    className="btn-token-no-show"
-                                    style={{ opacity: !token.token ? 0.5 : 1 }}>
-                                    <X size={11} /> No Show
+                                    style={{ background: '#fff', border: '1px solid #ef4444', color: '#ef4444', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                                    <X size={14} /> No Show
                                 </button>
                             </>
                         )}
@@ -114,13 +119,8 @@ const TokenRow = ({ token, onCheckin, onStatusChange, onNext, isNext, isToday })
                             <>
                                 <button
                                     onClick={() => onStatusChange(token.token, 'IN_PROGRESS', token.doctor_id)}
-                                    className="btn-token-start">
-                                    <ChevronRight size={11} /> Start Session
-                                </button>
-                                <button
-                                    onClick={() => onStatusChange(token.token, 'SKIPPED', token.doctor_id)}
-                                    className="btn-token-skip">
-                                    <SkipForward size={11} /> Skip
+                                    style={{ background: '#0ea5e9', border: 'none', color: '#fff', padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                                    <ChevronRight size={14} /> Start Session
                                 </button>
                             </>
                         )}
@@ -128,16 +128,8 @@ const TokenRow = ({ token, onCheckin, onStatusChange, onNext, isNext, isToday })
                         {token.status === 'IN_PROGRESS' && (
                             <button
                                 onClick={() => onStatusChange(token.token, 'COMPLETED', token.doctor_id)}
-                                className="btn-token-finish">
-                                <CheckCircle2 size={11} /> Finish &amp; Complete
-                            </button>
-                        )}
-
-                        {(token.status === 'COMPLETED' || token.status === 'SKIPPED' || token.status === 'NO_SHOW') && (
-                            <button
-                                onClick={() => onStatusChange(token.token, 'WAITING', token.doctor_id)}
-                                className="btn-token-reset">
-                                <RotateCcw size={11} /> Reset to Waiting
+                                style={{ background: '#10b981', border: 'none', color: '#fff', padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                                <CheckCircle2 size={14} /> Finish & Complete
                             </button>
                         )}
                     </div>
@@ -310,92 +302,82 @@ const QueueDisplay = () => {
     const nextPendingToken = filtered.find(t => t.status === 'WAITING' || t.status === 'CHECKED_IN');
 
     return (
-        <div className="queue-container">
-            <div className="header-section-premium">
-                <div className="header-content-premium">
-                    <h1 className="header-title-premium">Queue Tokens</h1>
-                    <p className="header-subtitle-premium">Live monitoring and token management</p>
+        <div className="appointments-page-v4">
+            <div className="header-v4">
+                <div className="header-left-v4">
+                    <h1>Queue Tokens</h1>
+                    <p>Live monitoring and token management</p>
                 </div>
-                <div className="queue-header-actions">
-                    <a href="/clinic-display" target="_blank" rel="noopener noreferrer"
-                        className="btn-queue-action">
-                        <Monitor size={14} /> Display Board <ExternalLink size={10} />
+                <div className="header-right-v4">
+                    <a href="/clinic-display" target="_blank" rel="noopener noreferrer" className="btn-header-v4">
+                        <Monitor size={16} /> <span>Display Board</span> <ExternalLink size={12} />
                     </a>
-                    <button onClick={handleAutoReschedule}
-                        className="btn-queue-action btn-reschedule">
-                        <RotateCcw size={14} /> Auto-Reschedule
+                    <button onClick={handleAutoReschedule} className="btn-header-v4" style={{ color: '#f59e0b' }}>
+                        <RotateCcw size={16} /> <span>Auto-Reschedule</span>
                     </button>
-                    <button onClick={handleNotifyDelay}
-                        className="btn-queue-action btn-notify">
-                        <Bell size={14} /> Notify Delay
+                    <button onClick={handleNotifyDelay} className="btn-header-v4" style={{ color: '#ef4444' }}>
+                        <Bell size={16} /> <span>Notify Delay</span>
                     </button>
-                    <button onClick={fetchQueue}
-                        className="btn-queue-action btn-refresh">
-                        <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
+                    <button onClick={fetchQueue} className="btn-header-v4">
+                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> <span>Refresh</span>
                     </button>
                 </div>
             </div>
 
-            {/* Filters */}
-            <div className="queue-filters">
-                <div className="filter-group">
-                    <Filter size={14} color="#94a3b8" />
+            <div className="filter-shelf-v4" style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center', background: '#fff', padding: '10px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '12px', borderRight: '1px solid #f1f5f9' }}>
+                    <Filter size={16} color="#94a3b8" />
                     <select value={selectedDoctor} onChange={e => setSelectedDoctor(e.target.value)}
-                        className="filter-select">
-                        <option value="" key="all-doc-combined">All Combined Doctors</option>
+                        style={{ border: 'none', background: 'transparent', fontSize: '0.9rem', fontWeight: 600, color: '#1e293b', outline: 'none', cursor: 'pointer' }}>
+                        <option value="">All Combined Doctors</option>
                         {doctors.map(d => <option key={d.doctor_id || d._id} value={d.doctor_id || d._id}>{d.name || d.full_name}</option>)}
                     </select>
                 </div>
+                
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                    className="filter-date" />
-                <div className="filter-search-wrap">
-                    <Search size={14} color="#94a3b8" />
+                    style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6px 12px', fontSize: '0.85rem', fontWeight: 600, color: '#475569' }} />
+
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '6px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <Search size={16} color="#94a3b8" />
                     <input value={searchQ} onChange={e => setSearchQ(e.target.value)} placeholder="Search token, patient..."
-                        className="filter-search-input" />
+                        style={{ border: 'none', background: 'transparent', width: '100%', outline: 'none', fontSize: '0.85rem', fontWeight: 500 }} />
                 </div>
+
                 <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-                    className="filter-select">
+                    style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6px 12px', fontSize: '0.85rem', fontWeight: 600, background: '#fff' }}>
                     <option value="ALL">All Statuses</option>
                     {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
-                <div style={{ display: 'flex', gap: '6px', borderLeft: '1px solid #e2e8f0', paddingLeft: '0.75rem' }}>
+
+                <div style={{ display: 'flex', gap: '6px', borderLeft: '1px solid #e2e8f0', paddingLeft: '8px' }}>
                     <input
                         value={statusSearch}
                         onChange={e => setStatusSearch(e.target.value)}
                         placeholder="Token #..."
-                        style={{ border: '1.5px solid #e2e8f0', borderRadius: '8px', padding: '0.35rem 0.5rem', fontSize: '0.75rem', width: '70px', outline: 'none' }}
+                        style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6px 10px', fontSize: '0.85rem', width: '90px', outline: 'none' }}
                     />
-                    <button
-                        onClick={handleCheckTokenStatus}
-                        disabled={checkingStatus}
-                        style={{ padding: '0.35rem 0.6rem', borderRadius: '8px', background: '#f8fafc', border: '1.5px solid #e2e8f0', color: '#64748b', cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem' }}
-                    >
-                        {checkingStatus ? '...' : <Zap size={12} />}
+                    <button onClick={handleCheckTokenStatus} disabled={checkingStatus}
+                        style={{ padding: '6px 12px', borderRadius: '8px', background: '#f8fafc', border: '1px solid #e2e8f0', color: '#64748b', cursor: 'pointer' }}>
+                        {checkingStatus ? '...' : <Zap size={14} />}
                     </button>
                 </div>
             </div>
 
             {/* Token Status Result */}
             {tokenStatusData && (
-                <div className="token-status-banner">
-                    <div className="token-status-info">
-                        <div className="token-status-badge">
-                            {tokenStatusData.token}
+                <div className="token-status-banner" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 20px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+                        <div style={{ background: '#6366f1', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontWeight: 900 }}>{tokenStatusData.token}</div>
+                        <div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Status</div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>{tokenStatusData.status}</div>
                         </div>
                         <div>
-                            <div className="token-status-label">Token Status</div>
-                            <div className="token-status-value">{tokenStatusData.status}</div>
-                        </div>
-                        <div>
-                            <div className="token-status-label">Position</div>
-                            <div className="token-status-value">#{tokenStatusData.position_in_queue || '—'}</div>
-                        </div>
-                        <div>
-                            <div className="token-status-label">Estimated Wait</div>
-                            <div className="token-status-value">{tokenStatusData.estimated_wait || '0'}m</div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Position</div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>#{tokenStatusData.position_in_queue || '—'}</div>
                         </div>
                     </div>
-                    <button onClick={() => setTokenStatusData(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+                    <button onClick={() => setTokenStatusData(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={18} /></button>
                 </div>
             )}
 
@@ -404,7 +386,7 @@ const QueueDisplay = () => {
             {success && <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '0.85rem 1.25rem', marginBottom: '1rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.75rem' }}><CheckCircle2 size={18} />{success}</div>}
 
             {/* Stats */}
-            <div style={{ display: 'flex', gap: '0.85rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
                 <StatBadge label="Total" value={stats.total} color="#0f172a" isActive={statusFilter === 'ALL'} onClick={() => setStatusFilter('ALL')} />
                 <StatBadge label="Waiting" value={stats.waiting} color="#f59e0b" isActive={statusFilter === 'WAITING'} onClick={() => setStatusFilter('WAITING')} />
                 <StatBadge label="Checked In" value={stats.checkedIn} color="#6366f1" isActive={statusFilter === 'CHECKED_IN'} onClick={() => setStatusFilter('CHECKED_IN')} />

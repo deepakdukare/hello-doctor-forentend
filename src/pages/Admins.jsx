@@ -331,21 +331,21 @@ const Admins = () => {
     };
 
     return (
-        <div className="admins-page">
-            <div className="header-section-premium">
-                <div className="header-content-premium">
-                    <h1 className="header-title-premium">Settings</h1>
-                    <p className="header-subtitle-premium">System configuration and access control</p>
+        <div className="appointments-page-v4">
+            <div className="header-v4">
+                <div className="header-left-v4">
+                    <h1>System Settings</h1>
+                    <p>Configuration and access control</p>
                 </div>
-                <div className="header-actions-premium" style={{ display: 'flex', gap: '0.65rem' }}>
-                    <button className="btn btn-outline" onClick={refreshAll} disabled={refreshing || loading}>
+                <div className="header-right-v4">
+                    <button className="btn-header-v4" onClick={refreshAll} disabled={refreshing || loading}>
                         <RefreshCw size={16} className={refreshing || loading ? 'animate-spin' : ''} />
-                        Refresh
+                        <span>Refresh</span>
                     </button>
                     {!isDoctor && (
-                        <button className="btn btn-primary" onClick={handleCreateClick}>
+                        <button className="btn-header-v4 btn-primary-v4" onClick={handleCreateClick}>
                             <Plus size={16} />
-                            New Admin User
+                            <span>New Admin</span>
                         </button>
                     )}
                 </div>
@@ -368,11 +368,11 @@ const Admins = () => {
                 </div>
             )}
 
-            <div className="stats-grid" style={{ marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                <StatCard label="Active Users" value={overview?.counts?.active_users} icon={Users} color="#6366f1" className="stat-pill-premium-v3" />
-                <StatCard label="Doctors" value={overview?.counts?.doctors} icon={Shield} color="#0ea5e9" className="stat-pill-premium-v3" />
-                <StatCard label="Patients" value={overview?.counts?.patients} icon={User} color="#10b981" className="stat-pill-premium-v3" />
-                <StatCard label="Audit Logs" value={overview?.counts?.total_audit_logs} icon={Eye} color="#f59e0b" className="stat-pill-premium-v3" />
+            <div className="stats-grid-v4" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '24px' }}>
+                <StatCard title="Active Users" value={overview?.counts?.active_users} icon={Users} color="#6366f1" />
+                <StatCard title="Clinicians" value={overview?.counts?.doctors} icon={Shield} color="#0ea5e9" />
+                <StatCard title="Patients" value={overview?.counts?.patients} icon={User} color="#10b981" />
+                <StatCard title="Audit Logs" value={overview?.counts?.total_audit_logs} icon={Eye} color="#f59e0b" />
             </div>
 
             {/* Tab Navigation */}

@@ -237,39 +237,41 @@ const Analytics = () => {
     };
 
     return (
-        <div className="analytics-container">
-            <div className="header-section-premium" style={{ marginBottom: '2rem' }}>
-                <div className="header-content-premium">
-                    <h1 className="header-title-premium">Reports & Analytics</h1>
-                    <p className="header-subtitle-premium">Advanced practice insights and financial trends</p>
+        <div className="appointments-page-v4">
+            <div className="header-v4">
+                <div className="header-left-v4">
+                    <h1>Reports & Analytics</h1>
+                    <p>Advanced practice insights and financial trends</p>
                 </div>
-                <div className="header-actions-premium" style={{ display: 'flex', gap: '12px' }}>
-                    <button className="btn-analytics-refresh" onClick={fetchData}>
-                        <RefreshCw size={14} />
+                <div className="header-right-v4">
+                    <button className="btn-header-v4" onClick={fetchData} style={{ gap: '8px' }}>
+                        <RefreshCw size={16} />
                         <span>Refresh</span>
                     </button>
-                    <button className="btn-analytics-export" onClick={exportCSV}>
-                        <Download size={14} />
+                    <button className="btn-header-v4 btn-primary-v4" onClick={exportCSV} style={{ gap: '8px' }}>
+                        <Download size={16} />
                         <span>Export CSV</span>
                     </button>
                 </div>
             </div>
 
-            <div className="analytics-stats-row">
+            <div className="stats-grid-v4" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '24px' }}>
                 {[
-                    { label: 'Total Appointments', value: displayMetrics.total, icon: Calendar, color: '#4f46e5', bg: '#eef2ff' },
-                    { label: 'Completed', value: displayMetrics.completed, icon: Users, color: '#10b981', bg: '#ecfdf5' },
-                    { label: 'Cancelled', value: displayMetrics.cancelled, icon: Users, color: '#ef4444', bg: '#fef2f2' },
-                    { label: 'No Shows', value: displayMetrics.no_show, icon: FileText, color: '#f59e0b', bg: '#fffbeb' },
-                    { label: 'Unique Patients', value: displayMetrics.unique, icon: Hash, color: '#06b6d4', bg: '#ecfeff' },
-                    { label: 'Completion Rate', value: `${completionRate}%`, icon: TrendingUp, color: '#8b5cf6', bg: '#f5f3ff' }
+                    { label: 'Total Appointments', value: displayMetrics.total, icon: Calendar, color: '#4f46e5' },
+                    { label: 'Completed', value: displayMetrics.completed, icon: Users, color: '#10b981' },
+                    { label: 'Cancelled', value: displayMetrics.cancelled, icon: Users, color: '#ef4444' },
+                    { label: 'No Shows', value: displayMetrics.no_show, icon: FileText, color: '#f59e0b' },
+                    { label: 'Unique Patients', value: displayMetrics.unique, icon: Hash, color: '#06b6d4' },
+                    { label: 'Completion Rate', value: `${completionRate}%`, icon: TrendingUp, color: '#8b5cf6' }
                 ].map((stat, i) => (
-                    <div key={i} className="stat-box-premium">
-                        <div className="stat-icon-wrap" style={{ background: stat.bg, color: stat.color }}>
-                            <stat.icon size={20} />
+                    <div key={i} className="stat-card-v4">
+                        <div className="stat-icon-v4" style={{ backgroundColor: `${stat.color}15`, color: stat.color }}>
+                            <stat.icon size={24} />
                         </div>
-                        <div className="stat-label-v4">{stat.label}</div>
-                        <div className="stat-val-v4">{loading ? '...' : stat.value.toLocaleString()}</div>
+                        <div className="stat-info-v4">
+                            <span className="stat-label-v4">{stat.label}</span>
+                            <div className="stat-value-v4">{loading ? '...' : stat.value.toLocaleString()}</div>
+                        </div>
                     </div>
                 ))}
             </div>

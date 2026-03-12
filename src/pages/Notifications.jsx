@@ -102,26 +102,29 @@ const Notifications = () => {
     const unreadCount = notifications.filter(n => !n.is_read).length;
 
     return (
-        <div style={{ padding: '2rem', maxWidth: '900px', margin: '0 auto' }}>
-            <div className="header-section-premium" style={{ marginBottom: '2.5rem' }}>
-                <div className="header-content-premium">
-                    <h1 className="header-title-premium" style={{ gap: '0.75rem' }}>
+        <div className="appointments-page-v4" style={{ maxWidth: '900px', margin: '0 auto' }}>
+            <div className="header-v4">
+                <div className="header-left-v4">
+                    <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         Notifications
-                        {unreadCount > 0 && <span style={{ background: '#ef4444', color: '#fff', borderRadius: '50px', padding: '0.1rem 0.6rem', fontSize: '0.8rem', fontWeight: 800 }}>{unreadCount}</span>}
+                        {unreadCount > 0 && <span style={{ background: '#ef4444', color: '#fff', borderRadius: '50px', padding: '1px 8px', fontSize: '0.75rem', fontWeight: 800 }}>{unreadCount}</span>}
                     </h1>
-                    <p className="header-subtitle-premium">System alerts and scheduled reminders</p>
+                    <p>System alerts and scheduled reminders</p>
                 </div>
-                <div className="header-actions-premium" style={{ display: 'flex', gap: '0.75rem' }}>
+                <div className="header-right-v4">
                     {unreadCount > 0 && (
-                        <button onClick={handleMarkAllRead} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.1rem', borderRadius: '10px', background: '#fff', border: '1.5px solid #e2e8f0', color: '#64748b', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>
-                            <CheckCircle2 size={16} /> Mark All Read
+                        <button className="btn-header-v4" onClick={handleMarkAllRead}>
+                            <CheckCircle2 size={16} />
+                            <span>Mark All Read</span>
                         </button>
                     )}
-                    <button onClick={() => setShowReminder(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.1rem', borderRadius: '10px', background: '#fff', border: '1.5px solid #f59e0b', color: '#f59e0b', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>
-                        <Plus size={16} /> Schedule Reminder
+                    <button className="btn-header-v4" onClick={() => setShowReminder(true)} style={{ color: '#f59e0b', borderColor: '#fef3c7', background: '#fffbeb' }}>
+                        <Plus size={16} />
+                        <span>Schedule Reminder</span>
                     </button>
-                    <button onClick={fetchNotifications} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.1rem', borderRadius: '10px', background: 'linear-gradient(135deg, #6366f1, #4338ca)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>
-                        <RefreshCw size={16} /> Refresh
+                    <button className="btn-header-v4 btn-primary-v4" onClick={fetchNotifications}>
+                        <RefreshCw size={16} className={loading ? 'spinning' : ''} />
+                        <span>Refresh</span>
                     </button>
                 </div>
             </div>

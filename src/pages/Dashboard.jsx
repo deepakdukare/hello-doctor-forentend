@@ -31,30 +31,30 @@ import {
 } from '../api/index';
 import { hasPermission } from '../utils/auth';
 
-const StatCard = ({ title, value, subtitle, icon: Icon, color, loading, trend }) => (
-    <div className="stat-card-v3" style={{ '--card-accent-color': color }}>
-        <div className="stat-card-bg-shape"></div>
-        <div className="stat-top">
-            <div className="stat-icon-circle" style={{ backgroundColor: color }}>
-                <Icon size={18} color="white" />
+const StatCard = ({ title, value, icon: Icon, color, loading, trend }) => {
+    let trendColor = '#3b82f6';
+    if (trend > 0) trendColor = '#10b981';
+    else if (trend < 0) trendColor = '#ef4444';
+
+    return (
+        <div className="stat-card-v4">
+            <div className="stat-icon-v4" style={{ backgroundColor: `${color}15`, color: color }}>
+                <Icon size={24} />
             </div>
-            {trend && (
-                <div className="stat-trend-container">
-                    <div className={`stat-trend-pill ${trend > 0 ? 'positive' : 'negative'}`}>
-                        {trend > 0 ? '+' : ''}{trend}%
-                    </div>
-                    <div className="stat-trend-subtext">in last 7 Days</div>
+            <div className="stat-info-v4">
+                <span className="stat-label-v4">{title}</span>
+                <div className="stat-value-v4">
+                    {loading ? <div className="skeleton-pulse" style={{ height: '32px', width: '60px', borderRadius: '6px' }}></div> : value}
                 </div>
-            )}
-        </div>
-        <div className="stat-body-v3">
-            <div className="stat-label-v3">{title}</div>
-            <div className="stat-value-v3">
-                {loading ? <div className="skeleton-pulse skeleton-pulse-value"></div> : value}
+                {trend !== undefined && (
+                    <div className="stat-trend-v4" style={{ color: trendColor }}>
+                        {trend > 0 ? '+' : ''}{trend}% in last 7 days
+                    </div>
+                )}
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 const QuickAction = ({ label, icon, to, color, description }) => (
     <Link to={to} className="action-btn-v3">
@@ -185,32 +185,36 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="dashboard-v3">
-            <div className="header-section-premium" style={{ marginBottom: '2rem' }}>
-                <div className="header-content-premium">
-                    <h1 className="header-title-premium">Admin Dashboard</h1>
-                    <p className="header-subtitle-premium">Real-time analytics and management overview</p>
+        <div className="appointments-page-v4">
+            <div className="header-v4">
+                <div className="header-left-v4">
+                    <h1>Admin Dashboard</h1>
+                    <p>Real-time analytics and management overview</p>
                 </div>
-                <div className="header-actions-premium">
-                    <button onClick={fetchData} className="refresh-btn-premium" style={{ borderRadius: '16px' }}>
+                <div className="header-right-v4">
+                    <button 
+                        onClick={fetchData} 
+                        className="btn-header-v4" 
+                        style={{ height: '42px', width: '42px', padding: 0, justifyContent: 'center' }}
+                    >
                         <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
                     </button>
                 </div>
             </div>
 
             {error && (
-                <div className="error-banner-premium" style={{ marginBottom: '2rem', borderRadius: '20px' }}>
+                <div className="error-banner-premium" style={{ marginBottom: '20px', borderRadius: '12px' }}>
                     <AlertCircle size={20} />
                     <span>{error}</span>
                     <button onClick={() => setError(null)} className="error-close-btn">×</button>
                 </div>
             )}
 
-            <div className="stat-grid-v3">
-                {hasPermission('view_patients') && <StatCard title="Total Patients" value={data.stats.totalPatients} icon={Users} color="#5e5ce6" loading={loading} trend={12} />}
-                {hasPermission('view_appointments') && <StatCard title="Today's Visits" value={data.stats.todayVisits} icon={Calendar} color="#e67e22" loading={loading} trend={25} />}
-                <StatCard title="Completed" value={data.stats.completed} icon={CheckCircle} color="#27ae60" loading={loading} trend={25} />
-                <StatCard title="Pending" value={data.stats.pending} icon={Clock} color="#e74c3c" loading={loading} trend={-15} />
+            <div className="stats-grid-v4" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '24px' }}>
+                {hasPermission('view_patients') && <StatCard title="Total Patients" value={data.stats.totalPatients} icon={Users} color="#6366f1" loading={loading} trend={12} />}
+                {hasPermission('view_appointments') && <StatCard title="Today's Visits" value={data.stats.todayVisits} icon={Calendar} color="#f59e0b" loading={loading} trend={25} />}
+                <StatCard title="Completed" value={data.stats.completed} icon={CheckCircle} color="#10b981" loading={loading} trend={25} />
+                <StatCard title="Pending" value={data.stats.pending} icon={Clock} color="#ef4444" loading={loading} trend={-15} />
             </div>
 
             <div className="dashboard-layout-v3">

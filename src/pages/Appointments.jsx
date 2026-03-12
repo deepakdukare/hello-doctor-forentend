@@ -69,30 +69,30 @@ const formatCompactDate = (dateStr) => {
     return `${day}-${month}-${year}`;
 };
 
-const StatCard = ({ title, value, icon: Icon, color, loading, trend }) => (
-    <div className="stat-card-v3" style={{ '--card-accent-color': color, boxShadow: 'none', borderRight: '1px solid #e2e8f0', borderRadius: '0' }}>
-        <div className="stat-card-bg-shape"></div>
-        <div className="stat-top">
-            <div className="stat-icon-circle" style={{ backgroundColor: color }}>
-                <Icon size={18} color="white" />
+const StatCard = ({ title, value, icon: Icon, color, loading, trend }) => {
+    let trendColor = '#3b82f6'; // neutral blue
+    if (trend > 0) trendColor = '#10b981'; // green
+    else if (trend < 0) trendColor = '#ef4444'; // red
+
+    return (
+        <div className="stat-card-v4">
+            <div className="stat-icon-v4" style={{ backgroundColor: `${color}15`, color: color }}>
+                <Icon size={24} />
             </div>
-            {trend && (
-                <div className="stat-trend-container">
-                    <div className={`stat-trend-pill ${trend > 0 ? 'positive' : 'negative'}`}>
-                        {trend > 0 ? '+' : ''}{trend}%
-                    </div>
-                    <div className="stat-trend-subtext">in last 7 Days</div>
+            <div className="stat-info-v4">
+                <span className="stat-label-v4">{title}</span>
+                <div className="stat-value-v4">
+                    {loading ? <div className="skeleton-pulse" style={{ height: '32px', width: '60px', borderRadius: '6px' }}></div> : value}
                 </div>
-            )}
-        </div>
-        <div className="stat-body-v3">
-            <div className="stat-label-v3">{title}</div>
-            <div className="stat-value-v3">
-                {loading ? <div className="skeleton-pulse skeleton-pulse-value"></div> : value}
+                {trend !== undefined && (
+                    <div className="stat-trend-v4" style={{ color: trendColor }}>
+                        {trend > 0 ? '+' : ''}{trend}% in last 7 days
+                    </div>
+                )}
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 const InlineCalendar = ({ value, onChange }) => {
     const selectedDate = value ? new Date(value + 'T00:00:00') : new Date();
@@ -511,71 +511,60 @@ const Appointments = () => {
     };
 
     return (
-        <div className="appointments-page-v3">
-            <div className="header-section-premium">
-                <div className="header-content-premium">
-                    <h1 className="header-title-premium">Appointment</h1>
-                    <p className="header-subtitle-premium">Schedule and manage patient visits</p>
+        <div className="appointments-page-v4">
+            <div className="header-v4">
+                <div className="header-left-v4">
+                    <h1>Appointment</h1>
+                    <p>Schedule and manage patient visits</p>
                 </div>
 
-                <div className="header-actions-premium" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <div className="view-toggle-premium" style={{ display: 'flex', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '8px', gap: '4px' }}>
-                        <button
-                            style={{
-                                height: '32px',
-                                padding: '0 16px',
-                                borderRadius: '6px',
-                                border: 'none',
-                                fontSize: '13px',
-                                fontWeight: 700,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                background: activeView === 'queue' ? '#fff' : 'transparent',
-                                color: activeView === 'queue' ? '#1e293b' : '#64748b',
-                                boxShadow: activeView === 'queue' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                            onClick={() => setActiveView('queue')}
-                        >
-                            <CalendarIcon size={14} />
-                            <span>View Appointments</span>
-                        </button>
-                        <button
-                            style={{
-                                height: '32px',
-                                padding: '0 16px',
-                                borderRadius: '6px',
-                                border: 'none',
-                                fontSize: '13px',
-                                fontWeight: 700,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                background: activeView === 'authorizer' ? '#6366f1' : 'transparent',
-                                color: activeView === 'authorizer' ? '#fff' : '#64748b',
-                                boxShadow: activeView === 'authorizer' ? '0 2px 4px rgba(99,102,241,0.2)' : 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                            onClick={() => {
-                                setEditMode(false);
-                                openBookingModal();
-                            }}
-                        >
-                            <Plus size={14} />
-                            <span>New Appointment</span>
-                        </button>
-                    </div>
+                <div className="header-right-v4">
+                    <button
+                        className={`btn-header-v4 ${activeView === 'queue' ? 'active' : ''}`}
+                        onClick={() => setActiveView('queue')}
+                    >
+                        <CalendarIcon size={16} />
+                        <span>View Appointments</span>
+                    </button>
+                    <button
+                        className="btn-header-v4 btn-primary-v4"
+                        onClick={() => {
+                            setEditMode(false);
+                            openBookingModal();
+                        }}
+                    >
+                        <Plus size={16} />
+                        <span>New Appointment</span>
+                    </button>
                 </div>
             </div>
 
             {activeView === 'queue' && (
-                <div className="stat-grid-v3" style={{ borderBottom: '1px solid #e2e8f0', marginBottom: '1.5rem', display: 'flex', gap: 0, paddingBottom: '1rem', paddingTop: '1rem' }}>
-                    <div style={{ flex: 1 }}><StatCard title="Today's Load" value={appointments.length} icon={User} color="#3b3b98" loading={loading} trend={25} /></div>
-                    <div style={{ flex: 1 }}><StatCard title="Confirmed" value={appointments.filter(a => ['CONFIRMED', 'SCHEDULED', 'WAITING', 'IN_PROGRESS'].includes((a.status || '').toUpperCase())).length} icon={Calendar} color="#10ac84" loading={loading} trend={25} /></div>
-                    <div style={{ flex: 1, borderRight: 'none' }}><StatCard title="Cancelled" value={appointments.filter(a => (a.status || '').toUpperCase() === 'CANCELLED').length} icon={CalendarIcon} color="#ee5253" loading={loading} trend={-15} /></div>
+                <div className="stats-grid-v4">
+                    <StatCard 
+                        title="Today's Load" 
+                        value={appointments.length} 
+                        icon={Users} 
+                        color="#6366f1" 
+                        loading={loading} 
+                        trend={25} 
+                    />
+                    <StatCard 
+                        title="Confirmed" 
+                        value={appointments.filter(a => ['CONFIRMED', 'SCHEDULED', 'WAITING', 'IN_PROGRESS'].includes((a.status || '').toUpperCase())).length} 
+                        icon={CheckCircle2} 
+                        color="#10b981" 
+                        loading={loading} 
+                        trend={25} 
+                    />
+                    <StatCard 
+                        title="Cancelled" 
+                        value={appointments.filter(a => (a.status || '').toUpperCase() === 'CANCELLED').length} 
+                        icon={XCircle} 
+                        color="#ef4444" 
+                        loading={loading} 
+                        trend={-15} 
+                    />
                 </div>
             )}
 
