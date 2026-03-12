@@ -112,7 +112,7 @@ export const cancelAppointment = (id) => api.patch(`/appointments/${id}/cancel`)
 export const completeAppointment = (id) => api.patch(`/appointments/${id}/complete`);
 export const bookByForm = (data) => api.post('/appointments/form', data);
 export const bookByWhatsapp = (data) => api.post('/appointments/whatsapp', data);
-export const getAppointmentsByWaId = (waId) => api.get(`/appointments/by-wa/${waId}`);
+export const getAppointmentsByWaId = (waId, params) => api.get(`/appointments/by-wa/${waId}`, { params });
 export const bookWithToken = (data) => api.post('/appointments/book-with-token', data);
 export const bookAppointmentWithToken = (data) => bookWithToken(data); // Alias
 
@@ -229,7 +229,7 @@ export const getChatHistory = (params) => api.get('/bot/chat/history', { params 
 
 // Compatibility aliases retained for existing screens
 export const getPatientByMobile = (mobile) => getPatientByWa(mobile);
-export const getAppointmentsByMobile = (mobile) => getAppointmentsByWaId(mobile);
+export const getAppointmentsByMobile = (mobile, params) => getAppointmentsByWaId(mobile, params);
 export const getPendingReminders = () => getPendingMessages();
 export const markReminderSent = (id) => api.patch(`/appointments/reminders/${id}/mark-sent`);
 export const exportMRD = (patientId) => getMRDByPatientId(patientId);

@@ -6,7 +6,7 @@ import {
     Check, RefreshCw, Activity, Clipboard, Edit2, Plus, XCircle,
     ArrowRight, Map, ShieldCheck, ArrowLeft, Zap, Shield, ChevronDown, UserPlus, CalendarClock
 } from 'lucide-react';
-import { registerFromForm, bookByForm, getAvailableTokens, getTokenConfig, getDoctors, getReferringDoctors, getPatientByWa, getPatientByEmail, getAppointmentsByWaId, updateAppointment } from '../api/index';
+import { registerFromForm, bookByForm, getAvailableTokens, getTokenConfig, getDoctors, getReferringDoctors, getPatientByWa, getPatientByEmail, getAppointmentsByWaId, getAppointmentById, updateAppointment } from '../api/index';
 import '../glass-landing.css';
 
 const SALUTATIONS = ['Baby', 'Baby of', 'Mr.', 'Mrs.', 'Ms.', 'Master', 'Miss', 'Dr.'];
@@ -86,7 +86,8 @@ const PublicRegister = () => {
         doctor_speciality: 'Pediatrics',
         visit_category: 'First visit',
         appointment_mode: 'OFFLINE',
-        reason: ''
+        reason: '',
+        reschedule_from: null
     });
 
     const [availableTokens, setAvailableTokens] = useState(null);
@@ -175,31 +176,71 @@ const PublicRegister = () => {
 
         try {
             if (type === 'reschedule') {
-                console.log('Fetching patient by WA:', targetId);
-                const patientRes = await getPatientByWa(targetId);
-                const patientData = patientRes.data.data;
-                console.log('Patient data received:', patientData);
+                // If it looks like an Appointment ID (e.g. APT-xxx), fetch it directly
+                if (targetId.toUpperCase().startsWith('APT-')) {
+                    console.log('Fetching single appointment by ID:', targetId);
+                    const apptRes = await getAppointmentById(targetId.toUpperCase());
+                    const appt = apptRes.data.data;
 
-                if (!patientData) {
-                    setErrorFn("No patient record found");
-                    setLoading(false);
-                    return;
+                    if (!appt) {
+                        setErrorFn("No appointment found with this ID. For patient accounts, use mobile number.");
+                        setLoading(false);
+                        return;
+                    }
+
+                    // For AI: the success screen and p-badge depend on child_name and patient_id
+                    setRegisteredPatient({
+                        ...appt,
+                        first_name: appt.child_name || 'Patient',
+                        wa_id: appt.wa_id
+                    });
+
+                    // Jump directly to booking form
+                    setBookingForm(prev => ({
+                        ...prev,
+                        wa_id: appt.wa_id,
+                        doctor_name: appt.doctor_name || appt.assigned_doctor_name || '',
+                        appointment_date: appt.appointment_date ? appt.appointment_date.split('T')[0] : todayStr,
+                        visit_category: appt.visit_category || 'First visit',
+                        appointment_mode: appt.appointment_mode || 'OFFLINE',
+                        reschedule_from: appt.appointment_id || appt._id
+                    }));
+                    setStep(2);
+                } else {
+                    console.log('Fetching patient by WA:', targetId);
+                    const patientRes = await getPatientByWa(targetId);
+                    const patientData = patientRes.data.data;
+
+                    if (!patientData) {
+                        setErrorFn("No patient found with this mobile number.");
+                        setLoading(false);
+                        return;
+                    }
+
+                    console.log('Fetching appointments for patient:', patientData.wa_id || targetId);
+                    let appointments = [];
+                    try {
+                        // Expand search window to catch more upcoming appointments (100 days)
+                        const apptsRes = await getAppointmentsByWaId(patientData.wa_id || targetId, { days: 100 });
+                        const raw = apptsRes.data;
+                        if (Array.isArray(raw)) appointments = raw;
+                        else if (Array.isArray(raw?.data)) appointments = raw.data;
+                        else if (Array.isArray(raw?.appointments)) appointments = raw.appointments;
+                        else if (raw?.data) appointments = Object.values(raw.data);
+                    } catch (apptErr) {
+                        console.warn('Appointments lookup failed or empty:', apptErr.response?.status);
+                    }
+
+                    setRegisteredPatient(patientData);
+                    setIsNewPatient(false);
+                    const TERMINAL_STATUSES = new Set(['COMPLETED', 'CANCELLED', 'CANCELED', 'NO_SHOW', 'NOSHOW', 'REJECTED']);
+                    const pendingAppts = appointments.filter(a => {
+                        const s = String(a.status || '').toUpperCase().trim();
+                        return !TERMINAL_STATUSES.has(s);
+                    });
+                    setPatientAppointments(pendingAppts);
+                    setStep(4);
                 }
-
-                console.log('Fetching appointments for patient:', patientData.wa_id || targetId);
-                const apptsRes = await getAppointmentsByWaId(patientData.wa_id || targetId);
-                const appointments = apptsRes.data.data || [];
-                console.log('Appointments received:', appointments);
-
-                setRegisteredPatient(patientData);
-                setIsNewPatient(false);
-                // More robust filtering (case-insensitive)
-                const pendingAppts = appointments.filter(a => {
-                    const s = String(a.status || '').toUpperCase();
-                    return s === 'PENDING' || s === 'CONFIRMED' || s === 'SCHEDULED';
-                });
-                setPatientAppointments(pendingAppts);
-                setStep(4);
             } else {
                 const res = await getPatientByWa(targetId);
                 const patientData = res.data.data;
@@ -209,7 +250,8 @@ const PublicRegister = () => {
                     setBookingForm(prev => ({
                         ...prev,
                         wa_id: patientData.wa_id,
-                        doctor_name: patientData.preferred_doctor || prev.doctor_name
+                        doctor_name: patientData.preferred_doctor || prev.doctor_name,
+                        reschedule_from: null // Clear just in case
                     }));
                     setStep(2);
                 } else {
@@ -220,7 +262,11 @@ const PublicRegister = () => {
         } catch (err) {
             console.error('checkMember error:', err);
             if (err.response?.status === 404) {
-                setErrorFn("No record found for this number");
+                setErrorFn(
+                    type === 'reschedule'
+                        ? "No patient found with this mobile number."
+                        : "No record found for this number"
+                );
             } else {
                 setErrorFn("Unable to verify. Please try again.");
             }
@@ -402,7 +448,8 @@ const PublicRegister = () => {
                     setBookingForm(prev => ({
                         ...prev,
                         wa_id: patientData.wa_id,
-                        doctor_name: rawDocName
+                        doctor_name: rawDocName,
+                        reschedule_from: null
                     }));
                     setStep(2);
                 }
@@ -419,20 +466,41 @@ const PublicRegister = () => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        console.log('handleBooking started:', { reschedule_from: bookingForm.reschedule_from, bookingForm });
         try {
             if (bookingForm.reschedule_from) {
+                // Simplified payload as per user/API requirements
                 const reschedulePayload = {
                     appointment_date: bookingForm.appointment_date,
-                    appointment_mode: bookingForm.appointment_mode,
-                    doctor_name: bookingForm.doctor_name,
-                    visit_category: bookingForm.visit_category,
-                    reason: bookingForm.reason
+                    reason: bookingForm.reason || "Patient requested reschedule"
                 };
-                await updateAppointment(bookingForm.reschedule_from, reschedulePayload);
+                console.log('Triggering updateAppointment payload:', reschedulePayload, 'ID:', bookingForm.reschedule_from);
+                const patchRes = await updateAppointment(bookingForm.reschedule_from, reschedulePayload);
+                
+                // Fetch fresh details using GET /api/appointments/{id} to ensure accuracy
+                try {
+                    console.log('Refreshing appointment details via GET...');
+                    const freshRes = await getAppointmentById(bookingForm.reschedule_from);
+                    if (freshRes.data?.data) {
+                        const freshData = freshRes.data.data;
+                        // For UI consistency
+                        setRegisteredPatient({
+                            ...freshData,
+                            first_name: freshData.child_name || 'Patient',
+                            wa_id: freshData.wa_id
+                        });
+                    } else if (patchRes.data?.data) {
+                        setRegisteredPatient(patchRes.data.data);
+                    }
+                } catch (getErr) {
+                    console.warn('Failed to refresh fresh appointment details, using PATCH response');
+                    if (patchRes.data?.data) setRegisteredPatient(patchRes.data.data);
+                }
+                console.log('updateAppointment flow completed');
             } else {
                 const isToday = bookingForm.appointment_date === todayStr;
-                let res;
-                res = await bookByForm({
+                console.log('Triggering new booking...');
+                const res = await bookByForm({
                     ...bookingForm,
                     visit_category: bookingForm.visit_category,
                     registration_type: 'online'
@@ -1037,7 +1105,7 @@ const PublicRegister = () => {
                                             <div className="form-footer-v4">
                                                 <button
                                                     type="submit"
-                                                    disabled={loading || (availableTokens && (availableTokens.is_offline || availableTokens.online_tokens_remaining <= 0))}
+                                                    disabled={loading || (!bookingForm.reschedule_from && availableTokens && (availableTokens.is_offline || availableTokens.online_tokens_remaining <= 0))}
                                                     className="btn-main-v4"
                                                 >
                                                     {loading ? <RefreshCw className="animate-spin" /> : (
@@ -1075,14 +1143,14 @@ const PublicRegister = () => {
                                                                 <strong>{new Date(appt.appointment_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</strong>
                                                             </div>
                                                             <div className="a-meta-wrap">
-                                                                <span>{formatTime12h(appt.start_time)} Ã¢â‚¬Â¢ {appt.doctor_name}</span>
+                                                                <span>{appt.doctor_name || appt.assigned_doctor_name || '-'}{appt.appointment_id ? ' [' + appt.appointment_id + ']' : ''}</span>
                                                             </div>
                                                         </div>
                                                         <button className="btn-reschedule-v4" onClick={() => {
                                                             setBookingForm({
                                                                 ...bookingForm,
-                                                                wa_id: appt.wa_id,
-                                                                doctor_name: appt.doctor_name,
+                                                                wa_id: appt.wa_id || rescheduleWaId,
+                                                                doctor_name: appt.doctor_name || appt.assigned_doctor_name || '',
                                                                 appointment_date: appt.appointment_date ? appt.appointment_date.split('T')[0] : todayStr,
                                                                 visit_category: appt.visit_category || 'First visit',
                                                                 appointment_mode: appt.appointment_mode || 'OFFLINE',
@@ -1112,6 +1180,12 @@ const PublicRegister = () => {
                                             {bookingForm.reschedule_from ? (
                                                 <>
                                                     <h1>Appointment Rescheduled!</h1>
+                                                    <div className="patient-id-card-v4">
+                                                        <div className="id-row"><span>Patient ID</span> <strong>{registeredPatient?.patient_id}</strong></div>
+                                                        <div className="id-row"><span>Doctor Name</span> <strong>{registeredPatient?.doctor_name || 'N/A'}</strong></div>
+                                                        <div className="id-row"><span>New Date</span> <strong>{registeredPatient?.appointment_date ? new Date(registeredPatient.appointment_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</strong></div>
+                                                        <div className="id-row"><span>Token preserved</span> <strong>{registeredPatient?.token_display || registeredPatient?.token_number || 'T-XX'}</strong></div>
+                                                    </div>
                                                     <p>Your appointment rescheduling has been done successfully. We have sent a confirmation message to your registered WhatsApp number.</p>
                                                 </>
                                             ) : (patientForm.enrollment_option === 'just_enroll' && isNewPatient) ? (
