@@ -193,6 +193,7 @@ const Appointments = () => {
     // Shared State
     const [appointments, setAppointments] = useState([]);
     const [stats, setStats] = useState(null);
+    const [trends, setTrends] = useState({ load: 0, completed: 0, cancelled: 0 });
     const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -265,14 +266,34 @@ const Appointments = () => {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const [apptRes, statsRes, doctorRes] = await Promise.all([
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            const sevenDaysAgoDate = toIsoDate(sevenDaysAgo);
+
+            const [apptRes, statsRes, pastStatsRes, doctorRes] = await Promise.all([
                 getAppointments(filters),
                 getAppointmentStats(filters.date),
+                getAppointmentStats(sevenDaysAgoDate),
                 getDoctors({ all: true })
             ]);
+            
+            const currentStats = statsRes.data.data || {};
+            const pastStats = pastStatsRes.data.data || {};
+
             setAppointments(apptRes.data.data || []);
-            setStats(statsRes.data.data || {});
+            setStats(currentStats);
             setDoctors(doctorRes.data.data || []);
+
+            const calcTrend = (curr, prev) => {
+                if (!prev || prev === 0) return curr > 0 ? 100 : 0;
+                return Math.round(((curr - prev) / prev) * 100);
+            };
+
+            setTrends({
+                load: calcTrend(currentStats.total_today || 0, pastStats.total_today || 0),
+                completed: calcTrend(currentStats.completed || 0, pastStats.completed || 0),
+                cancelled: calcTrend(currentStats.cancelled || 0, pastStats.cancelled || 0)
+            });
         } catch (err) {
             setError("Failed to fetch clinic data. Please check connection.");
         } finally {
@@ -540,30 +561,30 @@ const Appointments = () => {
             </div>
 
             {activeView === 'queue' && (
-                <div className="stats-grid-v4">
+                <div className="stats-grid-v4" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                     <StatCard 
-                        title="Today's Load" 
+                        title="Today's Appointments" 
                         value={appointments.length} 
                         icon={Users} 
                         color="#6366f1" 
                         loading={loading} 
-                        trend={25} 
+                        trend={trends.load} 
                     />
                     <StatCard 
-                        title="Confirmed" 
-                        value={appointments.filter(a => ['CONFIRMED', 'SCHEDULED', 'WAITING', 'IN_PROGRESS'].includes((a.status || '').toUpperCase())).length} 
+                        title="Completed Appointments" 
+                        value={appointments.filter(a => (a.status || '').toUpperCase() === 'COMPLETED').length} 
                         icon={CheckCircle2} 
                         color="#10b981" 
                         loading={loading} 
-                        trend={25} 
+                        trend={trends.completed} 
                     />
                     <StatCard 
-                        title="Cancelled" 
+                        title="Cancelled Appointments" 
                         value={appointments.filter(a => (a.status || '').toUpperCase() === 'CANCELLED').length} 
                         icon={XCircle} 
                         color="#ef4444" 
                         loading={loading} 
-                        trend={-15} 
+                        trend={trends.cancelled} 
                     />
                 </div>
             )}
@@ -572,7 +593,7 @@ const Appointments = () => {
                 {activeView === 'queue' ? (
                     <>
                         <div className="filter-shelf-premium" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'center', backgroundColor: '#f9fafb', padding: '12px 0' }}>
-                            <div className="search-pill-v3" style={{ flex: 1, height: '42px', borderRadius: '10px', padding: '0 16px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', backgroundColor: '#fff', gap: '10px', minWidth: '220px', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
+                            <div className="search-pill-v3" style={{ flex: 2.5, height: '42px', borderRadius: '10px', padding: '0 16px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', backgroundColor: '#fff', gap: '10px', minWidth: '220px', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
                                 <Search size={18} color="#64748b" className="s-icon" />
                                 <input
                                     type="text"
@@ -583,7 +604,7 @@ const Appointments = () => {
                                 />
                             </div>
 
-                            <div className="filter-group-v3" style={{ display: 'flex', gap: '1rem', flex: 2, justifyContent: 'flex-start' }}>
+                            <div className="filter-group-v3" style={{ display: 'flex', gap: '1rem', flex: 'none', justifyContent: 'flex-start' }}>
                                 <div className="filter-item-v3 date-pill-v3" onClick={openDatePicker} style={{ height: '42px', borderRadius: '10px', padding: '0 16px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', backgroundColor: '#fff', gap: '8px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
                                     <CalendarIcon size={16} className="f-icon" color="#64748b" />
                                     <input
@@ -697,7 +718,7 @@ const Appointments = () => {
                         <div className="authorizer-header-v3" style={{ padding: '1.25rem 1.5rem 0.75rem' }}>
                             <div className="header-flex" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div className="header-text">
-                                    <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#1e293b', marginBottom: '2px' }}>{editMode ? 'Modify Reservation' : 'Schedule New Visit'}</h2>
+                                    <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#1e293b', marginBottom: '2px' }}>{editMode ? 'Update Appointment' : 'Schedule New Visit'}</h2>
                                 </div>
                                 <button className="close-btn-v3" style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }} onClick={() => setActiveView('queue')}><XCircle size={20} /></button>
                             </div>
@@ -899,7 +920,7 @@ const Appointments = () => {
 
                                     <div className="form-grid-v2" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
                                         <div className="f-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Assign Clinician</label>
+                                            <label style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Select Doctor</label>
                                             <div className="input-with-icon" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                                 <Stethoscope size={18} style={{ position: 'absolute', left: '16px', color: '#94a3b8' }} />
                                                 <select
@@ -910,7 +931,7 @@ const Appointments = () => {
                                                     }}
                                                     style={{ width: '100%', height: '38px', paddingLeft: '40px', paddingRight: '12px', borderRadius: '10px', border: '1.5px solid #f1f5f9', backgroundColor: '#f8fafc', fontSize: '12px', fontWeight: 700, color: '#1e293b', outline: 'none', appearance: 'none' }}
                                                 >
-                                                    <option value="" disabled>Select Provider</option>
+                                                    <option value="" disabled>Select Doctor</option>
                                                     {doctors.map(doc => <option key={doc.doctor_id} value={doc.doctor_id}>{getDoctorDisplayName(doc)}</option>)}
                                                 </select>
                                                 <ChevronDown size={14} style={{ position: 'absolute', right: '16px', color: '#94a3b8', pointerEvents: 'none' }} />
@@ -953,7 +974,7 @@ const Appointments = () => {
                                                             </div>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#94a3b8', fontWeight: 700 }}>
                                                                 <Clock size={10} />
-                                                                <span>Shift Start: {availableTokens.start_time || '--:--'}</span>
+                                                                 <span>Approx Appointment time: {availableTokens.start_time || '--:--'}</span>
                                                             </div>
                                                         </div>
                                                     )

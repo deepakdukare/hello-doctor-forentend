@@ -160,8 +160,9 @@ const PublicRegister = () => {
 
     const checkMember = async (e, type = 'lookup') => {
         if (e) e.preventDefault();
+        console.log('checkMember triggered:', { type, searchWaId, rescheduleWaId });
         const rawId = type === 'lookup' ? searchWaId : rescheduleWaId;
-        const targetId = rawId.trim();
+        const targetId = rawId?.trim();
         const setErrorFn = type === 'lookup' ? setVerifyError : setRescheduleError;
 
         if (!targetId || targetId.length < 10) {
@@ -174,8 +175,10 @@ const PublicRegister = () => {
 
         try {
             if (type === 'reschedule') {
+                console.log('Fetching patient by WA:', targetId);
                 const patientRes = await getPatientByWa(targetId);
                 const patientData = patientRes.data.data;
+                console.log('Patient data received:', patientData);
 
                 if (!patientData) {
                     setErrorFn("No patient record found");
@@ -183,8 +186,10 @@ const PublicRegister = () => {
                     return;
                 }
 
+                console.log('Fetching appointments for patient:', patientData.wa_id || targetId);
                 const apptsRes = await getAppointmentsByWaId(patientData.wa_id || targetId);
                 const appointments = apptsRes.data.data || [];
+                console.log('Appointments received:', appointments);
 
                 setRegisteredPatient(patientData);
                 setIsNewPatient(false);
@@ -213,6 +218,7 @@ const PublicRegister = () => {
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
+            console.error('checkMember error:', err);
             if (err.response?.status === 404) {
                 setErrorFn("No record found for this number");
             } else {
@@ -511,12 +517,12 @@ const PublicRegister = () => {
                                 </button>
                             </div>
 
-                            {/* Card 3: Modify Visit */}
+                            {/* Card 3: Reschedule Appointment */}
                             <div className="glass-card">
                                 <div className="glass-card-icon">
                                     <CalendarClock />
                                 </div>
-                                <h3 className="glass-card-title">Modify Visit</h3>
+                                <h3 className="glass-card-title">Reschedule Appointment</h3>
                                 <p className="glass-card-desc">
                                     Need to change your time? Access your existing booking with your mobile number to reschedule.
                                 </p>
@@ -902,7 +908,6 @@ const PublicRegister = () => {
 
                                     {step === 2 && (
                                         <form onSubmit={handleBooking} className="booking-stage-v4">
-                                            <div className="booking-summary-v4">
                                                 <div className="p-badge-v4">
                                                     <div className="p-avatar-v4"><User size={24} /></div>
                                                     <div className="p-meta-v4">
@@ -910,11 +915,10 @@ const PublicRegister = () => {
                                                         <span>{registeredPatient?.patient_id || 'New Patient'}</span>
                                                     </div>
                                                 </div>
-                                            </div>
 
                                             <div className="booking-grid-v4">
                                                 <div className="f-group-v4 col-2">
-                                                    <label>Select Clinician</label>
+                                                    <label>Select Doctor</label>
                                                     <div className="sel-wrap-v4">
                                                         <select
                                                             value={bookingForm.doctor_name}
@@ -977,7 +981,7 @@ const PublicRegister = () => {
                                                                     )}
                                                                     <div className="token-info-mini-v4" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                                                                         <Clock size={16} />
-                                                                        <span>Start Time: {availableTokens.start_time || '--:--'}</span>
+                                                                        <span>Approx Appointment time: {availableTokens.start_time || '--:--'}</span>
                                                                     </div>
                                                                 </div>
                                                             )
@@ -1126,7 +1130,7 @@ const PublicRegister = () => {
                                                         <div className="id-row"><span>Patient ID</span> <strong>{registeredPatient?.patient_id}</strong></div>
                                                         <div className="id-row"><span>Doctor Name</span> <strong>{registeredPatient?.doctor_name || 'N/A'}</strong></div>
                                                         <div className="id-row"><span>Appointment Date</span> <strong>{registeredPatient?.appointment_date ? new Date(registeredPatient.appointment_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}</strong></div>
-                                                        <div className="id-row"><span>Shift Start Time</span> <strong>{registeredPatient?.appointment_time || '14:00'}</strong></div>
+                                                        <div className="id-row"><span>Approx Appointment time</span> <strong>{registeredPatient?.appointment_time || '14:00'}</strong></div>
                                                         <div className="id-row"><span>Token Number</span> <strong>{registeredPatient?.token_display || registeredPatient?.token_number || 'T-XX'}</strong></div>
                                                     </div>
                                                     <p>Your appointment booking has been done successfully. We have sent a confirmation message to your registered WhatsApp number.</p>

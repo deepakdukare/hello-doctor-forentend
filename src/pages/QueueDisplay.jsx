@@ -55,16 +55,15 @@ const StatBadge = ({ label, value, color, isActive, onClick }) => (
             flexDirection: 'column',
             justifyContent: 'center',
             padding: '16px',
-            border: isActive ? `2.5px solid ${color}` : '1px solid #e2e8f0',
-            boxShadow: isActive ? `0 10px 25px ${color}15` : 'none',
+            border: isActive ? `2.5px solid #0f172a` : '1px solid #e2e8f0',
+            boxShadow: isActive ? '0 10px 25px rgba(0,0,0,0.06)' : 'none',
             position: 'relative',
-            overflow: 'hidden',
-            background: isActive ? `${color}05` : '#fff'
+            background: isActive ? '#fff' : '#fff'
         }}>
-        <div style={{ fontSize: '1.75rem', fontWeight: 900, color: isActive ? color : '#0f172a', textAlign: 'center', lineHeight: 1 }}>{value}</div>
-        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: isActive ? color : '#94a3b8', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>{label}</div>
+        <div style={{ fontSize: '1.75rem', fontWeight: 900, color: color, textAlign: 'center', lineHeight: 1 }}>{value}</div>
+        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>{label}</div>
         {isActive && (
-            <div style={{ position: 'absolute', bottom: 0, left: '20%', right: '20%', height: '4px', background: color, borderRadius: '4px 4px 0 0' }} />
+            <div style={{ position: 'absolute', bottom: 0, left: '20%', right: '20%', height: '4px', background: '#0f172a', borderRadius: '4px 4px 0 0' }} />
         )}
     </div>
 );
@@ -119,8 +118,13 @@ const TokenRow = ({ token, onCheckin, onStatusChange, onNext, isNext, isToday })
                             <>
                                 <button
                                     onClick={() => onStatusChange(token.token, 'IN_PROGRESS', token.doctor_id)}
-                                    style={{ background: '#0ea5e9', border: 'none', color: '#fff', padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                                    style={{ background: '#008ad0', border: 'none', color: '#fff', padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                                     <ChevronRight size={14} /> Start Session
+                                </button>
+                                <button
+                                    onClick={() => onStatusChange(token.token, 'SKIPPED', token.doctor_id)}
+                                    style={{ background: '#fff', border: '1px solid #94a3b8', color: '#94a3b8', padding: '6px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                                    <SkipForward size={14} /> Skip
                                 </button>
                             </>
                         )}
@@ -324,6 +328,15 @@ const QueueDisplay = () => {
                 </div>
             </div>
 
+            {/* Stats */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                <StatBadge label="Total" value={stats.total} color="#0f172a" isActive={statusFilter === 'ALL'} onClick={() => setStatusFilter('ALL')} />
+                <StatBadge label="Waiting" value={stats.waiting} color="#f59e0b" isActive={statusFilter === 'WAITING'} onClick={() => setStatusFilter('WAITING')} />
+                <StatBadge label="Checked In" value={stats.checkedIn} color="#6366f1" isActive={statusFilter === 'CHECKED_IN'} onClick={() => setStatusFilter('CHECKED_IN')} />
+                <StatBadge label="Completed" value={stats.completed} color="#10b981" isActive={statusFilter === 'COMPLETED'} onClick={() => setStatusFilter('COMPLETED')} />
+                <StatBadge label="No Show" value={stats.noShow} color="#ef4444" isActive={statusFilter === 'NO_SHOW'} onClick={() => setStatusFilter('NO_SHOW')} />
+            </div>
+
             <div className="filter-shelf-v4" style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap', alignItems: 'center', background: '#fff', padding: '10px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '12px', borderRight: '1px solid #f1f5f9' }}>
                     <Filter size={16} color="#94a3b8" />
@@ -385,14 +398,6 @@ const QueueDisplay = () => {
             {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '0.85rem 1.25rem', marginBottom: '1rem', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.75rem' }}><AlertCircle size={18} />{error}</div>}
             {success && <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '0.85rem 1.25rem', marginBottom: '1rem', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.75rem' }}><CheckCircle2 size={18} />{success}</div>}
 
-            {/* Stats */}
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-                <StatBadge label="Total" value={stats.total} color="#0f172a" isActive={statusFilter === 'ALL'} onClick={() => setStatusFilter('ALL')} />
-                <StatBadge label="Waiting" value={stats.waiting} color="#f59e0b" isActive={statusFilter === 'WAITING'} onClick={() => setStatusFilter('WAITING')} />
-                <StatBadge label="Checked In" value={stats.checkedIn} color="#6366f1" isActive={statusFilter === 'CHECKED_IN'} onClick={() => setStatusFilter('CHECKED_IN')} />
-                <StatBadge label="Completed" value={stats.completed} color="#10b981" isActive={statusFilter === 'COMPLETED'} onClick={() => setStatusFilter('COMPLETED')} />
-                <StatBadge label="No Show" value={stats.noShow} color="#ef4444" isActive={statusFilter === 'NO_SHOW'} onClick={() => setStatusFilter('NO_SHOW')} />
-            </div>
 
 
             {/* Table */}

@@ -638,7 +638,7 @@ const Doctors = () => {
                                             </select>
 
                                             <div style={{width: '90%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.2rem', alignItems: 'flex-start'}}>
-                                                <label style={{fontSize: '0.65rem', fontWeight: 600, color: '#64748b'}}>Start Time</label>
+                                                <label style={{fontSize: '0.65rem', fontWeight: 600, color: '#64748b'}}>Approx Appointment time</label>
                                                 <input 
                                                     type="time" 
                                                     value={dayConf.start_time || '10:00'} 
@@ -815,7 +815,7 @@ const Doctors = () => {
                                     </select>
                                 </div>
                                 <div className="d-input-group" style={{marginBottom:'1rem'}}>
-                                    <label>Start Time</label>
+                                    <label>Approx Appointment time</label>
                                     <input 
                                         type="time" 
                                         value={showCalModal.conf?.start_time || '10:00'}

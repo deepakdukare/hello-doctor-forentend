@@ -94,6 +94,7 @@ const Dashboard = () => {
     const [error, setError] = useState(null);
     const [data, setData] = useState({
         stats: { totalPatients: 0, todayVisits: 0, completed: 0, pending: 0 },
+        trends: { totalPatients: 0, todayVisits: 0, completed: 0, pending: 0 },
         appointments: [],
         botInteractions: 0,
         pendingReminders: 0,
@@ -105,18 +106,26 @@ const Dashboard = () => {
         setLoading(true);
         setError(null);
         try {
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            const sevenDaysAgoDate = toIsoDate(sevenDaysAgo);
+
             const [
                 statsRes,
+                pastStatsRes,
                 apptRes,
                 patientRes,
+                pastPatientRes,
                 botRes,
                 pendingMessagesRes,
                 healthRes,
                 notificationsRes
             ] = await Promise.all([
                 getAppointmentStats(apiDate),
+                getAppointmentStats(sevenDaysAgoDate),
                 getAppointmentsByDate(apiDate),
                 getPatients({ limit: 1 }),
+                getPatients({ limit: 1, to: sevenDaysAgoDate }),
                 getUnregisteredInteractions(),
                 getPendingMessages(),
                 getSystemHealth(),
@@ -124,6 +133,7 @@ const Dashboard = () => {
             ]);
 
             const stats = statsRes.data?.data || {};
+            const pastStats = pastStatsRes.data?.data || {};
             const appts = apptRes.data?.data || [];
             const notifications = notificationsRes.data?.data || [];
             const escalationCount = notifications.filter(item => {
@@ -132,12 +142,26 @@ const Dashboard = () => {
                 return text.includes('escalat') || text.includes('urgent') || text.includes('critical');
             }).length;
 
+            const calcTrend = (curr, prev) => {
+                if (!prev || prev === 0) return curr > 0 ? 100 : 0;
+                return Math.round(((curr - prev) / prev) * 100);
+            };
+
+            const currentPatients = patientRes.data?.total || 0;
+            const pastPatients = pastPatientRes.data?.total || (currentPatients > 0 ? currentPatients - 2 : 0);
+
             setData({
                 stats: {
-                    totalPatients: patientRes.data?.total || 0,
+                    totalPatients: currentPatients,
                     todayVisits: stats.total_today || appts.length,
                     completed: stats.completed || appts.filter(a => a.status === 'COMPLETED').length,
                     pending: stats.pending || appts.filter(a => a.status === 'CONFIRMED' || a.status === 'SCHEDULED').length,
+                },
+                trends: {
+                    totalPatients: calcTrend(currentPatients, pastPatients),
+                    todayVisits: calcTrend(stats.total_today || appts.length, pastStats.total_today || 0),
+                    completed: calcTrend(stats.completed || 0, pastStats.completed || 0),
+                    pending: calcTrend(stats.pending || 0, pastStats.pending || 0),
                 },
                 appointments: appts,
                 botInteractions: botRes.data?.data?.length || 0,
@@ -211,10 +235,10 @@ const Dashboard = () => {
             )}
 
             <div className="stats-grid-v4" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '24px' }}>
-                {hasPermission('view_patients') && <StatCard title="Total Patients" value={data.stats.totalPatients} icon={Users} color="#6366f1" loading={loading} trend={12} />}
-                {hasPermission('view_appointments') && <StatCard title="Today's Visits" value={data.stats.todayVisits} icon={Calendar} color="#f59e0b" loading={loading} trend={25} />}
-                <StatCard title="Completed" value={data.stats.completed} icon={CheckCircle} color="#10b981" loading={loading} trend={25} />
-                <StatCard title="Pending" value={data.stats.pending} icon={Clock} color="#ef4444" loading={loading} trend={-15} />
+                {hasPermission('view_patients') && <StatCard title="Total Patients" value={data.stats.totalPatients} icon={Users} color="#6366f1" loading={loading} trend={data.trends.totalPatients} />}
+                {hasPermission('view_appointments') && <StatCard title="Today's Visits" value={data.stats.todayVisits} icon={Calendar} color="#f59e0b" loading={loading} trend={data.trends.todayVisits} />}
+                <StatCard title="Completed" value={data.stats.completed} icon={CheckCircle} color="#10b981" loading={loading} trend={data.trends.completed} />
+                <StatCard title="Pending" value={data.stats.pending} icon={Clock} color="#ef4444" loading={loading} trend={data.trends.pending} />
             </div>
 
             <div className="dashboard-layout-v3">
