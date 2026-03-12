@@ -1496,7 +1496,7 @@ h5 {
   border: 2px solid #f1f5f9;
   background: #f8fafc;
   outline: none;
-  font-size: 1rem;
+  font-size: 1.8rem;
   font-weight: 600;
   color: #1e293b;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -17898,5 +17898,72 @@ input:checked+.slider:before {
   .mobile-bottom-nav {
     display: none !important;
   }
+}
+
+
+/* Utility Classes for Tailwind-like behavior (Temporary fix for missing Tailwind) */
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.flex-col { flex-direction: column; }
+.w-full { width: 100%; }
+.min-h-\[60vh\] { min-height: 60vh; }
+.animate-spin {
+  animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.text-indigo-600 { color: #4f46e5; }
+.text-slate-500 { color: #64748b; }
+.font-medium { font-weight: 500; }
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+.gap-4 { gap: 1rem; }
+
+/* Loader Centering Utilities */
+.flex { display: flex !important; }
+.items-center { align-items: center !important; }
+.justify-center { justify-content: center !important; }
+.flex-col { flex-direction: column !important; }
+.w-full { width: 100% !important; }
+.min-h-\[60vh\] { min-height: 60vh !important; }
+.min-h-screen { min-height: 100vh !important; }
+
+.animate-spin {
+  animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+
+.text-indigo-600 { color: #4f46e5 !important; }
+.text-slate-500 { color: #64748b !important; }
+.font-medium { font-weight: 500 !important; }
+
+/* Dashboard specific loader centering */
+.loader-container-premium {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    width: 100% !important;
 }
 

@@ -65,12 +65,12 @@ const Login = ({ onLogin }) => {
                             </div>
                             <div className="highlight-item">
                                 <ShieldCheck className="highlight-icon" size={20} />
-                                <p>Digital Clinical Records (MRD)</p>
+                                <p>Digital Clinical Records</p>
                             </div>
                         </div>
                     </div>
                     <div className="dev-credit">
-                        <p>Designed and developed by <span>brahmaastra.ai</span></p>
+                        <p>Designed and developed by <span>Brahmaastra.ai</span></p>
                     </div>
                 </div>
 
@@ -88,7 +88,7 @@ const Login = ({ onLogin }) => {
                             <div className="form-group">
                                 <label htmlFor="email">Email Address</label>
                                 <div className="input-wrapper">
-                                    <Mail className="input-icon" size={18} />
+                                    <Mail className="input-icon" size={24} />
                                     <input
                                         id="email"
                                         type="email"
@@ -104,7 +104,7 @@ const Login = ({ onLogin }) => {
                             <div className="form-group">
                                 <label htmlFor="password">Password</label>
                                 <div className="input-wrapper">
-                                    <Lock className="input-icon" size={18} />
+                                    <Lock className="input-icon" size={24} />
                                     <input
                                         id="password"
                                         type={showPassword ? 'text' : 'password'}
@@ -119,7 +119,7 @@ const Login = ({ onLogin }) => {
                                         className="password-toggle"
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
-                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        {showPassword ? <EyeOff size={24} /> : <Eye size={18} />}
                                     </button>
                                 </div>
                             </div>
