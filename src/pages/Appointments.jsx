@@ -196,6 +196,7 @@ const Appointments = () => {
     const [appointments, setAppointments] = useState([]);
     const [stats, setStats] = useState(null);
     const [trends, setTrends] = useState({ load: 0, completed: 0, cancelled: 0 });
+    const [pastStats, setPastStats] = useState(null);
     const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -271,19 +272,17 @@ const Appointments = () => {
                 return Math.round(((curr - prev) / prev) * 100);
             };
 
-            const past = trends.pastStats || {};
-            setTrends(prev => ({
-                ...prev,
-                load: calcTrend(currentStats.total_today || 0, past.total_today || 0),
-                completed: calcTrend(currentStats.completed || 0, past.completed || 0),
-                cancelled: calcTrend(currentStats.cancelled || 0, past.cancelled || 0)
-            }));
+            setTrends({
+                load: calcTrend(currentStats.total_today || 0, pastStats?.total_today || 0),
+                completed: calcTrend(currentStats.completed || 0, pastStats?.completed || 0),
+                cancelled: calcTrend(currentStats.cancelled || 0, pastStats?.cancelled || 0)
+            });
         } catch (err) {
             setError("Failed to fetch clinic data. Please check connection.");
         } finally {
             setLoading(false);
         }
-    }, [filters, trends.pastStats]);
+    }, [filters, pastStats]);
 
     useEffect(() => {
         fetchQueueData();
@@ -303,8 +302,7 @@ const Appointments = () => {
                 ]);
 
                 setDoctors(doctorRes.data.data || []);
-                const past = pastStatsRes.data.data || {};
-                setTrends(prev => ({ ...prev, pastStats: past }));
+                setPastStats(pastStatsRes.data.data || {});
             } catch (err) {
                 console.error("Failed to fetch initial data", err);
             }

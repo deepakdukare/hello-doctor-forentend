@@ -98,7 +98,15 @@ const MRD = () => {
         }
     }, []);
 
-    useEffect(() => { loadDirectory(); loadWorklist(); loadDoctors(); }, [loadDirectory, loadWorklist, loadDoctors]);
+    useEffect(() => { loadWorklist(); loadDoctors(); }, [loadWorklist, loadDoctors]);
+
+    // Debounced directory search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            loadDirectory(patientSearch);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [patientSearch, loadDirectory]);
     const selectPatientRecord = async (p, prefFromAppt = null) => {
         if (selectedPatient?.patient_id !== p.patient_id) {
             setSelectedPatient(p);
@@ -345,11 +353,7 @@ const MRD = () => {
                                 type="text"
                                 placeholder="Search by name or ID..."
                                 value={patientSearch}
-                                onChange={(e) => {
-                                    setPatientSearch(e.target.value);
-                                    if (e.target.value.length > 2) loadDirectory(e.target.value);
-                                    else if (e.target.value.length === 0) loadDirectory();
-                                }}
+                                onChange={(e) => setPatientSearch(e.target.value)}
                             />
                             {dirLoading && <RefreshCw size={12} className="spinning" />}
                         </div>
