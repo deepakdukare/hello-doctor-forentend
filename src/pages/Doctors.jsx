@@ -150,14 +150,7 @@ const Doctors = () => {
             let allDocs = res.data?.data || [];
 
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.role === 'doctor') {
-                allDocs = allDocs.filter(d =>
-                    d.doctor_id === user.doctor_id ||
-                    d.name === user.full_name ||
-                    d.name === user.username
-                );
-            }
-
+            // Removed restricted filter to allow doctors to see their colleagues
             const availMap = {};
             const enrichedDocs = [...allDocs];
             await Promise.allSettled(

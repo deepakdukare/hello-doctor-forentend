@@ -342,12 +342,10 @@ const Admins = () => {
                         <RefreshCw size={16} className={refreshing || loading ? 'animate-spin' : ''} />
                         <span>Refresh</span>
                     </button>
-                    {!isDoctor && (
-                        <button className="btn-header-v4 btn-primary-v4" onClick={handleCreateClick}>
-                            <Plus size={16} />
-                            <span>New Admin</span>
-                        </button>
-                    )}
+                    <button className="btn-header-v4 btn-primary-v4" onClick={handleCreateClick}>
+                        <Plus size={16} />
+                        <span>New Admin</span>
+                    </button>
                 </div>
             </div>
 
@@ -731,7 +729,7 @@ const Admins = () => {
                 />
             )}
 
-            {!isDoctor && activeSection === 'directory' && (
+            {activeSection === 'directory' && (
                 <div className="card shadow-premium" style={{ padding: '0', borderRadius: '24px', overflow: 'hidden' }}>
                     <div
                         className="card-header"
