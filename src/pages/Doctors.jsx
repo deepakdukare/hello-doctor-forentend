@@ -73,7 +73,7 @@ const getStatusColor = (status) => {
 
 const Doctors = () => {
     const navigate = useNavigate();
-    const currentUser = getUser();
+    const currentUser = React.useMemo(() => getUser(), []);
     const isSuperAdmin = currentUser?.role?.toLowerCase() === 'super_admin' || currentUser?.role?.toLowerCase() === 'superadmin';
     const isDoctor = currentUser?.role?.toLowerCase() === 'doctor';
     const [doctors, setDoctors] = useState([]);
@@ -161,6 +161,7 @@ const Doctors = () => {
             const enrichedDocs = [...allDocs];
             await Promise.allSettled(
                 allDocs.map(async (doc, idx) => {
+                    if (!doc.doctor_id) return;
                     try {
                         const [profileRes, dashRes, avRes] = await Promise.all([
                             getDoctorById(doc.doctor_id),
@@ -186,7 +187,7 @@ const Doctors = () => {
         } finally {
             setLoading(false);
         }
-    }, [isDoctor, currentUser]);
+    }, [isDoctor, currentUser.doctor_id, currentUser.full_name, currentUser.username]);
 
     const openHub = async (doc) => {
         setViewingHubDoc(doc);
@@ -246,7 +247,8 @@ const Doctors = () => {
 
     useEffect(() => {
         fetchDoctorsData();
-    }, [fetchDoctorsData]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (success || error) {
