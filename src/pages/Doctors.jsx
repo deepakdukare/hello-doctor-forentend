@@ -75,7 +75,7 @@ const Doctors = () => {
     const navigate = useNavigate();
     const currentUser = getUser();
     const isSuperAdmin = currentUser?.role?.toLowerCase() === 'super_admin' || currentUser?.role?.toLowerCase() === 'superadmin';
-    const isDoctor = currentUser?.role === 'doctor';
+    const isDoctor = currentUser?.role?.toLowerCase() === 'doctor';
     const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -150,12 +150,10 @@ const Doctors = () => {
             const res = await getDoctors({ all: true });
             let allDocs = res.data?.data || [];
 
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.role === 'doctor') {
+            if (isDoctor) {
                 allDocs = allDocs.filter(d =>
-                    d.doctor_id === user.doctor_id ||
-                    d.name === user.full_name ||
-                    d.name === user.username
+                    (d.doctor_id && d.doctor_id === currentUser.doctor_id) ||
+                    (d.name && (d.name === currentUser.full_name || d.name === currentUser.username))
                 );
             }
 
@@ -188,7 +186,7 @@ const Doctors = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [isDoctor, currentUser]);
 
     const openHub = async (doc) => {
         setViewingHubDoc(doc);
