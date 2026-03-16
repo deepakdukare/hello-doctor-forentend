@@ -1,0 +1,1 @@
+﻿                                                            <span className="id-label" style={{ background: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{p.patient_id || 'T-XX'}</span>

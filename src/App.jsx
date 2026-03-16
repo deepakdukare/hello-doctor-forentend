@@ -46,6 +46,8 @@ const Analytics = lazy(() => import('./pages/Analytics'));
 import clinicLogo from './assets/logo.jpg';
 import { hasPermission, getUser, getToken } from './utils/auth';
 import { removeSalutation } from './utils/formatters';
+import NotificationDropdown from './components/NotificationDropdown';
+import { getNotifications } from './api';
 
 const MobileNav = () => {
     const location = useLocation();
@@ -173,9 +175,23 @@ const Header = ({ onMenuClick }) => {
     const [showFeedbackModal, setShowFeedbackModal] = useState(false);
     const [copied, setCopied] = useState(false);
     const [feedbackCopied, setFeedbackCopied] = useState(false);
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     const publicFormUrl = `${window.location.origin}/register-form`;
     const feedbackFormUrl = `${window.location.origin}/feedback-form`;
+
+    useEffect(() => {
+        const fetchUnread = async () => {
+            try {
+                const res = await getNotifications({ status: 'UNREAD' });
+                setUnreadCount(res.data?.data?.length || 0);
+            } catch (err) { }
+        };
+        fetchUnread();
+        const interval = setInterval(fetchUnread, 60000); // Check every minute
+        return () => clearInterval(interval);
+    }, []);
 
     const handleCopy = () => {
         navigator.clipboard.writeText(publicFormUrl).then(() => {
@@ -223,9 +239,10 @@ const Header = ({ onMenuClick }) => {
                         Feedback Form
                     </button>
 
-                    <div className="mobile-hide header-bell-container">
-                        <Bell size={22} color="#64748b" />
-                        <span className="header-bell-dot"></span>
+                    <div className="mobile-hide header-bell-container" onClick={() => setIsNotifOpen(!isNotifOpen)} style={{ position: 'relative', cursor: 'pointer' }}>
+                        <Bell size={22} color={isNotifOpen ? "#6366f1" : "#64748b"} />
+                        {unreadCount > 0 && <span className="header-bell-dot">{unreadCount}</span>}
+                        <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
                     </div>
                     <div className="header-profile-trigger profile-trigger">
                         <div className="header-profile-avatar">

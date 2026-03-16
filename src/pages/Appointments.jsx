@@ -344,13 +344,10 @@ const Appointments = () => {
     }, [form.appointment_date, form.doctor_id]);
 
     const handlePatientSearch = useCallback(async (val) => {
-        if (!val || val.trim().length < 2) {
-            setSearchResults([]);
-            return;
-        }
         setSearching(true);
         try {
-            const res = await searchPatients(val);
+            const query = val && val.trim().length >= 2 ? val.trim() : { limit: 50 };
+            const res = await searchPatients(query);
             setSearchResults(res.data.data || []);
         } catch (err) {
             console.error(err);
@@ -361,7 +358,7 @@ const Appointments = () => {
 
     // Debounced search effect
     useEffect(() => {
-        if (activeView === 'authorizer' && activeTab === 'patient' && patientSearch) {
+        if (activeView === 'authorizer' && activeTab === 'patient') {
             const timer = setTimeout(() => {
                 handlePatientSearch(patientSearch);
             }, 400); // 400ms debounce
@@ -629,14 +626,14 @@ const Appointments = () => {
                                 <table className="main-table-v3" style={{ width: '100%', borderCollapse: 'collapse', borderSpacing: 0, textAlign: 'left', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', backgroundColor: '#fff' }}>
                                     <thead>
                                         <tr style={{ backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0' }}>
-                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Token</th>
-                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Patient</th>
-                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Gender</th>
-                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Time</th>
-                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Doctor</th>
-                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Category</th>
-                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
-                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Token Status</th>
+                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Token</th>
+                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Patient</th>
+                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Gender</th>
+                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Time</th>
+                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Doctor</th>
+                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Category</th>
+                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Status</th>
+                                            <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Token Status</th>
                                             <th style={{ padding: '16px 20px', width: '50px' }}></th>
                                         </tr>
                                     </thead>
@@ -730,9 +727,15 @@ const Appointments = () => {
                                         />
                                     </div>
 
-                                    {searching && <div className="scanner-line" style={{ fontSize: '12px', color: '#6366f1', fontWeight: 600, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '4px 0', flexShrink: 0 }}>Scanning records...</div>}
+                                    {searching && <div className="scanner-line" style={{ fontSize: '11px', color: '#6366f1', fontWeight: 800, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '6px 0', flexShrink: 0 }}>Updating Registry View...</div>}
 
                                     <div className="search-results-premium" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minHeight: 0, overflowY: 'auto', paddingRight: '4px' }}>
+                                        {(!patientSearch || patientSearch.length < 2) && searchResults.length > 0 && (
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', padding: '0 4px' }}>
+                                                <span style={{ fontSize: '10px', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recent Patient Profiles</span>
+                                                <Link to="/patients" style={{ fontSize: '10px', fontWeight: 800, color: '#6366f1', textDecoration: 'none' }}>View Full List</Link>
+                                            </div>
+                                        )}
                                         {searchResults.map(p => {
                                             const name = removeSalutation(p.child_name) || 'Unnamed Patient';
                                             const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=EEF2FF&color=4F46E5&bold=true`;
@@ -778,32 +781,49 @@ const Appointments = () => {
                                             );
                                         })}
 
-                                        {!searching && searchResults.length === 0 && (
-                                            <div className="no-identity-state" style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
-                                                <div style={{ color: '#94a3b8' }}><User size={32} /></div>
+                                        {!searching && patientSearch.length >= 2 && searchResults.length === 0 && (
+                                            <div className="no-identity-state" style={{ padding: '2.5rem 2rem', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1.5px dashed #cbd5e1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                                                <div style={{ backgroundColor: '#fff', padding: '12px', borderRadius: '50%', color: '#94a3b8', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}><User size={32} /></div>
                                                 <div>
-                                                    <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>Patient not found</h3>
-                                                    <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, margin: 0 }}>The identity could not be located.</p>
+                                                    <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#1e293b', marginBottom: '4px' }}>Patient not found</h3>
+                                                    <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, margin: 0 }}>The identity could not be located in our records.</p>
                                                 </div>
-                                                <Link
-                                                    to="/patients"
-                                                    className="btn-save"
-                                                    style={{
-                                                        backgroundColor: '#6366f1',
-                                                        color: '#fff',
-                                                        padding: '6px 14px',
-                                                        borderRadius: '6px',
-                                                        fontWeight: 700,
-                                                        textDecoration: 'none',
-                                                        display: 'inline-block',
-                                                        cursor: 'pointer',
-                                                        boxShadow: '0 2px 8px rgba(99, 102, 241, 0.2)',
-                                                        fontSize: '12px',
-                                                        marginTop: '8px'
-                                                    }}
-                                                >
-                                                    + Go to Patients
-                                                </Link>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '200px' }}>
+                                                    <Link
+                                                        to="/patients?add=true"
+                                                        className="btn-save"
+                                                        style={{
+                                                            backgroundColor: '#6366f1',
+                                                            color: '#fff',
+                                                            padding: '10px 16px',
+                                                            borderRadius: '8px',
+                                                            fontWeight: 800,
+                                                            textDecoration: 'none',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            gap: '8px',
+                                                            cursor: 'pointer',
+                                                            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)',
+                                                            fontSize: '12px'
+                                                        }}
+                                                    >
+                                                        <Plus size={16} />
+                                                        <span>Create New Profile</span>
+                                                    </Link>
+                                                    <Link
+                                                        to="/patients"
+                                                        style={{
+                                                            color: '#6366f1',
+                                                            fontSize: '11px',
+                                                            fontWeight: 700,
+                                                            textDecoration: 'none',
+                                                            marginTop: '4px'
+                                                        }}
+                                                    >
+                                                        + View Whole Patient List
+                                                    </Link>
+                                                </div>
                                             </div>
                                         )}
                                     </div>

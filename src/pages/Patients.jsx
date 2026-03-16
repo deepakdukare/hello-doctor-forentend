@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
     Search, RefreshCw, AlertCircle, UserPlus, X, Edit2,
     User, Phone, Mail, MapPin, Calendar as CalendarIcon,
@@ -106,6 +107,18 @@ const Patients = () => {
         };
         loadMetadata();
     }, []);
+
+    // Handle initial redirect for adding patient
+    const location = useLocation();
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (params.get('add') === 'true') {
+            setViewMode('add');
+            setShowInlineForm(true);
+            setEditId(null);
+            setForm(EMPTY_FORM);
+        }
+    }, [location.search]);
 
     // Fetch today's registration count
     useEffect(() => {
@@ -423,22 +436,23 @@ const Patients = () => {
                                             <th>Patient ID</th>
                                             <th>Patient Name</th>
                                             <th>Gender</th>
-                                            <th>Parental Info</th>
+                                            <th>Father Name</th>
+                                            <th>Mother Name</th>
                                             {hasPermission('view_patient_mobile') && <th>Mobile</th>}
-                                            <th>Enrollment</th>
-                                            <th style={{ textAlign: 'center' }}>Management</th>
+                                             <th>Preferred Doctor</th>
+                                             <th style={{ textAlign: 'center' }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {loading && !patients.length ? (
                                             Array(6).fill(0).map((_, i) => (
                                                 <tr key={i}>
-                                                    <td colSpan={hasPermission('view_patient_mobile') ? 7 : 6}><div className="skeleton-row-premium"></div></td>
+                                                    <td colSpan={hasPermission('view_patient_mobile') ? 8 : 7}><div className="skeleton-row-premium"></div></td>
                                                 </tr>
                                             ))
                                         ) : patients.length === 0 ? (
                                             <tr>
-                                                <td colSpan={hasPermission('view_patient_mobile') ? 7 : 6} className="empty-state-cell">
+                                                <td colSpan={hasPermission('view_patient_mobile') ? 8 : 7} className="empty-state-cell">
                                                     <div className="empty-box-premium">
                                                         <Info size={48} />
                                                         <h3>No patients found</h3>
@@ -451,13 +465,13 @@ const Patients = () => {
                                                 <tr className={`patient-row-v2 ${selected?._id === p._id ? 'is-active' : ''}`}>
                                                     <td>
                                                         <div className="id-tag-premium">
-                                                            <span className="id-label" style={{ background: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{p.patient_id || 'T-XX'}</span>
+                                                            <span className="id-label" style={{ background: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800, color: '#000000' }}>{p.patient_id || 'T-XX'}</span>
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <div className="patient-meta-box">
                                                             <div className="patient-name-stack">
-                                                                <div className="name-bold-v2">{removeSalutation(p.full_name)}</div>
+                                                                                                                                 <div className="name-bold-v2" style={{ color: '#000000' }}>{removeSalutation(p.full_name)}</div>
                                                                 <div className="id-tag-premium">
                                                                     <span className="age-label">{calculateAge(p.dob)}</span>
                                                                 </div>
@@ -470,27 +484,25 @@ const Patients = () => {
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <div className="parent-inline">
-                                                            <div className="parent-main">{p.father_name || p.parent_name || 'Anonymous'}</div>
-                                                            <div className="parent-sub">{p.mother_name ? `Mother: ${p.mother_name}` : 'Parent profile'}</div>
+                                                        <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '13px' }}>
+                                                            {p.father_name || p.parent_name || '—'}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ fontWeight: 600, color: '#64748b', fontSize: '13px' }}>
+                                                            {p.mother_name || '—'}
                                                         </div>
                                                     </td>
                                                     {hasPermission('view_patient_mobile') && (
                                                         <td>
                                                             <div className="wa-box-mini mobile-col-v2">
-                                                                <Phone size={14} className="wa-icon-glow" />
                                                                 <strong>{p.wa_id}</strong>
                                                             </div>
                                                         </td>
                                                     )}
                                                     <td>
-                                                        <div className="status-badge-stack">
-                                                            <span className={`status-chip-v3 ${p.registration_status === 'COMPLETE' ? 'complete' : 'pending'}`}>
-                                                                {p.registration_status}
-                                                            </span>
-                                                            <span className="source-meta">Via {p.enrollment_source || p.registration_source || 'Dashboard'}</span>
-                                                            <span className="source-meta" style={{ color: '#6366f1', fontWeight: 700 }}>Doc: {p.doctor || 'Clinic'}</span>
-                                                            {p.balance > 0 && <span className="source-meta" style={{ color: '#ef4444' }}>Bal: ₹{p.balance}</span>}
+                                                        <div style={{ fontWeight: 800, color: '#6366f1', fontSize: '13px' }}>
+                                                            {p.doctor || 'Dr. Indu Khosla'}
                                                         </div>
                                                     </td>
                                                     <td>
@@ -513,9 +525,9 @@ const Patients = () => {
                                                         </div>
                                                     </td>
                                                 </tr>
-                                                {selected?._id === p._id && (
+                                                 {selected?._id === p._id && (
                                                     <tr className="expansion-row">
-                                                        <td colSpan={hasPermission('view_patient_mobile') ? 7 : 6}>
+                                                        <td colSpan={hasPermission('view_patient_mobile') ? 8 : 7}>
                                                             <div className="expansion-content-premium" style={{ paddingTop: '1rem' }}>
                                                                 <div className="expansion-tabs" style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', borderBottom: '1px solid #f1f5f9', padding: '0 1rem' }}>
                                                                     <button
@@ -707,7 +719,7 @@ const Patients = () => {
                                 <div className="pagination-v2-premium" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div className="pag-info">
                                         Showing <strong>{(page - 1) * 20 + 1}</strong> to <strong>{Math.min(page * 20, pagination.total)}</strong> of <strong>{pagination.total}</strong>
-                                        <span className="pag-total"> patients in registry</span>
+                                        <span className="pag-total"> patients in the whole registry</span>
                                     </div>
                                     <div style={{ display: 'flex', gap: '1rem', marginLeft: 'auto' }}>
                                         <button className="pag-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>

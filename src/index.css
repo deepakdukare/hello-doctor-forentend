@@ -7708,7 +7708,7 @@ input:checked+.slider-premium:before {
   text-align: left;
   padding: 0.85rem 1rem;
   background: #f8fafc;
-  color: #94a3b8;
+  color: #000000;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -8272,7 +8272,7 @@ input:checked+.slider-premium:before {
 
 .repository-card-premium {
   background: #fff;
-  border-radius: 32px;
+  border-radius: 16px;
   border: 1px solid #f1f5f9;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
   overflow: hidden;
@@ -8289,7 +8289,7 @@ input:checked+.slider-premium:before {
   background: #fdfdff;
   font-size: 0.7rem;
   font-weight: 800;
-  color: #94a3b8;
+  color: #000000;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   text-align: left;
@@ -9456,13 +9456,20 @@ input:checked+.slider-premium:before {
 
 .header-bell-dot {
   position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
   background-color: #ef4444;
-  border-radius: 50%;
+  border-radius: 10px;
   border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 0 4px;
 }
 
 .header-profile-trigger {
@@ -16207,7 +16214,7 @@ input:checked+.slider-premium:before {
   padding: 0.5rem 1rem;
   font-size: 0.65rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: #000000;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid #f8fafc;
