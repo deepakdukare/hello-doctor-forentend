@@ -436,6 +436,7 @@ const Patients = () => {
                                             <th>Patient ID</th>
                                             <th>Patient Name</th>
                                             <th>Gender</th>
+                                            <th>Age</th>
                                             <th>Father Name</th>
                                             <th>Mother Name</th>
                                             {hasPermission('view_patient_mobile') && <th>Mobile</th>}
@@ -447,12 +448,12 @@ const Patients = () => {
                                         {loading && !patients.length ? (
                                             Array(6).fill(0).map((_, i) => (
                                                 <tr key={i}>
-                                                    <td colSpan={hasPermission('view_patient_mobile') ? 8 : 7}><div className="skeleton-row-premium"></div></td>
+                                                    <td colSpan={hasPermission('view_patient_mobile') ? 9 : 8}><div className="skeleton-row-premium"></div></td>
                                                 </tr>
                                             ))
                                         ) : patients.length === 0 ? (
                                             <tr>
-                                                <td colSpan={hasPermission('view_patient_mobile') ? 8 : 7} className="empty-state-cell">
+                                                <td colSpan={hasPermission('view_patient_mobile') ? 9 : 8} className="empty-state-cell">
                                                     <div className="empty-box-premium">
                                                         <Info size={48} />
                                                         <h3>No patients found</h3>
@@ -465,22 +466,24 @@ const Patients = () => {
                                                 <tr className={`patient-row-v2 ${selected?._id === p._id ? 'is-active' : ''}`}>
                                                     <td>
                                                         <div className="id-tag-premium">
-                                                            <span className="id-label" style={{ background: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800, color: '#000000' }}>{p.patient_id || 'T-XX'}</span>
+                                                            <span className="id-label" style={{ background: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{p.patient_id || 'T-XX'}</span>
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <div className="patient-meta-box">
                                                             <div className="patient-name-stack">
-                                                                                                                                 <div className="name-bold-v2" style={{ color: '#000000' }}>{removeSalutation(p.full_name)}</div>
-                                                                <div className="id-tag-premium">
-                                                                    <span className="age-label">{calculateAge(p.dob)}</span>
-                                                                </div>
+                                                                <div className="name-bold-v2">{removeSalutation(p.full_name)}</div>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td>
                                                         <div className="gender-tag-v2" style={{ textTransform: 'capitalize', fontWeight: 700, color: '#64748b' }}>
                                                             {p.gender}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ fontWeight: 800, color: '#000000', fontSize: '13px' }}>
+                                                            {calculateAge(p.dob)}
                                                         </div>
                                                     </td>
                                                     <td>
@@ -527,7 +530,7 @@ const Patients = () => {
                                                 </tr>
                                                  {selected?._id === p._id && (
                                                     <tr className="expansion-row">
-                                                        <td colSpan={hasPermission('view_patient_mobile') ? 8 : 7}>
+                                                        <td colSpan={hasPermission('view_patient_mobile') ? 9 : 8}>
                                                             <div className="expansion-content-premium" style={{ paddingTop: '1rem' }}>
                                                                 <div className="expansion-tabs" style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', borderBottom: '1px solid #f1f5f9', padding: '0 1rem' }}>
                                                                     <button
