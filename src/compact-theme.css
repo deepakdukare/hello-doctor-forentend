@@ -145,16 +145,16 @@ input {
     justify-content: center !important;
 }
 
-.stat-val-v4 {
+.stat-val-v4, .stat-value-v4 {
     font-size: 2rem !important;
     font-weight: 850 !important;
-    color: #1e293b !important;
+    color: #000000 !important;
 }
 
 .stat-title-v4 {
     font-size: 12px !important;
     font-weight: 700 !important;
-    color: #64748b !important;
+    color: #000000 !important;
     text-transform: uppercase !important;
 }
 
@@ -290,7 +290,7 @@ input {
 .brand-name-mini {
     font-size: 16px !important;
     font-weight: 800 !important;
-    color: #1e293b !important;
+    color: #000000 !important;
     letter-spacing: -0.02em !important;
     line-height: 1.1 !important;
 }
@@ -298,7 +298,7 @@ input {
 .brand-desc-mini {
     font-size: 10px !important;
     font-weight: 600 !important;
-    color: #94a3b8 !important;
+    color: #000000 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
 }
@@ -324,7 +324,7 @@ input {
     gap: 0.75rem !important;
     padding: 0.65rem 0.75rem !important;
     border-radius: 10px !important;
-    color: #64748b !important;
+    color: #000000 !important;
     text-decoration: none !important;
     font-size: 0.85rem !important;
     font-weight: 600 !important;
@@ -334,7 +334,7 @@ input {
 
 .nav-item-modern:hover {
     background: #f8fafc !important;
-    color: #1e293b !important;
+    color: #000000 !important;
 }
 
 .nav-item-modern.active {
@@ -343,12 +343,12 @@ input {
 }
 
 .nav-icon-v4 {
-    color: #94a3b8 !important;
+    color: #334155 !important;
     transition: color 0.2s ease !important;
 }
 
 .nav-item-modern:hover .nav-icon-v4 {
-    color: #64748b !important;
+    color: #000000 !important;
 }
 
 .nav-item-modern.active .nav-icon-v4 {
@@ -447,14 +447,14 @@ input {
 .stat-label-v4 {
     font-size: 11px !important;
     font-weight: 600 !important;
-    color: #94a3b8 !important;
+    color: #000000 !important;
     text-transform: capitalize !important;
 }
 
-.stat-val-v4 {
+.stat-val-v4, .stat-value-v4 {
     font-size: 1.25rem !important;
     font-weight: 800 !important;
-    color: #1e293b !important;
+    color: #000000 !important;
     line-height: 1 !important;
 }
 
@@ -565,7 +565,7 @@ input {
 .u-name {
     font-size: 13px !important;
     font-weight: 700 !important;
-    color: #1e293b !important;
+    color: #000000 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -574,14 +574,14 @@ input {
 .u-role {
     font-size: 10px !important;
     font-weight: 600 !important;
-    color: #94a3b8 !important;
+    color: #000000 !important;
     text-transform: capitalize !important;
 }
 
 .btn-logout-minimal {
     background: none !important;
     border: none !important;
-    color: #94a3b8 !important;
+    color: #334155 !important;
     padding: 0.5rem !important;
     cursor: pointer !important;
     display: flex !important;
@@ -751,14 +751,14 @@ input {
 .stat-label-v3 {
     font-size: 12px !important;
     font-weight: 500 !important;
-    color: #6B7280 !important;
+    color: #000000 !important;  
     margin-bottom: 2px !important;
 }
 
-.stat-value-v3 {
+.stat-value-v3, .stat-val-v3 {
     font-size: 22px !important;
     font-weight: 600 !important;
-    color: #111827 !important;
+    color: #000000 !important;   
 }
 
 .stat-trend-container {

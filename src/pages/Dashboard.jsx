@@ -93,6 +93,7 @@ const Dashboard = () => {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(apiDate);
     const [data, setData] = useState({
         stats: { totalPatients: 0, todayVisits: 0, completed: 0, pending: 0 },
         trends: { totalPatients: 0, todayVisits: 0, completed: 0, pending: 0 },
@@ -128,7 +129,7 @@ const Dashboard = () => {
             ] = await Promise.all([
                 getAppointmentStats(apiDate),
                 getAppointmentStats(sevenDaysAgoDate),
-                getAppointments({ date: apiDate, ...(docId ? { doctor_id: docId } : {}) }),
+                getAppointments({ date: selectedDate, ...(docId ? { doctor_id: docId } : {}) }),
                 getPatients({ limit: 1 }),
                 getPatients({ limit: 1, to: sevenDaysAgoDate }),
                 getUnregisteredInteractions(),
@@ -180,11 +181,11 @@ const Dashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, [apiDate]);
+    }, [apiDate, selectedDate]);
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [selectedDate]);
 
     const formatVisitType = (type) => {
         if (!type) return 'First visit';
@@ -221,6 +222,15 @@ const Dashboard = () => {
                     <p>Real-time analytics and management overview</p>
                 </div>
                 <div className="header-right-v4">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '6px 14px', height: '42px' }}>
+                        <Calendar size={16} style={{ color: '#6366f1', flexShrink: 0 }} />
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={e => setSelectedDate(e.target.value)}
+                            style={{ border: 'none', outline: 'none', fontSize: '13px', fontWeight: 600, color: '#000000', background: 'transparent', cursor: 'pointer' }}
+                        />
+                    </div>
                     <button 
                         onClick={fetchData} 
                         className="btn-header-v4" 
@@ -281,7 +291,8 @@ const Dashboard = () => {
                                         <tr>
                                             <th>Doctor</th>
                                             <th>Patient</th>
-                                            <th>Date & Time</th>
+                                            <th>Patient ID</th>
+                                            <th>Time</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
@@ -290,32 +301,27 @@ const Dashboard = () => {
                                             <tr key={appt.appointment_id}>
                                                 <td>
                                                     <div className="doctor-badge-v3">
-                                                        <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(appt.doctor_name || 'Dr')}&background=E0E7FF&color=4338CA&rounded=true`} className="doctor-avatar-small" alt="" />
                                                         <div className="doctor-info-v3">
                                                             <span className="doctor-name-v3">{appt.doctor_name || 'Unassigned'}</span>
-                                                            <span className="doctor-spec-v3">{appt.doctor_specialization || 'Pediatrician'}</span>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div className="patient-info-v3">
-                                                        <div className="avatar-v3">
-                                                            <img
-                                                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(appt.child_name || 'P')}&background=F1F5F9&color=64748B&rounded=true`}
-                                                                style={{ width: '100%', height: '100%', borderRadius: '50%' }}
-                                                                alt=""
-                                                            />
-                                                        </div>
                                                         <div className="patient-details-v3">
                                                             <h4>{removeSalutation(appt.child_name) || 'Walk-in'}</h4>
-                                                            <p>{appt.patient_mobile || appt.patient_id || '+91 00000 00000'}</p>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
+                                                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#000000', background: '#f1f5f9', padding: '3px 8px', borderRadius: '6px' }}>
+                                                        {appt.patient_id || '—'}
+                                                    </span>
+                                                </td>
+                                                <td>
                                                     <div className="time-pill-v3">
-                                                        <div style={{ color: '#4B5563', fontSize: '13px', fontWeight: '500' }}>
-                                                            27 Feb 2026 - {appt.appointment_time || '11:15 AM'}
+                                                        <div style={{ color: '#000000', fontSize: '13px', fontWeight: '600' }}>
+                                                            {appt.appointment_time || '—'}
                                                         </div>
                                                     </div>
                                                 </td>

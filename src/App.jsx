@@ -88,11 +88,11 @@ const Sidebar = ({ onLogout, isCollapsed, isMobileMenuOpen, onMobileClose }) => 
                 { name: 'Appointments', path: '/appointments', icon: Calendar, permission: 'view_appointments' },
                 { name: 'Queue Tokens', path: '/queue', icon: Hash, permission: 'view_queue' },
                 { name: 'Patients', path: '/patients', icon: Users, permission: 'view_patients' },
-                { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },
                 { name: 'Doctors', path: '/doctors', icon: Stethoscope, permission: 'view_doctors' },
                 { name: 'Medical Records', path: '/mrd', icon: FileText, permission: 'view_mrd' },
                 { name: 'Reports & Analytics', path: '/analytics', icon: TrendingUp, permission: 'view_reports' },
                 { name: 'Feedback Hub', path: '/feedback', icon: MessageSquare, permission: 'view_feedback' },
+                { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },
                 { name: 'Notifications', path: '/notifications', icon: BellIcon, permission: 'view_notifications' },
                 { name: 'Settings', path: '/settings', icon: SettingsIcon, permission: 'view_settings' },
             ]

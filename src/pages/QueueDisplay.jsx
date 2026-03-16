@@ -62,7 +62,7 @@ const StatBadge = ({ label, value, color, isActive, onClick }) => (
             background: isActive ? '#fff' : '#fff'
         }}>
         <div style={{ fontSize: '1.75rem', fontWeight: 900, color: color, textAlign: 'center', lineHeight: 1 }}>{value}</div>
-        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>{label}</div>
+        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#000000', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>{label}</div>
         {isActive && (
             <div style={{ position: 'absolute', bottom: 0, left: '20%', right: '20%', height: '4px', background: '#0f172a', borderRadius: '4px 4px 0 0' }} />
         )}
