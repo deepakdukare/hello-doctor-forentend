@@ -39,6 +39,7 @@ const getDoctorDisplayName = (doc) => {
 
 const PublicRegister = () => {
     const [step, setStep] = useState(0); // 0: Member Check, 1: Registration, 2: Booking, 3: Success
+    const [activeInput, setActiveInput] = useState(null); // null | 'book' | 'reschedule'
     const [isNewPatient, setIsNewPatient] = useState(null); // null | true | false
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -475,94 +476,103 @@ const PublicRegister = () => {
     return (
         <>
             {step === 0 ? (
-                <div className="glass-landing-container">
-                    <div className="glass-content-wrapper">
-
-                        {/* Left Side: Hero Text */}
-                        <div className="glass-hero-section">
-                            <h1 className="glass-hero-title">
-                                Dr. Indu's<br />
-                                New Born &<br />
-                                Childcare<br />
-                                Center
-                            </h1>
-                            <p className="glass-hero-subtitle">
-                                Welcome to a smarter way to manage your child's health.
-                                Our modern portal gives you direct access to premium care,
-                                scheduling, and medical records.
-                            </p>
-                            <button className="glass-hero-btn" onClick={() => { setIsNewPatient(true); setStep(1); }}>
-                                Register Now
+                <div className="pf-scroll-root">
+                    {/* ── Section 1: Hero ── */}
+                    <section className="pf-hero-section">
+                        <div className="pf-hero-overlay" />
+                        <div className="pf-hero-content">
+                            <h1 className="pf-hero-title">Dr. Indu's</h1>
+                            <p className="pf-hero-sub">New Born &amp; Childcare Center</p>
+                            <button
+                                className="pf-scroll-btn"
+                                onClick={() => {
+                                    if (window.innerWidth >= 900) {
+                                        document.getElementById('pf-book-input')?.focus();
+                                    } else {
+                                        document.getElementById('pf-cards-section').scrollIntoView({ behavior: 'smooth' });
+                                    }
+                                }}
+                            >
+                                <span className="pf-btn-mobile-label">Scroll down <span className="pf-arrow">↓</span></span>
+                                <span className="pf-btn-desktop-label">Book Appointment <span className="pf-arrow">↓</span></span>
                             </button>
                         </div>
+                    </section>
 
-                        {/* Right Side: Action Cards */}
-                        <div className="glass-cards-container">
+                    {/* ── Section 2: Cards ── */}
+                    <section id="pf-cards-section" className="pf-cards-section">
+                        <div className="pf-bg-image" />
+                        <div className="pf-cards-content">
+                            {/* Welcome banner */}
+                            <div className="pf-welcome-banner">
+                                <span className="pf-welcome-pill">Welcome</span>
+                                <h2 className="pf-welcome-title">Happy Smiles,<br />Healthy Kids</h2>
+                                <p className="pf-welcome-sub">Compassionate medical care for your little wonders.</p>
+                                <span className="pf-welcome-icon">👶</span>
+                            </div>
 
-                            {/* Card 1: New Registration */}
-                            <div className="glass-card">
-                                <div className="glass-card-icon">
-                                    <UserPlus />
-                                </div>
-                                <h3 className="glass-card-title">New Registration</h3>
-                                <p className="glass-card-desc">
-                                    Start your journey with us. Fill out your details once and gain access to our full suite of medical services.
-                                </p>
-                                <button className="glass-btn-full" onClick={() => { setIsNewPatient(true); setStep(1); }}>
-                                    Register Now
+                            {/* 3 Action Cards (2-col mobile / 3-col desktop) */}
+                            <div className="pf-top-cards">
+                                <button className="pf-action-card" onClick={() => { setIsNewPatient(true); setStep(1); }}>
+                                    <div className="pf-card-icon pf-icon-teal"><UserPlus size={22} /></div>
+                                    <span className="pf-card-label">New<br />Registration</span>
+                                </button>
+                                <button className="pf-action-card" onClick={() => {
+                                    setActiveInput(prev => prev === 'book' ? null : 'book');
+                                    setTimeout(() => document.getElementById('pf-book-input')?.focus(), 50);
+                                }}>
+                                    <div className="pf-card-icon pf-icon-pink"><Calendar size={22} /></div>
+                                    <span className="pf-card-label">Book<br />Appointment</span>
+                                </button>
+                                <button className="pf-action-card pf-reschedule-tile" onClick={() => {
+                                    setActiveInput(prev => prev === 'reschedule' ? null : 'reschedule');
+                                    setTimeout(() => document.getElementById('pf-reschedule-input')?.focus(), 50);
+                                }}>
+                                    <div className="pf-card-icon pf-icon-orange"><CalendarClock size={22} /></div>
+                                    <span className="pf-card-label">Reschedule<br />Visit</span>
                                 </button>
                             </div>
 
-                            {/* Card 2: Book Appointment */}
-                            <div className="glass-card">
-                                <div className="glass-card-icon">
-                                    <Calendar />
+                            {/* Conditional Inputs */}
+                            {activeInput === 'book' && (
+                                <div className="pf-input-wrapper pf-expand-anim">
+                                    <div className="pf-input-card">
+                                        <input
+                                            id="pf-book-input"
+                                            className="pf-inline-input"
+                                            placeholder="Mobile number to book appointment"
+                                            value={searchWaId}
+                                            onChange={e => setSearchWaId(e.target.value.replace(/\D/g, ''))}
+                                            onKeyDown={e => e.key === 'Enter' && checkMember(e)}
+                                        />
+                                        <button className="pf-inline-btn" onClick={checkMember} disabled={loading || !searchWaId}>
+                                            {loading ? <RefreshCw className="animate-spin" size={16} /> : '→'}
+                                        </button>
+                                    </div>
+                                    {verifyError && <div className="pf-err-text">{verifyError}</div>}
                                 </div>
-                                <h3 className="glass-card-title">Book Appointment</h3>
-                                <p className="glass-card-desc">
-                                    Have a patient record? Enter mobile number to book instantly.
-                                </p>
-                                <div className="glass-input-wrapper">
-                                    <input
-                                        className="glass-input"
-                                        placeholder="Mobile Number"
-                                        value={searchWaId}
-                                        onChange={e => setSearchWaId(e.target.value.replace(/\D/g, ''))}
-                                        onKeyDown={e => e.key === 'Enter' && checkMember(e)}
-                                    />
-                                </div>
-                                {verifyError && <div className="error-text-glass">{verifyError}</div>}
-                                <button className="glass-btn-full" onClick={checkMember} disabled={loading || !searchWaId}>
-                                    {loading ? <RefreshCw className="animate-spin" size={18} /> : 'Schedule Now'}
-                                </button>
-                            </div>
+                            )}
 
-                            {/* Card 3: Reschedule Appointment */}
-                            <div className="glass-card">
-                                <div className="glass-card-icon">
-                                    <CalendarClock />
+                            {activeInput === 'reschedule' && (
+                                <div className="pf-input-wrapper pf-expand-anim">
+                                    <div className="pf-input-card">
+                                        <input
+                                            id="pf-reschedule-input"
+                                            className="pf-inline-input"
+                                            placeholder="Mobile number to reschedule"
+                                            value={rescheduleWaId}
+                                            onChange={e => setRescheduleWaId(e.target.value.replace(/\D/g, ''))}
+                                            onKeyDown={e => e.key === 'Enter' && checkMember(e, 'reschedule')}
+                                        />
+                                        <button className="pf-inline-btn" onClick={e => checkMember(e, 'reschedule')} disabled={loading || !rescheduleWaId}>
+                                            {loading ? <RefreshCw className="animate-spin" size={16} /> : '→'}
+                                        </button>
+                                    </div>
+                                    {rescheduleError && <div className="pf-err-text">{rescheduleError}</div>}
                                 </div>
-                                <h3 className="glass-card-title">Reschedule Appointment</h3>
-                                <p className="glass-card-desc">
-                                    Need to change your time? Access your existing booking with your mobile number to reschedule.
-                                </p>
-                                <div className="glass-input-wrapper">
-                                    <input
-                                        className="glass-input"
-                                        placeholder="Mobile Number"
-                                        value={rescheduleWaId}
-                                        onChange={e => setRescheduleWaId(e.target.value.replace(/\D/g, ''))}
-                                        onKeyDown={e => e.key === 'Enter' && checkMember(e, 'reschedule')}
-                                    />
-                                </div>
-                                {rescheduleError && <div className="error-text-glass">{rescheduleError}</div>}
-                                <button className="glass-btn-full" onClick={e => checkMember(e, 'reschedule')} disabled={loading || !rescheduleWaId}>
-                                    {loading ? <RefreshCw className="animate-spin" size={18} /> : 'Manage Booking'}
-                                </button>
-                            </div>
-
+                            )}
                         </div>
-                    </div>
+                    </section>
                 </div>
             ) : (
                 <div className="landing-premium">

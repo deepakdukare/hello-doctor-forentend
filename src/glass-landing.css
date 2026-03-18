@@ -9,7 +9,7 @@
     margin: 0;
     padding: 0;
     font-family: 'Inter', sans-serif;
-    background-image: url('/doctor.jpg');
+    background-image: url('/form.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -22,14 +22,7 @@
     overflow-x: hidden;
 }
 
-/* Semi-transparent overlay to ensure text readability against light backgrounds */
-.glass-landing-container::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.1) 100%);
-    z-index: 1;
-}
+
 
 .glass-content-wrapper {
     position: relative;
@@ -124,10 +117,7 @@
 
 /* Glass Card */
 .glass-card {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.92);
     border-radius: 20px;
     padding: 2rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
@@ -140,13 +130,13 @@
 .glass-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.96);
 }
 
 .glass-card-icon {
     width: 48px;
     height: 48px;
-    background: rgba(255, 255, 255, 0.3);
+    background: #eef2ff;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -155,7 +145,7 @@
 }
 
 .glass-card-icon svg {
-    color: #ffffff;
+    color: #4f46e5;
     width: 24px;
     height: 24px;
 }
@@ -164,13 +154,13 @@
     font-size: 1.5rem;
     font-weight: 600;
     margin: 0;
-    color: #ffffff;
+    color: #1e1b4b;
 }
 
 .glass-card-desc {
     font-size: 0.95rem;
     line-height: 1.5;
-    color: rgba(255, 255, 255, 0.85);
+    color: #6b7280;
     margin: 0 0 0.5rem 0;
 }
 
@@ -560,3 +550,447 @@
         padding: 1rem;
     }
 }
+
+/* ══════════════════════════════════════════
+   PUBLIC FORM — 2-Section Scroll Layout
+══════════════════════════════════════════ */
+
+/* Root scroll container */
+.pf-scroll-root {
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 100vh;
+    scroll-snap-type: y mandatory;
+    font-family: 'Inter', sans-serif;
+}
+
+/* ── Section 1: Hero ── */
+.pf-hero-section {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    scroll-snap-align: start;
+    background-image: url('/form.jpg');
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: flex-start;
+    overflow: hidden;
+}
+
+.pf-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.0) 60%);
+    z-index: 1;
+}
+
+.pf-hero-content {
+    position: relative;
+    z-index: 2;
+    padding: 3.5rem 1.75rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.pf-hero-title {
+    font-family: 'Raleway', sans-serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: #0d7f6e;
+    line-height: 1.1;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+.pf-hero-sub {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1a1a2e;
+    margin: 0 0 0.75rem;
+    opacity: 0.85;
+}
+
+/* Button with dual labels — mobile shows "Scroll down", desktop shows "Book Appointment" */
+.pf-scroll-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background-color: #0d7f6e;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.55rem 1.1rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    box-shadow: 0 4px 16px rgba(13, 127, 110, 0.35);
+    margin-top: 0.25rem;
+}
+
+.pf-scroll-btn:hover {
+    background-color: #0a6459;
+    transform: translateY(1px);
+}
+
+/* Mobile shows "Scroll down", desktop label hidden */
+.pf-btn-mobile-label { display: inline-flex; align-items: center; gap: 0.4rem; }
+.pf-btn-desktop-label { display: none; }
+
+.pf-arrow {
+    font-size: 1rem;
+}
+
+/* ── Section 2: Cards ── */
+.pf-cards-section {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    scroll-snap-align: start;
+    overflow: hidden;
+}
+
+.pf-bg-image {
+    position: absolute;
+    inset: 0;
+    background-image: url('/form.jpg');
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    z-index: 0;
+}
+
+.pf-cards-content {
+    position: relative;
+    z-index: 2;
+    padding: 1.5rem 1.25rem 3rem;
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+/* Welcome Banner */
+.pf-welcome-banner {
+    position: relative;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 18px;
+    padding: 1.25rem 1.25rem 1rem;
+    overflow: hidden;
+}
+
+.pf-welcome-pill {
+    display: inline-block;
+    border: 1.5px solid #0d7f6e;
+    color: #0d7f6e;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.75rem;
+    border-radius: 50px;
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.3px;
+}
+
+.pf-welcome-title {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    line-height: 1.25;
+    margin: 0 0 0.4rem;
+}
+
+.pf-welcome-sub {
+    font-size: 0.85rem;
+    color: #555;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.pf-welcome-icon {
+    position: absolute;
+    right: 1.1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2.8rem;
+    opacity: 0.35;
+}
+
+/* 3-Card Grid: 2-col on mobile, 3-col on desktop */
+.pf-top-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+/* Mobile: reschedule tile spans full width as a horizontal row */
+.pf-reschedule-tile {
+    grid-column: 1 / -1;
+    flex-direction: row !important;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.pf-action-card {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: none;
+    border-radius: 18px;
+    padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.pf-action-card:hover,
+.pf-action-card:active {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.14);
+}
+
+.pf-card-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Added Animations ── */
+.pf-expand-anim {
+    animation: pf-slide-down 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: top;
+    will-change: transform, opacity;
+}
+
+@keyframes pf-slide-down {
+    0% { opacity: 0; transform: translateY(-8px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.pf-icon-teal  { background: #e0f5f2; color: #0d7f6e; }
+.pf-icon-pink  { background: #fde8f5; color: #c0398e; }
+.pf-icon-orange { background: #fff0e6; color: #d97706; }
+
+.pf-card-label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* Input card row */
+.pf-input-card {
+    display: flex;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+}
+
+.pf-inline-input {
+    flex: 1;
+    border: none;
+    padding: 0.85rem 1rem;
+    font-size: 15px;
+    color: #1a1a2e;
+    background: transparent;
+    outline: none;
+}
+
+.pf-inline-input::placeholder {
+    color: #9ca3af;
+    font-size: 0.88rem;
+}
+
+.pf-inline-btn {
+    background: #0d7f6e;
+    color: white;
+    border: none;
+    padding: 0 1.1rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pf-inline-btn:hover { background: #0a6459; }
+.pf-inline-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+
+.pf-err-text {
+    color: #ef4444;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding-left: 0.25rem;
+    margin-top: -0.3rem;
+}
+
+/* ══════════════════════════════════════════
+   DESKTOP — Single-Page Side-by-Side Layout
+   (min-width: 900px)
+══════════════════════════════════════════ */
+@media (min-width: 900px) {
+    /* Switch button label */
+    .pf-btn-mobile-label { display: none; }
+    .pf-btn-desktop-label { display: inline-flex; align-items: center; gap: 0.4rem; }
+
+    /* Button shape for desktop */
+    .pf-scroll-btn {
+        border-radius: 8px;
+        padding: 0.8rem 1.25rem;
+        font-size: 1rem;
+    }
+
+    /* Root: no scroll-snap, bg image on the root itself */
+    .pf-scroll-root {
+        scroll-snap-type: none;
+        overflow: hidden;
+        position: relative;
+        background-image: url('/form.jpg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    /* Hero section: left 42% panel, no own bg */
+    .pf-hero-section {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 45%;
+        height: 100vh;
+        background-image: none;
+        scroll-snap-align: none;
+        display: flex;
+        align-items: flex-start;
+        overflow: visible;
+        z-index: 2;
+    }
+
+    .pf-hero-overlay {
+        background: linear-gradient(to right, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.7) 50%, rgba(255, 255, 255, 0) 100%);
+        width: 150%; /* Extend past the 45% container to softly fade into the image */
+    }
+
+    .pf-hero-content {
+        padding: 3.5rem 2.5rem;
+        gap: 0.75rem;
+        height: 100%;
+        justify-content: flex-start;
+    }
+
+    .pf-hero-title {
+        font-size: 4.8rem;
+    }
+
+    .pf-hero-sub {
+        font-size: 1.25rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+    }
+
+    /* Cards section: right 55% panel */
+    .pf-cards-section {
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 55%;
+        height: 100vh;
+        min-height: unset;
+        scroll-snap-align: none;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+    }
+
+    /* No extra bg layer needed on desktop — root has it */
+    .pf-bg-image {
+        display: none;
+    }
+
+    /* Cards content: vertically centred, full width */
+    .pf-cards-content {
+        max-width: 650px;
+        width: 100%;
+        height: 100%;
+        margin: 0 auto 0 0; /* Align left within the right container */
+        padding: 2.5rem 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 1.2rem; /* Larger gap between welcome banner and cards */
+    }
+
+    /* Welcome banner: larger on desktop */
+    .pf-welcome-banner {
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Softer shadow */
+        padding: 1.75rem;
+        border-radius: 20px;
+    }
+
+    .pf-welcome-title {
+        font-size: 2.2rem;
+    }
+
+    /* 3 equal columns on desktop */
+    .pf-top-cards {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 1.2rem;
+    }
+
+    /* Reschedule tile: normal card style on desktop (column layout, not wide row) */
+    .pf-reschedule-tile {
+        grid-column: auto;
+        flex-direction: column !important;
+        justify-content: center;
+        gap: 0.6rem;
+    }
+
+    /* Larger action cards on desktop, exactly square */
+    .pf-action-card {
+        padding: 1.75rem 1rem;
+        gap: 0.85rem;
+        border-radius: 20px;
+        aspect-ratio: 1 / 1;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .pf-card-icon {
+        width: 58px;
+        height: 58px;
+    }
+
+    .pf-card-label {
+        font-size: 1.05rem;
+    }
+}
+
+
+
+.pf-icon-teal  { background: #e0f5f2; color: #0d7f6e; }
+.pf-icon-pink  { background: #fde8f5; color: #c0398e; }
+.pf-icon-orange { background: #fff0e6; color: #d97706; }
+
+
+
