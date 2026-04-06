@@ -452,7 +452,7 @@ const MRD = () => {
                                         </div>
                                         <div className="record-diagnosis">
                                             {rec.is_pending_record && <Clock size={14} className="pending-icon" />}
-                                            {rec.diagnosis || rec.chief_complaint || 'General Checkup'}
+                                            {rec.diagnosis || rec.vaccine_given || rec.chief_complaint || 'General Checkup'}
                                         </div>
                                         <div className="record-footer">
                                             <div className="doctor-pill"><Activity size={10} /> {rec.attending_doctor}</div>
@@ -575,8 +575,13 @@ const MRD = () => {
                                                 <label>Immunization Track</label>
                                                 <div className="vaccine-box">
                                                     <Shield size={16} />
-                                                    <span>{selectedRecord.diagnosis || "Regular Immunization"}</span>
+                                                    <span>{selectedRecord.diagnosis || selectedRecord.vaccine_given || "Regular Immunization"}</span>
                                                 </div>
+                                                {selectedRecord.vaccine_batch && (
+                                                    <div className="vaccine-batch" style={{ marginTop: '0.5rem', fontSize: '0.8rem', opacity: 0.8 }}>
+                                                        <strong>Batch/Brand:</strong> {selectedRecord.vaccine_batch}
+                                                    </div>
+                                                )}
                                             </article>
                                         )}
                                     </div>

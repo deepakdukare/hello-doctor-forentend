@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
     Star, MessageSquare, Calendar, User, Search,
     Filter, RefreshCw, ChevronLeft, ChevronRight,
-    TrendingUp, Award, Activity
+    TrendingUp, Award, Activity, Clock
 } from 'lucide-react';
 import { getFeedback } from '../api/index';
 
@@ -107,14 +107,18 @@ const FeedbackReports = () => {
             </div>
 
             <div className="feedback-list-card">
-                <div className="list-head">
+                <div className="list-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                     <div className="search-wrap">
                         <Search size={18} />
                         <input type="text" placeholder="Search by name or mobile..." />
                     </div>
-                    <div className="filter-wrap">
-                        <Filter size={18} />
-                        <span>Filter</span>
+                    <div className="sentiment-summary" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <div style={{ backgroundColor: '#ecfdf5', color: '#059669', padding: '6px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 800, border: '1px solid #10b98130', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                           <Activity size={12} /> "VERY NICE" (85%)
+                        </div>
+                        <div style={{ backgroundColor: '#fff7ed', color: '#d97706', padding: '6px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 800, border: '1px solid #f59e0b30', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                           <Clock size={12} /> "WAITING TIME" (12%)
+                        </div>
                     </div>
                 </div>
 
@@ -126,14 +130,15 @@ const FeedbackReports = () => {
                                 <th>Doctor Rating</th>
                                 <th>Front Desk</th>
                                 <th>Hospital</th>
+                                <th>Suggestions & Comments</th>
                                 <th>Date Submitted</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan="5" className="loading-row">Loading feedback entries...</td></tr>
+                                <tr><td colSpan="6" className="loading-row">Loading feedback entries...</td></tr>
                             ) : feedback.length === 0 ? (
-                                <tr><td colSpan="5" className="empty-row">No feedback entries found.</td></tr>
+                                <tr><td colSpan="6" className="empty-row">No feedback entries found.</td></tr>
                             ) : (
                                 feedback.map((fb) => (
                                     <tr key={fb._id}>
@@ -149,6 +154,11 @@ const FeedbackReports = () => {
                                         <td><RatingStars val={fb.doctor_rating} /></td>
                                         <td><RatingStars val={fb.frontdesk_rating} /></td>
                                         <td><RatingStars val={fb.hospital_rating} /></td>
+                                        <td>
+                                            <div style={{ fontSize: '12px', color: '#64748b', fontStyle: fb.suggestions ? 'normal' : 'italic', maxWidth: '250px', whiteSpace: 'normal', lineHeight: '1.4' }}>
+                                                {fb.suggestions || 'No suggestions provided'}
+                                            </div>
+                                        </td>
                                         <td>
                                             <div className="date-badge">
                                                 <Calendar size={12} />

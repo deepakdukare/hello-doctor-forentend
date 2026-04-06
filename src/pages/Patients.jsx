@@ -5,14 +5,17 @@ import {
     User, Phone, Mail, MapPin, Calendar as CalendarIcon,
     FileText, Share2, Shield, Heart, MoreVertical,
     ChevronRight, Info, Filter, CheckCircle2, Camera,
-    Activity, ArrowRight, Baby, Users, Clipboard, Zap, Stethoscope, Clock, History
+    Activity, ArrowRight, Baby, Users, Clipboard, Zap, Stethoscope, Clock, History, Syringe, TrendingUp
 } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import PatientForm, { EMPTY_FORM } from '../components/PatientForm';
 import { getPatients, registerPatient, updatePatient, getDoctors, getReferringDoctors, uploadPatientPhoto, toIsoDate, getMRDByPatientId, getAppointments, lookupAppointments } from '../api/index';
 import { removeSalutation } from '../utils/formatters';
 import { hasPermission } from '../utils/auth';
-
+import { 
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+    AreaChart, Area 
+} from 'recharts';
 
 const Patients = () => {
     const [patients, setPatients] = useState([]);
@@ -467,7 +470,7 @@ const Patients = () => {
                                                 <tr className={`patient-row-v2 ${selected?._id === p._id ? 'is-active' : ''}`}>
                                                     <td>
                                                         <div className="id-tag-premium">
-                                                            <span className="id-label" style={{ background: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{p.patient_id || 'T-XX'}</span>
+                                                            <span className="id-label" style={{ background: '#f8fafc', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{p.patient_key || p.patient_id || 'T-XX'}</span>
                                                         </div>
                                                     </td>
                                                     <td>
@@ -543,10 +546,10 @@ const Patients = () => {
                                                                     <button
                                                                         onClick={async () => {
                                                                             setPatientTab('documents');
-                                                                            if (patientDocs.length === 0 || selected?.patient_id !== p.patient_id) {
+                                                                            if (patientDocs.length === 0 || selected?.patient_key !== p.patient_key) {
                                                                                 setDocsLoading(true);
                                                                                 try {
-                                                                                    const r = await getMRDByPatientId(p.patient_id);
+                                                                                    const r = await getMRDByPatientId(p.patient_key || p.patient_id);
                                                                                     const entries = r.data?.data?.entries || [];
                                                                                     const docs = entries.flatMap(e => (e.attachments || []).map(a => ({ ...a, date: e.visit_date || e.createdAt, diagnosis: e.diagnosis })));
                                                                                     setPatientDocs(docs);
@@ -561,12 +564,13 @@ const Patients = () => {
                                                                     <button
                                                                         onClick={async () => {
                                                                             setPatientTab('history');
-                                                                            if (patientAppointments.length === 0 || selected?.patient_id !== p.patient_id) {
+                                                                            if (patientAppointments.length === 0 || selected?.patient_key !== p.patient_key) {
                                                                                 setApptsLoading(true);
                                                                                 try {
-                                                                                    const r = await getAppointments({ patient_id: p.patient_id, search: p.patient_id, limit: 100 });
+                                                                                    const lookupId = p.patient_key || p.patient_id;
+                                                                                    const r = await getAppointments({ patient_id: lookupId, search: lookupId, limit: 100 });
                                                                                     const allAppts = r.data?.data || [];
-                                                                                    const patientOnlyAppts = allAppts.filter(a => a.patient_id === p.patient_id);
+                                                                                    const patientOnlyAppts = allAppts.filter(a => a.patient_id === lookupId);
                                                                                     setPatientAppointments(patientOnlyAppts);
                                                                                 } catch (e) { console.error(e); }
                                                                                 finally { setApptsLoading(false); }
@@ -576,52 +580,150 @@ const Patients = () => {
                                                                     >
                                                                         Appointment History
                                                                     </button>
-                                                                </div>
+                                                                    <button
+                                                                         onClick={async () => {
+                                                                             setPatientTab('clinical_360');
+                                                                             if (patientAppointments.length === 0 || selected?.patient_key !== p.patient_key) {
+                                                                                 setApptsLoading(true);
+                                                                                 try {
+                                                                                     const lookupId = p.patient_key || p.patient_id;
+                                                                                     const r_mrd = await getMRDByPatientId(lookupId);
+                                                                                     const r_appts = await getAppointments({ patient_id: lookupId, search: lookupId, limit: 100 });
+                                                                                     setPatientDocs(r_mrd.data?.data?.entries || []);
+                                                                                     setPatientAppointments(r_appts.data?.data?.filter(a => a.patient_id === lookupId) || []);
+                                                                                 } catch (e) { console.error(e); }
+                                                                                 finally { setApptsLoading(false); }
+                                                                             }
+                                                                         }}
+                                                                         style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === 'clinical_360' ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === 'clinical_360' ? '2px solid #6366f1' : 'none', transition: '0.2s' }}
+                                                                     >
+                                                                         Clinical Command Center (360°)
+                                                                     </button>
+                                                                 </div>
 
-                                                                {patientTab === 'summary' ? (
-                                                                    <>
-                                                                        <div className="expansion-grid">
-                                                                            <div className="expansion-card" style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
-                                                                                <div style={{ flex: 1 }}>
-                                                                                    <div className="exp-card-header"><Activity size={18} /> <span>Medical Profile</span></div>
-                                                                                    <div className="exp-info-list">
-                                                                                        <div className="exp-info-item"><span>Full Name</span><strong>{removeSalutation(p.full_name)}</strong></div>
-                                                                                        <div className="exp-info-item"><span>Status</span><strong>{p.is_active ? 'Active' : 'Inactive'}</strong></div>
-                                                                                        <div className="exp-info-item"><span>Birth Date</span><strong>{p.dob ? new Date(p.dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Unknown'}</strong></div>
-                                                                                        <div className="exp-info-item"><span>Patient ID</span><strong>{p.patient_id}</strong></div>
+                                                                 {patientTab === 'summary' ? (
+                                                                     <>
+                                                                         <div className="expansion-grid">
+                                                                             <div className="expansion-card" style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
+                                                                                 <div style={{ flex: 1 }}>
+                                                                                     <div className="exp-card-header"><Activity size={18} /> <span>Medical Profile</span></div>
+                                                                                     <div className="exp-info-list">
+                                                                                         <div className="exp-info-item"><span>Full Name</span><strong>{removeSalutation(p.full_name)}</strong></div>
+                                                                                         <div className="exp-info-item"><span>Status</span><strong>{p.is_active ? 'Active' : 'Inactive'}</strong></div>
+                                                                                         <div className="exp-info-item"><span>Birth Date</span><strong>{p.dob ? new Date(p.dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Unknown'}</strong></div>
+                                                                                         <div className="exp-info-item"><span>Patient ID</span><strong>{p.patient_key || p.patient_id}</strong></div>
+                                                                                     </div>
+                                                                                 </div>
+                                                                             </div>
+                                                                             <div className="expansion-card">
+                                                                                 <div className="exp-card-header"><Users size={18} /> <span>Family Details</span></div>
+                                                                                 <div className="exp-info-list">
+                                                                                     <div className="exp-info-item"><span>Father</span><strong>{p.father_name || '—'}</strong></div>
+                                                                                     <div className="exp-info-item"><span>Mother</span><strong>{p.mother_name || '—'}</strong></div>
+                                                                                     <div className="exp-info-item"><span>WhatsApp</span><strong>{hasPermission('view_patient_mobile') ? (p.wa_id || '—') : '**********'}</strong></div>
+                                                                                     <div className="exp-info-item"><span>Email</span><strong>{hasPermission('view_patient_email') ? (p.email || '—') : '**********'}</strong></div>
+                                                                                     <div className="exp-info-item"><span>Preferences</span><strong>{p.communication_preference || 'WhatsApp'}</strong></div>
+                                                                                 </div>
+                                                                             </div>
+                                                                             <div className="expansion-card">
+                                                                                 <div className="exp-card-header"><MapPin size={18} /> <span>Address & Assignments</span></div>
+                                                                                 <div className="exp-info-list" style={{ gap: '0.5rem' }}>
+                                                                                     <div className="exp-info-item" style={{ flexWrap: 'wrap' }}><span>Address</span><strong style={{ textAlign: 'right', flex: '1 1 100%' }}>{p.residential_address || p.address || '—'}</strong></div>
+                                                                                     <div className="exp-info-item"><span>City / PIN</span><strong>{(p.city || p.pincode) ? `${p.city || ''} ${p.pincode ? '- ' + p.pincode : ''}` : '—'}</strong></div>
+                                                                                     <div className="exp-info-item"><span>State</span><strong>{p.state || '—'}</strong></div>
+                                                                                     <div className="exp-info-item" style={{ marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem' }}><span>Doctor</span><strong>{p.doctor || 'Clinic'}</strong></div>
+                                                                                 </div>
+                                                                             </div>
+                                                                         </div>
+                                                                         {p.remarks && (
+                                                                             <div key="remarks" style={{ display: 'flex', gap: '0.75rem', padding: '1rem', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                                                                                 <FileText size={18} color="#6366f1" style={{ flexShrink: 0 }} />
+                                                                                 <div>
+                                                                                     <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Clinical Note / Remarks</div>
+                                                                                     <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.9rem', color: '#475569', fontWeight: 600, lineHeight: 1.5 }}>{p.remarks}</p>
+                                                                                 </div>
+                                                                             </div>
+                                                                         )}
+                                                                     </>
+                                                                 ) : patientTab === 'clinical_360' ? (
+                                                                    <div className="clinical-360-container" style={{ padding: '0 1rem' }}>
+                                                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '2rem' }}>
+                                                                            {/* Growth Tracking Section */}
+                                                                            <div className="growth-tracking-section">
+                                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
+                                                                                    <TrendingUp size={20} color="#6366f1" />
+                                                                                    <h3 style={{ fontSize: '1rem', fontWeight: 850, color: '#1e293b', margin: 0 }}>Automated Growth Charts</h3>
+                                                                                </div>
+                                                                                <div className="growth-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                                                                    <div className="growth-card" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.25rem' }}>
+                                                                                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b' }}>Weight History (kg)</span>
+                                                                                        <div style={{ height: '180px', marginTop: '1rem' }}>
+                                                                                            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                                                                                                <LineChart data={patientDocs.filter(d => d.weight).map(d => ({ date: new Date(d.visit_date).toLocaleDateString(), value: parseFloat(d.weight) })).sort((a,b) => new Date(a.date) - new Date(b.date))}>
+                                                                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                                                                                    <XAxis dataKey="date" hide />
+                                                                                                    <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
+                                                                                                    <Tooltip />
+                                                                                                    <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={3} dot={{ r: 4, fill: '#6366f1' }} activeDot={{ r: 6 }} />
+                                                                                                </LineChart>
+                                                                                            </ResponsiveContainer>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div className="growth-card" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.25rem' }}>
+                                                                                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b' }}>Height History (cm)</span>
+                                                                                        <div style={{ height: '180px', marginTop: '1rem' }}>
+                                                                                            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                                                                                                <AreaChart data={patientDocs.filter(d => d.height).map(d => ({ date: new Date(d.visit_date).toLocaleDateString(), value: parseFloat(d.height) })).sort((a,b) => new Date(a.date) - new Date(b.date))}>
+                                                                                                    <defs>
+                                                                                                        <linearGradient id="colorHeight" x1="0" y1="0" x2="0" y2="1">
+                                                                                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
+                                                                                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                                                                        </linearGradient>
+                                                                                                    </defs>
+                                                                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                                                                                    <XAxis dataKey="date" hide />
+                                                                                                    <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
+                                                                                                    <Tooltip />
+                                                                                                    <Area type="monotone" dataKey="value" stroke="#10b981" fillOpacity={1} fill="url(#colorHeight)" strokeWidth={2} />
+                                                                                                </AreaChart>
+                                                                                            </ResponsiveContainer>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            <div className="expansion-card">
-                                                                                <div className="exp-card-header"><Users size={18} /> <span>Family Details</span></div>
-                                                                                <div className="exp-info-list">
-                                                                                    <div className="exp-info-item"><span>Father</span><strong>{p.father_name || '—'}</strong></div>
-                                                                                    <div className="exp-info-item"><span>Mother</span><strong>{p.mother_name || '—'}</strong></div>
-                                                                                    <div className="exp-info-item"><span>WhatsApp</span><strong>{hasPermission('view_patient_mobile') ? (p.wa_id || '—') : '**********'}</strong></div>
-                                                                                    <div className="exp-info-item"><span>Email</span><strong>{hasPermission('view_patient_email') ? (p.email || '—') : '**********'}</strong></div>
-                                                                                    <div className="exp-info-item"><span>Preferences</span><strong>{p.communication_preference || 'WhatsApp'}</strong></div>
+
+                                                                            {/* Unified Timeline Section */}
+                                                                            <div className="unified-timeline">
+                                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
+                                                                                    <Activity size={20} color="#6366f1" />
+                                                                                    <h3 style={{ fontSize: '1rem', fontWeight: 850, color: '#1e293b', margin: 0 }}>Vertical Patient Timeline</h3>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div className="expansion-card">
-                                                                                <div className="exp-card-header"><MapPin size={18} /> <span>Address & Assignments</span></div>
-                                                                                <div className="exp-info-list" style={{ gap: '0.5rem' }}>
-                                                                                    <div className="exp-info-item" style={{ flexWrap: 'wrap' }}><span>Address</span><strong style={{ textAlign: 'right', flex: '1 1 100%' }}>{p.residential_address || p.address || '—'}</strong></div>
-                                                                                    <div className="exp-info-item"><span>City / PIN</span><strong>{(p.city || p.pincode) ? `${p.city || ''} ${p.pincode ? '- ' + p.pincode : ''}` : '—'}</strong></div>
-                                                                                    <div className="exp-info-item"><span>State</span><strong>{p.state || '—'}</strong></div>
-                                                                                    <div className="exp-info-item" style={{ marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem' }}><span>Doctor</span><strong>{p.doctor || 'Clinic'}</strong></div>
+                                                                                <div className="timeline-trail" style={{ position: 'relative', paddingLeft: '2rem', borderLeft: '2px dashed #e2e8f0', marginLeft: '0.5rem' }}>
+                                                                                    {/* Start Point: Registration */}
+                                                                                    <div style={{ position: 'relative', marginBottom: '2.5rem' }}>
+                                                                                        <div style={{ position: 'absolute', left: '-2.6rem', top: '0', background: '#6366f1', color: '#fff', padding: '6px', borderRadius: '50%' }}><CheckCircle2 size={12} /></div>
+                                                                                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#6366f1' }}>REGISTRATION ({new Date(p.registered_at || p.createdAt).getFullYear()})</div>
+                                                                                        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Enrolled via {p.registration_source || 'Dashboard'}</div>
+                                                                                    </div>
+
+                                                                                    {/* Combined Appointments and Vaccinations */}
+                                                                                    {[...patientAppointments, ...patientDocs].sort((a,b) => new Date(b.appointment_date || b.visit_date) - new Date(a.appointment_date || a.visit_date)).slice(0, 10).map((item, idx) => {
+                                                                                        const isVaccination = item.visit_type === 'VACCINATION';
+                                                                                        return (
+                                                                                            <div key={idx} style={{ position: 'relative', marginBottom: '2rem' }}>
+                                                                                                <div style={{ position: 'absolute', left: '-2.55rem', top: '0', background: isVaccination ? '#10b981' : '#f1f5f9', color: isVaccination ? '#fff' : '#64748b', border: '1.5px solid #e2e8f0', padding: '6px', borderRadius: '50%' }}>
+                                                                                                    {isVaccination ? <Syringe size={10} /> : <CalendarIcon size={10} />}
+                                                                                                </div>
+                                                                                                <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8' }}>{new Date(item.appointment_date || item.visit_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                                                                                                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>{isVaccination ? (item.vaccine_given || 'Vaccination') : (item.visit_category || 'Appointment')}</div>
+                                                                                                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 650 }}>{item.doctor_name || item.attending_doctor || 'Pediatric Visit'}</div>
+                                                                                            </div>
+                                                                                        );
+                                                                                    })}
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                        {p.remarks && (
-                                                                            <div key="remarks" style={{ display: 'flex', gap: '0.75rem', padding: '1rem', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                                                                                <FileText size={18} color="#6366f1" style={{ flexShrink: 0 }} />
-                                                                                <div>
-                                                                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Clinical Note / Remarks</div>
-                                                                                    <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.9rem', color: '#475569', fontWeight: 600, lineHeight: 1.5 }}>{p.remarks}</p>
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
-                                                                    </>
+                                                                    </div>
                                                                 ) : patientTab === 'documents' ? (
                                                                     <div className="documents-view-premium">
                                                                         {docsLoading ? (
@@ -667,6 +769,7 @@ const Patients = () => {
                                                                                 <table className="table-premium-v3" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
                                                                                     <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                                                                                         <tr>
+                                                                                            <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Patient ID</th>
                                                                                             <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Date & Time</th>
                                                                                             <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Type</th>
                                                                                             <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Doctor</th>
@@ -676,6 +779,11 @@ const Patients = () => {
                                                                                     <tbody>
                                                                                         {patientAppointments.map((appt, idx) => (
                                                                                             <tr key={appt._id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                                                                <td style={{ padding: '1rem' }}>
+                                                                                                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#6366f1', background: '#f8fafc', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                                                                                                        {appt.patient_id || 'N/A'}
+                                                                                                    </span>
+                                                                                                </td>
                                                                                                 <td style={{ padding: '1rem' }}>
                                                                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                                                                                                         <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>

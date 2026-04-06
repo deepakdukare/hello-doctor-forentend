@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
 import {
     TrendingUp, Users, Calendar, Activity, Filter, Download,
     Clock, RefreshCw, CheckCircle2, XCircle, Search, BarChart2, Loader2,
-    FileText, Hash
+    FileText, Hash, MapPin, Baby
 } from 'lucide-react';
 import {
-    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    BarChart, Bar, Cell
 } from 'recharts';
 import {
     getPracticeInsights, getReportsDashboard, getAppointmentsReport,
@@ -36,12 +38,20 @@ const Analytics = () => {
     const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [demographics, setDemographics] = useState({ regions: [], age_distribution: [] });
+
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
     // Initial Load & Filters Change
     useEffect(() => {
         getDoctors({ all: true })
             .then(r => setDoctors(r.data?.data || []))
             .catch(() => { });
+        
+        // Fetch Demographics once
+        axios.get(`${API_BASE_URL}/analytics/demographics`)
+            .then(res => setDemographics(res.data.data))
+            .catch(err => console.error('Demographics error:', err));
     }, []);
 
     useEffect(() => {
@@ -305,7 +315,7 @@ const Analytics = () => {
                     </div>
 
                     <div style={{ height: '300px', width: '100%', position: 'relative' }}>
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <AreaChart data={displayMetrics.trends.length > 0 ? displayMetrics.trends : [{ name: 'No Data', value: 0 }]}>
                                 <defs>
                                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -397,21 +407,53 @@ const Analytics = () => {
                 </div>
             </div>
 
-            <div className="analytics-card-white">
-                <div className="card-title-v4">Visits per Doctor</div>
-                <div className="doc-snapshot-grid">
-                    {displayMetrics.doctors.slice(0, 4).map((doc, i) => (
-                        <div key={i} className="doc-mini-card">
-                            <div className="doc-mini-avatar">
-                                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(doc.name || 'Doc')}&background=EEF2FF&color=4F46E5&bold=true`} alt={doc.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div className="analytics-main-grid" style={{ marginTop: '24px' }}>
+                {/* Advanced Demographic Analytics */}
+                <div className="analytics-card-white">
+                    <div className="card-title-v4">Regional Patient Distribution</div>
+                    <div style={{ marginTop: '1.5rem' }}>
+                        {demographics.regions.map((region, idx) => (
+                            <div key={idx} style={{ marginBottom: '1.5rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>{region.location}</span>
+                                    <span style={{ fontSize: '12px', color: '#64748b' }}>{region.count} Patients</span>
+                                </div>
+                                <div style={{ height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                                    <div 
+                                        style={{ 
+                                            height: '100%', 
+                                            background: 'linear-gradient(90deg, #6366f1, #a855f7)', 
+                                            width: `${(region.count / (insightData?.metrics?.total_patients || 100)) * 100}%` 
+                                        }} 
+                                    />
+                                </div>
                             </div>
-                            <div className="doc-mini-info">
-                                <h4>{doc.name}</h4>
-                                <p>{doc.role || doc.speciality || 'Pediatrician'}</p>
-                                <div className="doc-mini-count"><strong>{doc.count || doc.visits || 0}</strong> Bookings</div>
-                            </div>
+                        ))}
+                        {demographics.regions.length === 0 && <p style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>No regional data available.</p>}
+                    </div>
+                </div>
+
+                <div className="analytics-card-white">
+                    <div className="card-title-v4">Patient Age Groups</div>
+                    <div style={{ height: '240px', width: '100%', marginTop: '2rem' }}>
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                            <BarChart data={demographics.age_distribution}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                <XAxis dataKey="group" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, fontWeight: 700 }} />
+                                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px rgba(0,0,0,0.1)' }} />
+                                <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={30} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div style={{ marginTop: '1rem' }}>
+                        <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #e2e8f0' }}>
+                            <p style={{ fontSize: '11px', color: '#64748b', lineHeight: '1.5', margin: 0 }}>
+                                <TrendingUp size={12} style={{ display: 'inline', marginRight: '4px' }} />
+                                Most patients fall into the <strong>{demographics.age_distribution.sort((a,b) => b.count - a.count)[0]?.group || 'Infants'}</strong> category, ideal for targeted pediatric immunization campaigns.
+                            </p>
                         </div>
-                    ))}
+                    </div>
                 </div>
             </div>
         </div>

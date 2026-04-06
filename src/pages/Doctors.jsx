@@ -21,7 +21,8 @@ import {
     TrendingUp,
     Users,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Bell
 } from 'lucide-react';
 import {
     getDoctors,
