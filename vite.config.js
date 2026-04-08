@@ -13,7 +13,7 @@ export default defineConfig({
         },
         proxy: {
             '/api': {
-                target: 'http://localhost:5000', // Pointing to local backend
+                target: 'http://localhost:5001', // Pointing to local backend
                 //target: 'https://api-dr-indu-child-care.brahmaastra.ai',
                 changeOrigin: true,
                 secure: false,
