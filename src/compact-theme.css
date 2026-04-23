@@ -96,7 +96,7 @@ input {
 }
 
 .filter-label-v4 {
-    font-size: 11px !important;
+    font-size: 13px !important;
     font-weight: 700 !important;
     color: #64748b !important;
     text-transform: uppercase !important;
@@ -105,7 +105,7 @@ input {
 .filter-input-v4 {
     border: none !important;
     background: transparent !important;
-    font-size: 13px !important;
+    font-size: 15px !important;
     font-weight: 600 !important;
     color: #1e293b !important;
     outline: none !important;
@@ -152,7 +152,7 @@ input {
 }
 
 .stat-title-v4 {
-    font-size: 12px !important;
+    font-size: 14px !important;
     font-weight: 700 !important;
     color: #000000 !important;
     text-transform: uppercase !important;
@@ -208,7 +208,7 @@ input {
 .search-v4 input {
     border: none !important;
     background: transparent !important;
-    font-size: 13px !important;
+    font-size: 15px !important;
     outline: none !important;
     width: 100% !important;
 }
@@ -222,7 +222,7 @@ input {
     background: #f8fafc !important;
     padding: 1rem 1.5rem !important;
     text-align: left !important;
-    font-size: 11px !important;
+    font-size: 13px !important;
     font-weight: 800 !important;
     color: #64748b !important;
     text-transform: uppercase !important;
@@ -231,7 +231,7 @@ input {
 
 .analytics-table td {
     padding: 1.25rem 1.5rem !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
     border-bottom: 1px solid #f1f5f9 !important;
 }
 
@@ -288,7 +288,7 @@ input {
 }
 
 .brand-name-mini {
-    font-size: 16px !important;
+    font-size: 18px !important;
     font-weight: 800 !important;
     color: #000000 !important;
     letter-spacing: -0.02em !important;
@@ -296,7 +296,7 @@ input {
 }
 
 .brand-desc-mini {
-    font-size: 10px !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
     color: #000000 !important;
     text-transform: uppercase !important;
@@ -326,7 +326,7 @@ input {
     border-radius: 10px !important;
     color: #000000 !important;
     text-decoration: none !important;
-    font-size: 0.85rem !important;
+    font-size: 0.95rem !important;
     font-weight: 600 !important;
     transition: all 0.2s ease !important;
     position: relative !important;
@@ -445,7 +445,7 @@ input {
 }
 
 .stat-label-v4 {
-    font-size: 11px !important;
+    font-size: 13px !important;
     font-weight: 600 !important;
     color: #000000 !important;
     text-transform: capitalize !important;
@@ -473,7 +473,7 @@ input {
 }
 
 .card-title-v4 {
-    font-size: 14px !important;
+    font-size: 16px !important;
     font-weight: 700 !important;
     color: #1e293b !important;
     margin-bottom: 1.5rem !important;
@@ -506,20 +506,20 @@ input {
 }
 
 .doc-mini-info h4 {
-    font-size: 13px !important;
+    font-size: 15px !important;
     font-weight: 700 !important;
     color: #1e293b !important;
     margin: 0 !important;
 }
 
 .doc-mini-info p {
-    font-size: 11px !important;
+    font-size: 12px !important;
     color: #94a3b8 !important;
     margin: 0 !important;
 }
 
 .doc-mini-count {
-    font-size: 11px !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
     color: #64748b !important;
     margin-top: 4px !important;
@@ -563,7 +563,7 @@ input {
 }
 
 .u-name {
-    font-size: 13px !important;
+    font-size: 15px !important;
     font-weight: 700 !important;
     color: #000000 !important;
     white-space: nowrap !important;
@@ -572,7 +572,7 @@ input {
 }
 
 .u-role {
-    font-size: 10px !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
     color: #000000 !important;
     text-transform: capitalize !important;
@@ -635,7 +635,7 @@ input {
     border: none !important;
     background: transparent !important;
     outline: none !important;
-    font-size: 13px !important;
+    font-size: 15px !important;
     margin-left: 8px !important;
     width: 100% !important;
     color: #374151 !important;
@@ -669,7 +669,7 @@ input {
 }
 
 .header-subtitle-premium {
-    font-size: 0.85rem !important;
+    font-size: 0.95rem !important;
     color: #64748b !important;
     font-weight: 500 !important;
     margin: 0 !important;
@@ -684,7 +684,7 @@ input {
 }
 
 .welcome-text p {
-    font-size: 13px !important;
+    font-size: 15px !important;
     color: #6B7280 !important;
 }
 
@@ -749,14 +749,14 @@ input {
 }
 
 .stat-label-v3 {
-    font-size: 12px !important;
+    font-size: 14px !important;
     font-weight: 500 !important;
     color: #000000 !important;  
     margin-bottom: 2px !important;
 }
 
 .stat-value-v3, .stat-val-v3 {
-    font-size: 22px !important;
+    font-size: 24px !important;
     font-weight: 600 !important;
     color: #000000 !important;   
 }

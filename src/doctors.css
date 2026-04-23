@@ -79,7 +79,7 @@
     right: 5px;
     padding: 0.35rem 0.75rem;
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 700;
     background: #ffffff;
     color: #0f1b35;
@@ -120,13 +120,13 @@
 }
 
 .d-identity-info h2 {
-    font-size: 1.5rem;
+    font-size: 1.65rem;
     font-weight: 700;
     margin-bottom: 0.25rem;
     color: #0f1b35;
 }
 .d-identity-info h3 {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     color: #64748b;
     font-weight: 500;
     margin-bottom: 1.5rem;
@@ -149,7 +149,7 @@
 }
 
 .d-input-group label {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
     color: #64748b;
     font-weight: 600;
@@ -163,7 +163,7 @@
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     transition: all 0.2s;
 }
 
@@ -236,7 +236,7 @@
 }
 
 .d-card-title {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -302,7 +302,7 @@
 }
 .d-delay-box label {
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     color: #475569;
 }
 .d-delay-row {
@@ -314,7 +314,7 @@
     border: 1px solid #cbd5e1;
     padding: 0.65rem 1rem;
     border-radius: 0.5rem;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     width: 100%;
 }
 .d-delay-row input[type="number"], .d-delay-row input[type="date"] { font-family: 'DM Mono', monospace; }
@@ -354,13 +354,13 @@
 
 .d-cal-date {
     font-family: 'DM Mono', monospace;
-    font-size: 1.25rem;
+    font-size: 1.4rem;
     font-weight: 700;
     color: #1e293b;
 }
 
 .d-cal-day {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     color: #64748b;
     font-weight: 600;
@@ -372,7 +372,7 @@
     right: -6px;
     background: #3b82f6;
     color: #fff;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 700;
     padding: 0.15rem 0.4rem;
     border-radius: 10px;
@@ -394,7 +394,7 @@
     background: #f8fafc;
     padding: 0.75rem 1rem;
     text-align: left;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 700;
     color: #475569;
     text-transform: uppercase;
@@ -416,7 +416,7 @@
     padding: 0.5rem;
     border-radius: 0.4rem;
     font-family: 'DM Mono', monospace;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     transition: 0.2s;
     width: 100%;
 }
@@ -474,7 +474,7 @@
 
 .d-insight-val {
     font-family: 'DM Mono', monospace;
-    font-size: 2rem;
+    font-size: 2.25rem;
     font-weight: 700;
     color: #0f1b35;
     line-height: 1;
@@ -482,7 +482,7 @@
 }
 
 .d-insight-label {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     color: #64748b;
     font-weight: 600;
 }
@@ -510,7 +510,7 @@
 .d-chip {
     padding: 0.35rem 0.75rem;
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 700;
     display: inline-flex;
     align-items: center;

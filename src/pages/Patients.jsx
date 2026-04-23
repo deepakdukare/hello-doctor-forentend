@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Search, RefreshCw, AlertCircle, UserPlus, X, Edit2,
     User, Phone, Mail, MapPin, Calendar as CalendarIcon,
     FileText, Share2, Shield, Heart, MoreVertical,
     ChevronRight, Info, Filter, CheckCircle2, Camera,
-    Activity, ArrowRight, Baby, Users, Clipboard, Zap, Stethoscope, Clock, History, Syringe, TrendingUp
+    Activity, ArrowRight, Baby, Users, Clipboard, Zap, Stethoscope, Clock, History, Syringe, TrendingUp, CalendarPlus
 } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import PatientForm, { EMPTY_FORM } from '../components/PatientForm';
@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 
 const Patients = () => {
+    const navigate = useNavigate();
     const [patients, setPatients] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -528,8 +529,11 @@ const Patients = () => {
                                                             }}>
                                                                 {selected?._id === p._id ? <X size={18} /> : <MoreVertical size={18} />}
                                                             </button>
-                                                            <button className="hub-btn-edit" onClick={() => startEdit(p)}>
+                                                            <button className="hub-btn-edit" onClick={() => startEdit(p)} title="Edit Profile">
                                                                 <Edit2 size={18} />
+                                                            </button>
+                                                            <button className="hub-btn-edit" style={{ color: '#0ea5e9' }} onClick={() => navigate('/appointments', { state: { prefillPatient: p } })} title="Book Appointment">
+                                                                <CalendarPlus size={18} />
                                                             </button>
                                                         </div>
                                                     </td>

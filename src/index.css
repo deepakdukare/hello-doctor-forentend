@@ -20,12 +20,12 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
 }
 
 .logo-text .brand {
   font-family: 'Outfit', sans-serif;
-  font-size: 1.5rem;
+  font-size: 1.65rem;
   font-weight: 900;
   color: #1e293b;
   letter-spacing: -0.02em;
@@ -33,7 +33,7 @@
 }
 
 .logo-text .sub {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #6366f1;
   text-transform: uppercase;
@@ -59,7 +59,7 @@
 }
 
 .hero-text-center h1 {
-  font-size: 2.5rem;
+  font-size: 2.75rem;
   font-weight: 900;
   color: #0f172a;
   margin-bottom: 1rem;
@@ -124,14 +124,14 @@
 }
 
 .card-details-v4 h3 {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #1e293b;
   margin-bottom: 0.25rem;
 }
 
 .card-details-v4 p {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   color: #64748b;
   line-height: 1.4;
   margin-bottom: 1rem;
@@ -216,7 +216,7 @@
   border: 1px solid #e2e8f0;
   padding: 0.5rem 1rem;
   border-radius: 12px;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #64748b;
   display: flex;
@@ -247,7 +247,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 800;
   border: 2px solid #e2e8f0;
 }
@@ -331,7 +331,7 @@
 }
 
 .f-group-v4 label {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 800;
   color: #000000;
   text-transform: uppercase;
@@ -345,7 +345,7 @@
   border: 2px solid #f1f5f9;
   padding: 0.85rem 1rem;
   border-radius: 14px;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: #000000;
   outline: none;
@@ -368,7 +368,7 @@
 
 .err-v4 {
   color: #ef4444;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 700;
   padding-left: 0.25rem;
 }
@@ -478,13 +478,13 @@
 }
 
 .p-meta-v4 strong {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 900;
   color: #1e293b;
 }
 
 .p-meta-v4 span {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: #64748b;
   font-weight: 600;
 }
@@ -511,7 +511,7 @@
 }
 
 .token-header-v4 h3 {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 850;
   color: #1e293b;
 }
@@ -539,14 +539,14 @@
 }
 
 .token-label-v4 {
-  font-size: 1rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: #1e293b;
   margin-bottom: 0.25rem;
 }
 
 .token-sub-v4 {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: #64748b;
   font-weight: 600;
 }
@@ -557,7 +557,7 @@
   background: #f0fdf4;
   padding: 1rem;
   border-radius: 12px;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: #166534;
   line-height: 1.5;
   font-weight: 600;
@@ -580,13 +580,13 @@
 
 .alert-content strong {
   display: block;
-  font-size: 0.9rem;
+  font-size: 1.05rem;
   color: #991b1b;
   margin-bottom: 0.25rem;
 }
 
 .alert-content p {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: #dc2626;
   line-height: 1.4;
 }
@@ -612,7 +612,7 @@
 }
 
 .success-screen-v4 h1 {
-  font-size: 2.25rem;
+  font-size: 2.35rem;
   font-weight: 950;
   color: #0f172a;
   margin-bottom: 1rem;
@@ -639,7 +639,7 @@
 }
 
 .id-label {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 800;
   text-transform: uppercase;
   color: #64748b;
@@ -788,28 +788,28 @@ body {
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   line-height: 1.5;
 }
 
 h1 {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
 }
 
 h2 {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
 }
 
 h3 {
-  font-size: 1.05rem;
+  font-size: 1.15rem;
 }
 
 h4 {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
 }
 
 h5 {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
 }
 
 h1,
@@ -908,7 +908,7 @@ h5 {
 }
 
 .mobile-nav-item span {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -958,7 +958,7 @@ h5 {
   color: #64748b;
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   border-radius: 12px;
   transition: var(--transition);
   white-space: nowrap;
@@ -1062,7 +1062,7 @@ h5 {
 }
 
 .header-title-premium {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.04em;
   color: #1e293b;
@@ -1136,7 +1136,7 @@ h5 {
 }
 
 .live-text {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1162,7 +1162,7 @@ h5 {
   border: none;
   background: transparent;
   color: #64748b;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1200,7 +1200,7 @@ h5 {
   background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
   color: #fff;
   font-weight: 700;
-  font-size: 0.725rem;
+  font-size: 0.825rem;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
@@ -1221,7 +1221,7 @@ h5 {
   background: #fff;
   color: #64748b;
   font-weight: 700;
-  font-size: 0.725rem;
+  font-size: 0.825rem;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
@@ -1243,7 +1243,7 @@ h5 {
   background: #fee2e2;
   color: #ef4444;
   font-weight: 700;
-  font-size: 0.725rem;
+  font-size: 0.825rem;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1254,7 +1254,7 @@ h5 {
 }
 
 .title-section h1 {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.025em;
   margin-bottom: 0.3rem;
@@ -1262,7 +1262,7 @@ h5 {
 
 .title-section p {
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
@@ -1404,7 +1404,7 @@ h5 {
 }
 
 .dev-credit {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.75);
   z-index: 2;
@@ -12668,7 +12668,7 @@ input:checked+.slider-premium:before {
 }
 
 .panel-label {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 900;
   text-transform: uppercase;
   color: #94a3b8;
@@ -12701,13 +12701,13 @@ input:checked+.slider-premium:before {
 
 .worklist-item .wi-name {
   font-weight: 950;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: #1e293b;
   margin-bottom: 0.35rem;
 }
 
 .worklist-item .wi-meta {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 800;
   color: #64748b;
 }
@@ -12717,7 +12717,7 @@ input:checked+.slider-premium:before {
   color: #fff;
   padding: 0.2rem 0.5rem;
   border-radius: 8px;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 900;
 }
 
@@ -12756,7 +12756,7 @@ input:checked+.slider-premium:before {
   padding: 0 0.75rem;
   width: 100%;
   outline: none;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 800;
   color: #0f172a;
 }
@@ -12816,13 +12816,13 @@ input:checked+.slider-premium:before {
 .patient-item-v3 .info .p-name {
   display: block;
   font-weight: 950;
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: #0f172a;
   margin-bottom: 0.15rem;
 }
 
 .patient-item-v3 .info .p-meta {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: #64748b;
   font-weight: 800;
 }
@@ -12842,7 +12842,7 @@ input:checked+.slider-premium:before {
 
 .selected-patient-meta h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 950;
   color: #0f172a;
   letter-spacing: -0.02em;
@@ -12850,7 +12850,7 @@ input:checked+.slider-premium:before {
 
 .selected-patient-meta p {
   margin: 0.2rem 0 0 0;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 800;
   color: #94a3b8;
   letter-spacing: 0.02em;
@@ -12899,7 +12899,7 @@ input:checked+.slider-premium:before {
   border: none;
   background: transparent;
   padding: 0.45rem;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   outline: none;
   font-weight: 750;
 }
@@ -12919,7 +12919,7 @@ input:checked+.slider-premium:before {
   background: #f1f5f9;
   padding: 0.4rem;
   border-radius: 8px;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 850;
   color: #64748b;
   cursor: pointer;
@@ -12990,7 +12990,7 @@ input:checked+.slider-premium:before {
 
 .record-date {
   display: block;
-  font-size: 0.55rem;
+  font-size: 0.7rem;
   font-weight: 850;
   color: #94a3b8;
   margin-bottom: 0.4rem;
@@ -12999,7 +12999,7 @@ input:checked+.slider-premium:before {
 
 .record-diagnosis {
   font-weight: 900;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: #1e293b;
   margin-bottom: 0.75rem;
   line-height: 1.4;
@@ -13021,7 +13021,7 @@ input:checked+.slider-premium:before {
   padding: 0.15rem 0.4rem;
   background: #f1f5f9;
   border-radius: 6px;
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   font-weight: 850;
   color: #64748b;
 }
@@ -13077,7 +13077,7 @@ input:checked+.slider-premium:before {
   padding: 0.2rem 0.5rem;
   background: #f1f5f9;
   border-radius: 6px;
-  font-size: 0.55rem;
+  font-size: 0.7rem;
   font-weight: 900;
   color: #475569;
   margin-bottom: 0.6rem;
@@ -13086,7 +13086,7 @@ input:checked+.slider-premium:before {
 
 .primary-info h2 {
   margin: 0 0 0.4rem 0;
-  font-size: 1.25rem;
+  font-size: 1.45rem;
   font-weight: 950;
   color: #0f172a;
   letter-spacing: -0.03em;
@@ -13096,7 +13096,7 @@ input:checked+.slider-premium:before {
   display: flex;
   gap: 1rem;
   color: #64748b;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   font-weight: 750;
 }
 
@@ -13138,7 +13138,7 @@ input:checked+.slider-premium:before {
   border: none;
   background: transparent;
   font-weight: 900;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   color: #94a3b8;
   cursor: pointer;
   position: relative;
@@ -13167,7 +13167,7 @@ input:checked+.slider-premium:before {
 
 .info-block-v3 label {
   display: block;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 950;
   color: #94a3b8;
   text-transform: uppercase;
@@ -13177,7 +13177,7 @@ input:checked+.slider-premium:before {
 
 .info-block-v3 p {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   line-height: 1.6;
   color: #1e293b;
   font-weight: 500;
@@ -13207,14 +13207,14 @@ input:checked+.slider-premium:before {
   color: #94a3b8;
   font-weight: 850;
   text-transform: uppercase;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   letter-spacing: 0.02em;
 }
 
 .vital-item strong {
   color: #0f172a;
   font-weight: 950;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   letter-spacing: -0.01em;
 }
 
@@ -13223,7 +13223,7 @@ input:checked+.slider-premium:before {
   color: #6366f1;
   padding: 0.2rem 0.55rem;
   border-radius: 50px;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: 900;
 }
 
@@ -13247,13 +13247,13 @@ input:checked+.slider-premium:before {
   align-items: center;
   justify-content: center;
   font-weight: 950;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
 }
 
 .rx-text {
   font-weight: 850;
   color: #1e293b;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
 }
 
 .pdf-placeholder-v3 {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import {
     Calendar as CalendarIcon,
     Users,
@@ -196,6 +196,7 @@ const InlineCalendar = ({ value, onChange }) => {
 
 const Appointments = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     // Shared State
     const [appointments, setAppointments] = useState([]);
     const [stats, setStats] = useState(null);
@@ -350,6 +351,51 @@ const Appointments = () => {
         fetchInitialData();
     }, []);
 
+    // Handle incoming patient prefill request
+    useEffect(() => {
+        if (location.state?.prefillPatient && doctors.length > 0 && !editMode && activeView === 'queue') {
+            const p = location.state.prefillPatient;
+            
+            setEditMode(false);
+            let defaultDocId, defaultDocName, defaultDocSpeciality;
+            if (isDoctor) {
+                defaultDocId = currentUser.doctor_id || '';
+                defaultDocName = currentUser.full_name || currentUser.username || '';
+                const matchedDoc = doctors.find(d => d.doctor_id === defaultDocId);
+                defaultDocSpeciality = matchedDoc?.speciality || 'Pediatrics';
+            } else {
+                const defaultDoc = doctors.find(d => getDoctorDisplayName(d).toLowerCase().includes('indu')) || doctors[0];
+                defaultDocId = defaultDoc?.doctor_id || '';
+                defaultDocName = defaultDoc ? getDoctorDisplayName(defaultDoc) : '';
+                defaultDocSpeciality = defaultDoc?.speciality || 'Pediatrics';
+            }
+
+            setForm({
+                patient_id: p.patient_id || p.patient_key,
+                doctor_name: defaultDocName,
+                appointment_date: toIsoDate(),
+                doctor_id: defaultDocId,
+                doctor_speciality: defaultDocSpeciality,
+                visit_category: 'First visit',
+                registration_type: 'walkin',
+                appointment_mode: 'OFFLINE',
+                reason: ''
+            });
+
+            setSelectedPatient({
+                child_name: p.child_name || p.full_name || p.first_name || 'Walking Patient',
+                patient_id: p.patient_id || p.patient_key,
+                parent_mobile: p.wa_id || p.parent_mobile
+            });
+
+            setActiveTab('visit');
+            setActiveView('authorizer');
+            
+            // Consume the state so it doesn't run again on reload
+            window.history.replaceState({}, '');
+        }
+    }, [location.state, doctors, isDoctor, currentUser, editMode, activeView]);
+
     const fetchTokens = useCallback(async () => {
         if (!form.appointment_date || !form.doctor_id) return;
         setTokensLoading(true);
@@ -439,7 +485,7 @@ const Appointments = () => {
             if (editMode) {
                 await updateAppointment(selectedAppointment.appointment_id, payload);
             } else {
-                await bookAppointment(payload);
+                await bookAppointmentWithToken(payload);
             }
             setError(null);
             setActiveView('queue');
@@ -495,13 +541,26 @@ const Appointments = () => {
             setActiveTab('visit');
         } else {
             setEditMode(false);
-            const defaultDoc = doctors.find(d => getDoctorDisplayName(d).toLowerCase().includes('indu')) || doctors[0];
+            // For a doctor user, always use their own ID/name from the auth token
+            let defaultDocId, defaultDocName, defaultDocSpeciality;
+            if (isDoctor) {
+                defaultDocId = currentUser.doctor_id || '';
+                defaultDocName = currentUser.full_name || currentUser.username || '';
+                // Try to get speciality from the loaded doctors list
+                const matchedDoc = doctors.find(d => d.doctor_id === defaultDocId);
+                defaultDocSpeciality = matchedDoc?.speciality || 'Pediatrics';
+            } else {
+                const defaultDoc = doctors.find(d => getDoctorDisplayName(d).toLowerCase().includes('indu')) || doctors[0];
+                defaultDocId = defaultDoc?.doctor_id || '';
+                defaultDocName = defaultDoc ? getDoctorDisplayName(defaultDoc) : '';
+                defaultDocSpeciality = defaultDoc?.speciality || 'Pediatrics';
+            }
             setForm({
                 patient_id: '',
-                doctor_name: defaultDoc ? getDoctorDisplayName(defaultDoc) : '',
+                doctor_name: defaultDocName,
                 appointment_date: filters.date || toIsoDate(),
-                doctor_id: defaultDoc?.doctor_id || '',
-                doctor_speciality: defaultDoc?.speciality || 'Pediatrics',
+                doctor_id: defaultDocId,
+                doctor_speciality: defaultDocSpeciality,
                 visit_category: 'First visit',
                 registration_type: 'walkin',
                 appointment_mode: 'OFFLINE',
@@ -995,7 +1054,12 @@ const Appointments = () => {
                                                     value={form.doctor_id}
                                                     onChange={e => {
                                                         const doc = doctors.find(d => d.doctor_id === e.target.value);
-                                                        setForm({ ...form, doctor_id: e.target.value, doctor_name: getDoctorDisplayName(doc) });
+                                                        setForm({
+                                                            ...form,
+                                                            doctor_id: e.target.value,
+                                                            doctor_name: getDoctorDisplayName(doc),
+                                                            doctor_speciality: doc?.speciality || form.doctor_speciality
+                                                        });
                                                     }}
                                                 >
                                                     <option value="" disabled>— Select Doctor —</option>

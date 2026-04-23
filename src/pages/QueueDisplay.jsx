@@ -25,12 +25,12 @@ const STATUS_CONFIG = {
 // Context-aware actions per token status
 const TOKEN_STATUS_ACTIONS = {
     WAITING: [
-        { label: 'Check In',      value: 'CHECKED_IN',  icon: UserCheck,    color: '#6366f1' },
-        { label: 'Mark No-Show',  value: 'NO_SHOW',     icon: AlertCircle,  color: '#ef4444' },
+        { label: 'Check In', value: 'CHECKED_IN', icon: UserCheck, color: '#6366f1' },
+        { label: 'Mark No-Show', value: 'NO_SHOW', icon: AlertCircle, color: '#ef4444' },
     ],
     CHECKED_IN: [
-        { label: 'Start Session', value: 'IN_PROGRESS', icon: PlayCircle,   color: '#0ea5e9' },
-        { label: 'Skip',          value: 'SKIPPED',     icon: SkipForward,  color: '#94a3b8' },
+        { label: 'Start Session', value: 'IN_PROGRESS', icon: PlayCircle, color: '#0ea5e9' },
+        { label: 'Skip', value: 'SKIPPED', icon: SkipForward, color: '#94a3b8' },
     ],
     IN_PROGRESS: [
         { label: 'Finish & Complete', value: 'COMPLETED', icon: CheckCircle2, color: '#10b981' },
@@ -88,7 +88,7 @@ const TokenRow = ({ token, onCheckin, onStatusChange, onNext, isNext, isToday })
                 <div className="patient-id" style={{ fontWeight: 700, color: '#334155', fontSize: '0.85rem' }}>{token.patient_id || '—'}</div>
             </td>
             <td>
-                <div className="patient-name">{removeSalutation(token.child_name || token.patient_name) || '—'}</div>
+                <div className="patient-name">{removeSalutation(token.child_name || token.patient_name || token.name || token.parent_name || token.patient?.child_name || token.patient?.name) || '—'}</div>
             </td>
             <td><div className="slot-label">{token.appointment_time || token.token_display || '—'}</div></td>
             <td>
@@ -176,9 +176,9 @@ const QueueDisplay = () => {
         getDoctors({ all: true }).then(r => {
             const list = r.data?.data || r.data?.doctors || [];
             if (isDoctor) {
-                const filtered = list.filter(d => 
-                    d.doctor_id === currentUser.doctor_id || 
-                    d.name === currentUser.full_name || 
+                const filtered = list.filter(d =>
+                    d.doctor_id === currentUser.doctor_id ||
+                    d.name === currentUser.full_name ||
                     d.name === currentUser.username
                 );
                 setDoctors(filtered);
@@ -364,7 +364,7 @@ const QueueDisplay = () => {
                         </select>
                     </div>
                 )}
-                
+
                 <input type="date" value={date} onChange={e => setDate(e.target.value)}
                     style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6px 12px', fontSize: '0.85rem', fontWeight: 600, color: '#475569' }} />
 

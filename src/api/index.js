@@ -108,7 +108,7 @@ export const getTodayAppointments = () => getAppointmentsByDate(toIsoDate());
 export const createAppointment = (data) => api.post('/appointments', data);
 export const bookAppointment = (data) => createAppointment(data); // Alias
 export const updateAppointment = (id, data) => api.patch(`/appointments/${id}`, data);
-export const cancelAppointment = (id) => api.patch(`/appointments/${id}/cancel`);
+export const cancelAppointment = (id, data) => api.patch(`/appointments/${id}/cancel`, data);
 export const completeAppointment = (id) => api.patch(`/appointments/${id}/complete`);
 export const bookByForm = (data) => api.post('/appointments/form', data);
 export const bookByWhatsapp = (data) => api.post('/appointments/whatsapp', data);
