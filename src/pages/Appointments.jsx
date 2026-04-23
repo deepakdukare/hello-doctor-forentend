@@ -5,6 +5,7 @@ import {
     Users,
     CheckCircle2,
     XCircle,
+    X,
     RefreshCw,
     Search,
     Plus,
@@ -212,7 +213,8 @@ const Appointments = () => {
     const [filters, setFilters] = useState({
         date: toIsoDate(),
         doctor_id: isDoctor ? (currentUser.doctor_id || '') : '',
-        status: ''
+        status: '',
+        showAll: false
     });
 
     // View State
@@ -228,6 +230,12 @@ const Appointments = () => {
     const [patientSearch, setPatientSearch] = useState('');
     const [queueSearch, setQueueSearch] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+
+    // Pagination
+    const PAGE_SIZE = 20;
+    const [page, setPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
     const [selectedPatient, setSelectedPatient] = useState(null);
     const [selectedAppointment, setSelectedAppointment] = useState(null);
     const [editMode, setEditMode] = useState(false);
@@ -264,13 +272,34 @@ const Appointments = () => {
     const fetchQueueData = useCallback(async () => {
         setLoading(true);
         try {
+            const apiFilters = { ...filters };
+            if (filters.showAll) {
+                delete apiFilters.date;
+            }
+            delete apiFilters.showAll;
+
+            // Always pass pagination params
+            apiFilters.page = page;
+            apiFilters.limit = PAGE_SIZE;
+
             const [apptRes, statsRes] = await Promise.all([
-                getAppointments(filters),
-                getAppointmentStats(filters.date)
+                getAppointments(apiFilters),
+                getAppointmentStats(filters.showAll ? undefined : filters.date)
             ]);
-            
+
+            const resData = apptRes.data;
             const currentStats = statsRes.data.data || {};
-            setAppointments(apptRes.data.data || []);
+
+            setAppointments(resData.data || []);
+
+            // Support multiple response shapes for total count
+            const total =
+                resData.total ??
+                resData.pagination?.total ??
+                resData.count ??
+                (resData.data?.length ?? 0);
+            setTotalCount(total);
+
             setStats(currentStats);
 
             const calcTrend = (curr, prev) => {
@@ -288,11 +317,16 @@ const Appointments = () => {
         } finally {
             setLoading(false);
         }
-    }, [filters, pastStats]);
+    }, [filters, pastStats, page]);
 
     useEffect(() => {
         fetchQueueData();
     }, [fetchQueueData]);
+
+    // Reset to page 1 whenever filters change
+    useEffect(() => {
+        setPage(1);
+    }, [filters]);
 
     // Fetch initial static data once
     useEffect(() => {
@@ -552,7 +586,7 @@ const Appointments = () => {
             <div className="view-content-v3">
                 {activeView === 'queue' ? (
                     <>
-                        <div className="filter-shelf-premium" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'center', backgroundColor: '#f9fafb', padding: '12px 0' }}>
+                        <div className="filter-shelf-premium" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'center', backgroundColor: '#f9fafb', padding: '12px 0', flexWrap: 'wrap' }}>
                             <div className="search-pill-v3" style={{ flex: 2.5, height: '42px', borderRadius: '10px', padding: '0 16px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', backgroundColor: '#fff', gap: '10px', minWidth: '220px', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
                                 <Search size={18} color="#64748b" className="s-icon" />
                                 <input
@@ -564,22 +598,43 @@ const Appointments = () => {
                                 />
                             </div>
 
-                            <div className="filter-group-v3" style={{ display: 'flex', gap: '1rem', flex: 'none', justifyContent: 'flex-start' }}>
-                                <div className="filter-item-v3 date-pill-v3" onClick={openDatePicker} style={{ height: '42px', borderRadius: '10px', padding: '0 16px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', backgroundColor: '#fff', gap: '8px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
-                                    <CalendarIcon size={16} className="f-icon" color="#64748b" />
-                                    <input
-                                        ref={dateInputRef}
-                                        type="date"
-                                        value={filters.date}
-                                        onChange={e => setFilters({ ...filters, date: e.target.value })}
-                                        className="date-input-v3"
-                                        style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer' }}
-                                    />
-                                    <span className="f-label" style={{ fontSize: '14px', fontWeight: 600, color: '#334155' }}>
-                                        {formatCompactDate(filters.date)}
-                                    </span>
-                                    <ChevronDown size={14} className="drop-icon" style={{ marginLeft: '4px', color: '#64748b' }} />
-                                </div>
+                            <div className="filter-group-v3" style={{ display: 'flex', gap: '1rem', flex: 'none', justifyContent: 'flex-start', flexWrap: 'wrap' }}>
+                                {/* Date Picker — hidden when showAll is active */}
+                                {!filters.showAll && (
+                                    <div className="filter-item-v3 date-pill-v3" onClick={openDatePicker} style={{ height: '42px', borderRadius: '10px', padding: '0 16px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', backgroundColor: '#fff', gap: '8px', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', position: 'relative' }}>
+                                        <CalendarIcon size={16} className="f-icon" color="#64748b" />
+                                        <input
+                                            ref={dateInputRef}
+                                            type="date"
+                                            value={filters.date}
+                                            onChange={e => setFilters({ ...filters, date: e.target.value })}
+                                            className="date-input-v3"
+                                            style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer' }}
+                                        />
+                                        <span className="f-label" style={{ fontSize: '14px', fontWeight: 600, color: '#334155' }}>
+                                            {formatCompactDate(filters.date)}
+                                        </span>
+                                        <ChevronDown size={14} className="drop-icon" style={{ marginLeft: '4px', color: '#64748b' }} />
+                                    </div>
+                                )}
+
+                                {/* Show All / Today Toggle */}
+                                <button
+                                    onClick={() => setFilters(f => ({ ...f, showAll: !f.showAll, date: f.showAll ? toIsoDate() : f.date }))}
+                                    style={{
+                                        height: '42px', borderRadius: '10px', padding: '0 14px',
+                                        border: filters.showAll ? '1.5px solid #6366f1' : '1px solid #e5e7eb',
+                                        background: filters.showAll ? '#ede9fe' : '#fff',
+                                        color: filters.showAll ? '#6366f1' : '#64748b',
+                                        fontWeight: 800, fontSize: '13px', cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: '6px',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)', whiteSpace: 'nowrap'
+                                    }}
+                                >
+                                    <CalendarIcon size={14} />
+                                    {filters.showAll ? 'All Dates ✓' : 'Show All Dates'}
+                                </button>
+
                                 <div className="filter-item-v3 select-pill-v3" style={{ height: '42px', borderRadius: '10px', padding: '0 16px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', backgroundColor: '#fff', gap: '8px', position: 'relative', boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)' }}>
                                     <Activity size={16} className="f-icon" color="#64748b" />
                                     <select
@@ -618,16 +673,22 @@ const Appointments = () => {
                                 )}
                             </div>
 
-
                         </div>
 
 
 
                         <div className="repository-card-v3">
+                            {filters.showAll && (
+                                <div style={{ padding: '0.5rem 1rem', background: '#ede9fe', borderRadius: '10px', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', fontWeight: 700, color: '#6366f1' }}>
+                                    <CalendarIcon size={14} />
+                                    Showing all {appointments.length} appointments across all dates
+                                </div>
+                            )}
                             <div className="table-flow-v3">
                                 <table className="main-table-v3" style={{ width: '100%', borderCollapse: 'collapse', borderSpacing: 0, textAlign: 'left', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', backgroundColor: '#fff' }}>
                                     <thead>
                                         <tr style={{ backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0' }}>
+                                            {filters.showAll && <th style={{ padding: '16px 14px', fontSize: '12px', fontWeight: 800, color: '#6366f1', textTransform: 'uppercase', background: '#f5f3ff' }}>Date</th>}
                                             <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Doctor</th>
                                             <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Token</th>
                                             <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Patient ID</th>
@@ -643,11 +704,11 @@ const Appointments = () => {
                                     <tbody>
                                         {loading && !appointments.length ? (
                                             Array(6).fill(0).map((_, i) => (
-                                                <tr key={i}><td colSpan={9}><div className="skeleton-line-v3"></div></td></tr>
+                                                <tr key={i}><td colSpan={filters.showAll ? 10 : 9}><div className="skeleton-line-v3"></div></td></tr>
                                             ))
                                         ) : filteredAppointments.length === 0 ? (
                                             <tr>
-                                                <td colSpan={9} className="empty-state-card">
+                                                <td colSpan={filters.showAll ? 10 : 9} className="empty-state-card">
                                                     <div className="empty-content">
                                                         <div className="empty-icon-wrap">
                                                             <CalendarIcon size={48} />
@@ -662,18 +723,140 @@ const Appointments = () => {
                                                 </td>
                                             </tr>
                                         ) : filteredAppointments.map((appt, idx) => (
-                                            <AppointmentRow
-                                                key={appt.appointment_id || idx}
-                                                appt={appt}
-                                                onEdit={openBookingModal}
-                                                onCancel={(id) => setCancelModal({ show: true, id, reason: '' })}
-                                            />
+                                            <React.Fragment key={appt.appointment_id || idx}>
+                                                {filters.showAll ? (
+                                                    <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                        <td style={{ padding: '0 0 0 14px', background: '#f5f3ff', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                                                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#6366f1', background: '#ede9fe', borderRadius: '6px', padding: '3px 8px', display: 'inline-block' }}>
+                                                                {formatCompactDate(appt.appointment_date || appt.formatted_date)}
+                                                            </span>
+                                                        </td>
+                                                        <td colSpan={9} style={{ padding: 0 }}>
+                                                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                                                <tbody>
+                                                                    <AppointmentRow
+                                                                        appt={appt}
+                                                                        onEdit={openBookingModal}
+                                                                        onCancel={(id) => setCancelModal({ show: true, id, reason: '' })}
+                                                                    />
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                ) : (
+                                                    <AppointmentRow
+                                                        appt={appt}
+                                                        onEdit={openBookingModal}
+                                                        onCancel={(id) => setCancelModal({ show: true, id, reason: '' })}
+                                                    />
+                                                )}
+                                            </React.Fragment>
                                         ))}
 
 
                                     </tbody>
                                 </table>
                             </div>
+
+                            {/* Pagination Bar */}
+                            {totalPages > 1 && (
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '14px 20px',
+                                    borderTop: '1px solid #e2e8f0',
+                                    backgroundColor: '#fff',
+                                    borderRadius: '0 0 12px 12px'
+                                }}>
+                                    <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>
+                                        Showing {((page - 1) * PAGE_SIZE) + 1}–{Math.min(page * PAGE_SIZE, totalCount)} of <strong>{totalCount}</strong> appointments
+                                    </span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <button
+                                            onClick={() => setPage(1)}
+                                            disabled={page === 1}
+                                            style={{
+                                                padding: '6px 10px', borderRadius: '8px', border: '1px solid #e2e8f0',
+                                                background: page === 1 ? '#f8fafc' : '#fff', cursor: page === 1 ? 'not-allowed' : 'pointer',
+                                                color: page === 1 ? '#cbd5e1' : '#334155', fontWeight: 700, fontSize: '13px'
+                                            }}
+                                        >«</button>
+                                        <button
+                                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                                            disabled={page === 1}
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: '4px',
+                                                padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0',
+                                                background: page === 1 ? '#f8fafc' : '#fff', cursor: page === 1 ? 'not-allowed' : 'pointer',
+                                                color: page === 1 ? '#cbd5e1' : '#334155', fontWeight: 700, fontSize: '13px'
+                                            }}
+                                        >
+                                            <ChevronLeft size={14} /> Prev
+                                        </button>
+
+                                        {/* Page number pills */}
+                                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                            let p;
+                                            if (totalPages <= 5) {
+                                                p = i + 1;
+                                            } else if (page <= 3) {
+                                                p = i + 1;
+                                            } else if (page >= totalPages - 2) {
+                                                p = totalPages - 4 + i;
+                                            } else {
+                                                p = page - 2 + i;
+                                            }
+                                            const isActive = p === page;
+                                            return (
+                                                <button
+                                                    key={p}
+                                                    onClick={() => setPage(p)}
+                                                    style={{
+                                                        width: '36px', height: '36px', borderRadius: '8px',
+                                                        border: isActive ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
+                                                        background: isActive ? '#6366f1' : '#fff',
+                                                        color: isActive ? '#fff' : '#334155',
+                                                        fontWeight: isActive ? 800 : 600, fontSize: '13px',
+                                                        cursor: 'pointer', transition: 'all 0.15s'
+                                                    }}
+                                                >{p}</button>
+                                            );
+                                        })}
+
+                                        <button
+                                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                            disabled={page === totalPages}
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: '4px',
+                                                padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0',
+                                                background: page === totalPages ? '#f8fafc' : '#fff',
+                                                cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                                                color: page === totalPages ? '#cbd5e1' : '#334155', fontWeight: 700, fontSize: '13px'
+                                            }}
+                                        >
+                                            Next <ChevronRight size={14} />
+                                        </button>
+                                        <button
+                                            onClick={() => setPage(totalPages)}
+                                            disabled={page === totalPages}
+                                            style={{
+                                                padding: '6px 10px', borderRadius: '8px', border: '1px solid #e2e8f0',
+                                                background: page === totalPages ? '#f8fafc' : '#fff',
+                                                cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                                                color: page === totalPages ? '#cbd5e1' : '#334155', fontWeight: 700, fontSize: '13px'
+                                            }}
+                                        >»</button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Single-page result count */}
+                            {totalPages <= 1 && totalCount > 0 && (
+                                <div style={{ padding: '10px 20px', borderTop: '1px solid #f1f5f9', fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>
+                                    {totalCount} appointment{totalCount !== 1 ? 's' : ''} found
+                                </div>
+                            )}
                         </div>
                     </>
                 ) : (

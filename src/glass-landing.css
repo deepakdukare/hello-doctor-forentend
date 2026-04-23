@@ -9,7 +9,7 @@
     margin: 0;
     padding: 0;
     font-family: 'Inter', sans-serif;
-    background-image: url('/form.jpg');
+    background-image: url('/form-desktop.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -571,7 +571,7 @@
     width: 100%;
     height: 100vh;
     scroll-snap-align: start;
-    background-image: url('/form.jpg');
+    background-image: url('/form-desktop.png');
     background-size: cover;
     background-position: center top;
     background-repeat: no-repeat;
@@ -658,7 +658,7 @@
 .pf-bg-image {
     position: absolute;
     inset: 0;
-    background-image: url('/form.jpg');
+    background-image: url('/form-desktop.png');
     background-size: cover;
     background-position: center bottom;
     background-repeat: no-repeat;
@@ -856,8 +856,9 @@
     /* Button shape for desktop */
     .pf-scroll-btn {
         border-radius: 8px;
-        padding: 0.8rem 1.25rem;
-        font-size: 1rem;
+        padding: 0.8rem 1.4rem;
+        font-size: 1.1rem;
+        margin-top: 1.5rem;
     }
 
     /* Root: no scroll-snap, bg image on the root itself */
@@ -865,132 +866,203 @@
         scroll-snap-type: none;
         overflow: hidden;
         position: relative;
-        background-image: url('/form.jpg');
+        background-image: url('/form-desktop.png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
+        height: 100vh;
+        width: 100vw;
     }
 
-    /* Hero section: left 42% panel, no own bg */
+    /* Hero section: Top Left */
     .pf-hero-section {
         position: absolute;
-        left: 0;
-        top: 0;
-        width: 45%;
-        height: 100vh;
-        background-image: none;
+        left: 8%; /* Slightly inward */
+        top: 13%; /* Move upward */
+        width: auto;
+        height: auto;
+        background: transparent !important;
         scroll-snap-align: none;
         display: flex;
         align-items: flex-start;
-        overflow: visible;
         z-index: 2;
     }
 
-    .pf-hero-overlay {
-        background: linear-gradient(to right, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.7) 50%, rgba(255, 255, 255, 0) 100%);
-        width: 150%; /* Extend past the 45% container to softly fade into the image */
-    }
+    .pf-hero-overlay { display: none; }
 
     .pf-hero-content {
-        padding: 3.5rem 2.5rem;
-        gap: 0.75rem;
-        height: 100%;
-        justify-content: flex-start;
+        padding: 0;
+        align-items: flex-start;
     }
 
     .pf-hero-title {
-        font-size: 4.8rem;
+        font-size: 4rem;
+        color: #0d7f6e;
     }
-
+    
     .pf-hero-sub {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
         font-weight: 500;
-        margin-bottom: 1rem;
+        color: #111827;
+        margin-bottom: 0.5rem;
     }
 
-    /* Cards section: right 55% panel */
+    /* Cards section: Overlay container */
     .pf-cards-section {
         position: absolute;
-        right: 0;
-        top: 0;
-        width: 55%;
+        inset: 0;
         height: 100vh;
+        width: 100vw;
+        background: none;
+        z-index: 2;
+        pointer-events: none;
         min-height: unset;
         scroll-snap-align: none;
         overflow: hidden;
-        display: flex;
-        align-items: center;
+        display: block;
     }
+    
+    .pf-bg-image { display: none; }
 
-    /* No extra bg layer needed on desktop — root has it */
-    .pf-bg-image {
-        display: none;
-    }
-
-    /* Cards content: vertically centred, full width */
     .pf-cards-content {
-        max-width: 650px;
+        position: relative;
+        max-width: none;
         width: 100%;
         height: 100%;
-        margin: 0 auto 0 0; /* Align left within the right container */
-        padding: 2.5rem 2rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 1.2rem; /* Larger gap between welcome banner and cards */
+        padding: 0;
+        margin: 0;
+        pointer-events: none;
     }
 
-    /* Welcome banner: larger on desktop */
+    /* Interactive children */
+    .pf-welcome-banner, .pf-top-cards, .pf-input-wrapper {
+        pointer-events: auto;
+        position: absolute;
+    }
+
+    /* Top Right for Welcome Banner */
     .pf-welcome-banner {
-        background: rgba(255, 255, 255, 0.9);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* Softer shadow */
-        padding: 1.75rem;
-        border-radius: 20px;
+        top: 13%; /* Move upward */
+        right: 8%;
+        width: 520px;
+        max-width: 520px;
+        background: linear-gradient(135deg, rgba(238, 246, 255, 0.96), rgba(253, 240, 255, 0.96));
+        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+        border-radius: 18px;
+        padding: 2.5rem;
+        overflow: visible;
+    }
+    
+    .pf-welcome-pill {
+        border-color: #0d7f6e;
+        color: #0d7f6e;
+        font-size: 0.9rem;
+        padding: 0.2rem 1.1rem;
+        border-radius: 30px;
+        margin-bottom: 0.85rem;
     }
 
     .pf-welcome-title {
-        font-size: 2.2rem;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #111827;
+        line-height: 1.25;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
     }
 
-    /* 3 equal columns on desktop */
+    .pf-welcome-sub {
+        font-size: 1.1rem;
+        color: #4b5563;
+        max-width: 85%;
+        margin-bottom: 0;
+        line-height: 1.4;
+    }
+
+    .pf-welcome-icon-svg {
+        position: absolute;
+        right: 1.5rem;
+        bottom: 1.5rem;
+        width: 80px;
+        height: 80px;
+        color: #a7f3d0;
+        opacity: 0.7;
+    }
+
+    .pf-welcome-icon {
+        display: none;
+    }
+
+    /* Action Cards Bottom Center */
     .pf-top-cards {
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 1.2rem;
-    }
-
-    /* Reschedule tile: normal card style on desktop (column layout, not wide row) */
-    .pf-reschedule-tile {
-        grid-column: auto;
-        flex-direction: column !important;
+        bottom: 19%; /* Moved slightly upward */
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex; 
+        gap: 2rem;
         justify-content: center;
-        gap: 0.6rem;
+        width: max-content;
     }
 
-    /* Larger action cards on desktop, exactly square */
     .pf-action-card {
-        padding: 1.75rem 1rem;
-        gap: 0.85rem;
-        border-radius: 20px;
-        aspect-ratio: 1 / 1;
+        width: 275px;
+        height: 220px;
+        padding: 2.5rem;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* Float effect */
+        display: flex;
+        flex-direction: column;
         justify-content: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        align-items: center;
+        gap: 1.5rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        aspect-ratio: auto;
+    }
+    
+    .pf-action-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+    }
+
+    .pf-reschedule-tile {
+        flex-direction: column !important;
+        grid-column: auto;
     }
 
     .pf-card-icon {
-        width: 58px;
-        height: 58px;
+        width: 75px;
+        height: 75px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .pf-card-label {
-        font-size: 1.05rem;
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #111827;
+        line-height: 1.35;
+    }
+
+    .pf-input-wrapper {
+        bottom: 10%; /* Center the bar just under the cards */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 450px;
     }
 }
-
 
 
 .pf-icon-teal  { background: #e0f5f2; color: #0d7f6e; }
 .pf-icon-pink  { background: #fde8f5; color: #c0398e; }
 .pf-icon-orange { background: #fff0e6; color: #d97706; }
 
-
-
+@media (max-width: 768px) {
+    .glass-landing-container,
+    .pf-hero-section,
+    .pf-bg-image {
+        background-image: url('/form-mobile.jpg') !important;
+    }
+}

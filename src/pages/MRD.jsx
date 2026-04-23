@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Download, Printer, Lock, Paperclip, Plus, X, FileText, RefreshCw, Activity, User, Calendar, Shield, ArrowRight, Clock, Eye, MessageCircle } from 'lucide-react';
+import { Search, Download, Printer, Lock, Paperclip, Plus, X, FileText, RefreshCw, Activity, User, Calendar, Shield, ArrowRight, Clock, Eye, MessageCircle, Clipboard, Zap, Stethoscope } from 'lucide-react';
 import { removeSalutation } from '../utils/formatters';
 import { getMRDByPatientId, addMRDEntry, exportMRD, getPatients, getDoctors, getEntryByAppointment, toIsoDate, sendPrescriptionViaWhatsApp, getAppointments, getPatientById, lookupAppointments } from '../api/index';
 
@@ -662,127 +662,156 @@ const MRD = () => {
                 <div className="modal-overlay-v3">
                     <div className="modal-content-v3">
                         <header className="modal-header-v3">
-                            <h3>New Clinical Entry</h3>
-                            <button onClick={() => setShowModal(false)}><X size={20} /></button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <Clipboard size={24} color="#6366f1" />
+                                <h3>New Clinical Entry</h3>
+                            </div>
+                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                <button
+                                    type="button"
+                                    className="btn-header-v4"
+                                    style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                    onClick={() => setForm({
+                                        ...EMPTY_ENTRY,
+                                        patient_id: '26-HA6',
+                                        visit_date: '2026-04-08',
+                                        visit_type: 'CONSULTATION',
+                                        attending_doctor: 'Dr. Indu',
+                                        diagnosis: 'Acute Upper Respiratory Infection',
+                                        chief_complaint: 'Fever and Cough since 2 days',
+                                        symptoms: 'Fever, Dry Cough, Nasal Congestion',
+                                        weight: '12.5',
+                                        temperature: '101',
+                                        spo2: '98',
+                                        pulse: '110',
+                                        head_circumference: '48',
+                                        prescription: 'Syp. Paracetamol 5ml - TDS - 3 days\nSyp. Ascoril LS 2.5ml - BD - 5 days',
+                                        advice: 'Warm fluids, No cold water, Saline nasal drops PRN',
+                                        clinical_notes: 'Throat congested, Chest clear on auscultation. No distress.'
+                                    })}
+                                >
+                                    <Zap size={14} />
+                                    <span>Load Sample (Hafsa)</span>
+                                </button>
+                                <button onClick={() => setShowModal(false)} className="close-btn"><X size={20} /></button>
+                            </div>
                         </header>
 
                         <form onSubmit={handleAddEntry} className="entry-form-v3 custom-scrollbar">
-                            <div className="form-section-meta">
-                                <div className="form-row" style={{ gridTemplateColumns: '1.5fr 1fr 1fr' }}>
-                                    <div className="form-group">
-                                        <label>Patient Name</label>
-                                        <input disabled value={pname(selectedPatient)} style={{ color: '#10b981', fontWeight: '800' }} />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Patient ID</label>
-                                        <input disabled value={form.patient_id} />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Visit Date</label>
-                                        <input type="date" value={form.visit_date} onChange={e => setForm({ ...form, visit_date: e.target.value })} required />
-                                    </div>
-                                </div>
-
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Visit Type</label>
-                                        <select value={form.visit_type} onChange={e => setForm({ ...form, visit_type: e.target.value })}>
-                                            <option value="CONSULTATION">Consultation</option>
-                                            <option value="VACCINATION">Vaccination</option>
-                                            <option value="FOLLOW_UP">Follow-up</option>
-                                        </select>
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Attending Doctor</label>
-                                        <select
-                                            value={form.attending_doctor}
-                                            onChange={e => setForm({ ...form, attending_doctor: e.target.value })}
-                                            required
-                                        >
-                                            <option value="">Select Doctor</option>
-                                            {doctorsList.map(doc => (
-                                                <option key={doc._id} value={doc.name}>{doc.name}</option>
-                                            ))}
-                                            {/* Fallback if the pre-filled doctor isn't in the official list */}
-                                            {form.attending_doctor && !doctorsList.find(d => d.name === form.attending_doctor) && (
-                                                <option value={form.attending_doctor}>{form.attending_doctor}</option>
-                                            )}
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="form-section-main">
-                                <div className="form-group">
-                                    <label>Diagnosis / Clinical Purpose</label>
-                                    <input placeholder="Enter primary diagnosis..." value={form.diagnosis} onChange={e => setForm({ ...form, diagnosis: e.target.value })} style={{ fontSize: '0.9rem', borderBottomWidth: '2px' }} />
-                                </div>
-
-                                <div className="vitals-form-section">
-                                    <label className="section-label">Vitals & Measurements</label>
-                                    <div className="vitals-row">
-                                        <div className="v-field"><label>Weight</label><input placeholder="kg" value={form.weight} onChange={e => setForm({ ...form, weight: e.target.value })} /></div>
-                                        <div className="v-field"><label>Temp</label><input placeholder="°F" value={form.temperature} onChange={e => setForm({ ...form, temperature: e.target.value })} /></div>
-                                        <div className="v-field"><label>SPO2</label><input placeholder="%" value={form.spo2} onChange={e => setForm({ ...form, spo2: e.target.value })} /></div>
-                                    </div>
-                                    <div className="vitals-row" style={{ marginTop: '1rem' }}>
-                                        <div className="v-field"><label>Pulse</label><input placeholder="bpm" value={form.pulse} onChange={e => setForm({ ...form, pulse: e.target.value })} /></div>
-                                        <div className="v-field"><label>Head Cir.</label><input placeholder="cm" value={form.head_circumference} onChange={e => setForm({ ...form, head_circumference: e.target.value })} /></div>
-                                        <div className="v-field" style={{ opacity: 0 }}></div> {/* Buffer for grid alignment */}
-                                    </div>
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Systemic Review / Symptoms (Comma separated)</label>
-                                    <input placeholder="Fever, Cough, etc." value={form.symptoms} onChange={e => setForm({ ...form, symptoms: e.target.value })} />
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Prescription (Medications & Dosage)</label>
-                                    <textarea rows={4} placeholder="Medicine Name - Dosage - Frequency - Duration" value={form.prescription} onChange={e => setForm({ ...form, prescription: e.target.value })} />
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Patient Advice & Special Instructions</label>
-                                    <textarea rows={2} placeholder="Dietary restrictions, activity limits, etc." value={form.advice} onChange={e => setForm({ ...form, advice: e.target.value })} />
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Clinical Notes / Findings</label>
-                                    <textarea rows={3} placeholder="Record system detailed observations..." value={form.clinical_notes} onChange={e => setForm({ ...form, clinical_notes: e.target.value })} />
-                                </div>
-
-                                <div className="attachment-form-section">
-                                    <label className="section-label">Medical Attachments</label>
-                                    <div className="attachment-grid-v3">
-                                        {form.attachments?.map((att, idx) => (
-                                            <div key={idx} className="att-preview-v3">
-                                                <img src={att.preview} alt="preview" />
-                                                <button type="button" onClick={() => removeAttachment(idx)} className="rem-btn"><X size={12} /></button>
+                            <div className="form-grid-premium">
+                                {/* Left Column: Meta & Observation */}
+                                <div className="col-span-8">
+                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem' }}>
+                                        <div className="section-label-premium"><User size={16} /> Patient & Visit Details</div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                                            <div className="f-group-premium">
+                                                <label>Patient ID</label>
+                                                <input className="input-premium-v4" disabled value={form.patient_id} />
                                             </div>
-                                        ))}
-                                        <label className="att-upload-btn-v3">
-                                            <Plus size={20} />
-                                            <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
-                                        </label>
+                                            <div className="f-group-premium">
+                                                <label>Visit Date</label>
+                                                <input className="input-premium-v4" type="date" value={form.visit_date} onChange={e => setForm({ ...form, visit_date: e.target.value })} required />
+                                            </div>
+                                            <div className="f-group-premium">
+                                                <label>Visit Type</label>
+                                                <select className="input-premium-v4" value={form.visit_type} onChange={e => setForm({ ...form, visit_type: e.target.value })}>
+                                                    <option value="CONSULTATION">Consultation</option>
+                                                    <option value="VACCINATION">Vaccination</option>
+                                                    <option value="FOLLOW_UP">Follow-up</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="f-group-premium" style={{ marginTop: '0.5rem' }}>
+                                            <label>Attending Doctor</label>
+                                            <select className="input-premium-v4" value={form.attending_doctor} onChange={e => setForm({ ...form, attending_doctor: e.target.value })} required>
+                                                <option value="">Select Doctor</option>
+                                                {doctorsList.map(doc => <option key={doc._id} value={doc.name}>{doc.name}</option>)}
+                                                {form.attending_doctor && !doctorsList.find(d => d.name === form.attending_doctor) && (
+                                                    <option value={form.attending_doctor}>{form.attending_doctor}</option>
+                                                )}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem' }}>
+                                        <div className="section-label-premium"><Stethoscope size={16} /> Diagnosis & Symptoms</div>
+                                        <div className="f-group-premium">
+                                            <label>Primary Diagnosis / Purpose</label>
+                                            <input className="input-premium-v4" placeholder="Enter primary diagnosis..." value={form.diagnosis} onChange={e => setForm({ ...form, diagnosis: e.target.value })} />
+                                        </div>
+                                        <div className="f-group-premium">
+                                            <label>Clinical Notes / Findings</label>
+                                            <textarea className="textarea-premium-v4" rows={3} placeholder="Detailed observations..." value={form.clinical_notes} onChange={e => setForm({ ...form, clinical_notes: e.target.value })} />
+                                        </div>
+                                        <div className="f-group-premium">
+                                            <label>Systemic Review / Symptoms (Comma separated)</label>
+                                            <input className="input-premium-v4" placeholder="Fever, Cough, etc." value={form.symptoms} onChange={e => setForm({ ...form, symptoms: e.target.value })} />
+                                        </div>
+                                    </div>
+
+                                    <div className="form-card-premium">
+                                        <div className="section-label-premium"><Clipboard size={16} /> Prescription & Advice</div>
+                                        <div className="f-group-premium">
+                                            <label>Medications & Dosage</label>
+                                            <textarea className="textarea-premium-v4" style={{ minHeight: '150px', background: '#fff' }} placeholder="Medicine Name - Dosage - Frequency - Duration" value={form.prescription} onChange={e => setForm({ ...form, prescription: e.target.value })} />
+                                        </div>
+                                        <div className="f-group-premium">
+                                            <label>Patient Advice</label>
+                                            <textarea className="textarea-premium-v4" rows={2} placeholder="Dietary restrictions, activity limits, etc." value={form.advice} onChange={e => setForm({ ...form, advice: e.target.value })} />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="form-group" style={{ marginTop: '0.5rem' }}>
-                                    <label>Return Visit Scheduled</label>
-                                    <input type="date" value={form.next_visit_due} onChange={e => setForm({ ...form, next_visit_due: e.target.value })} />
+                                {/* Right Column: Vitals & Attachments */}
+                                <div className="col-span-4">
+                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem' }}>
+                                        <div className="section-label-premium"><Activity size={16} /> Vitals</div>
+                                        <div className="vitals-grid-v4">
+                                            <div className="vital-input-v4"><label>Weight</label><input placeholder="kg" value={form.weight} onChange={e => setForm({ ...form, weight: e.target.value })} /></div>
+                                            <div className="vital-input-v4"><label>Temp</label><input placeholder="°F" value={form.temperature} onChange={e => setForm({ ...form, temperature: e.target.value })} /></div>
+                                            <div className="vital-input-v4"><label>SPO2</label><input placeholder="%" value={form.spo2} onChange={e => setForm({ ...form, spo2: e.target.value })} /></div>
+                                            <div className="vital-input-v4"><label>Pulse</label><input placeholder="bpm" value={form.pulse} onChange={e => setForm({ ...form, pulse: e.target.value })} /></div>
+                                            <div className="vital-input-v4"><label>Head Cir.</label><input placeholder="cm" value={form.head_circumference} onChange={e => setForm({ ...form, head_circumference: e.target.value })} /></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem' }}>
+                                        <div className="section-label-premium"><Paperclip size={16} /> Attachments</div>
+                                        <div className="attachment-grid-premium">
+                                            {form.attachments?.map((att, idx) => (
+                                                <div key={idx} className="att-preview-premium">
+                                                    <img src={att.preview} alt="preview" />
+                                                    <button type="button" onClick={() => removeAttachment(idx)} className="rem-btn-premium"><X size={10} /></button>
+                                                </div>
+                                            ))}
+                                            <label className="att-upload-btn-premium">
+                                                <Plus size={20} />
+                                                <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-card-premium">
+                                        <div className="section-label-premium"><Clock size={16} /> Follow-up</div>
+                                        <div className="f-group-premium">
+                                            <label>Next Visit Due</label>
+                                            <input className="input-premium-v4" type="date" value={form.next_visit_due} onChange={e => setForm({ ...form, next_visit_due: e.target.value })} />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            {formStatus.error && <p className="error-msg">{formStatus.error}</p>}
-                            {formStatus.success && <p className="success-msg">{formStatus.success}</p>}
-
-                            <div className="form-actions">
-                                <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>Cancel</button>
-                                <button type="submit" className="btn-submit" disabled={saving}>
-                                    {saving ? 'Processing...' : 'Save Entry'}
-                                </button>
-                            </div>
+                            {formStatus.error && <p className="error-msg" style={{ marginTop: '1rem' }}>{formStatus.error}</p>}
+                            {formStatus.success && <p className="success-msg" style={{ marginTop: '1rem' }}>{formStatus.success}</p>}
                         </form>
+
+                        <footer className="form-actions-premium">
+                            <button type="button" className="btn-premium-cancel" onClick={() => setShowModal(false)}>Cancel</button>
+                            <button type="button" className="btn-premium-submit" disabled={saving} onClick={handleAddEntry}>
+                                {saving ? 'Processing...' : 'Securely Save Clinical Entry'}
+                            </button>
+                        </footer>
+
                     </div>
                 </div>
             )}

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import PatientForm, { EMPTY_FORM } from '../components/PatientForm';
-import { getPatients, registerPatient, updatePatient, getDoctors, getReferringDoctors, uploadPatientPhoto, toIsoDate, getMRDByPatientId, getAppointments, lookupAppointments } from '../api/index';
+import { getPatients, registerPatient, updatePatient, getDoctors, getReferringDoctors, uploadPatientPhoto, toIsoDate, getMRDByPatientId, getAppointments, lookupAppointments, getComprehensiveProfile } from '../api/index';
 import { removeSalutation } from '../utils/formatters';
 import { hasPermission } from '../utils/auth';
 import { 
@@ -26,6 +26,8 @@ const Patients = () => {
     const [patientTab, setPatientTab] = useState('summary'); // summary, documents, history
     const [patientDocs, setPatientDocs] = useState([]);
     const [patientAppointments, setPatientAppointments] = useState([]);
+    const [comprehensiveData, setComprehensiveData] = useState(null);
+    const [comprehensiveLoading, setComprehensiveLoading] = useState(false);
     const [docsLoading, setDocsLoading] = useState(false);
     const [apptsLoading, setApptsLoading] = useState(false);
 
@@ -536,69 +538,28 @@ const Patients = () => {
                                                     <tr className="expansion-row">
                                                         <td colSpan={hasPermission('view_patient_mobile') ? 9 : 8}>
                                                             <div className="expansion-content-premium" style={{ paddingTop: '1rem' }}>
-                                                                <div className="expansion-tabs" style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', borderBottom: '1px solid #f1f5f9', padding: '0 1rem' }}>
-                                                                    <button
-                                                                        onClick={() => setPatientTab('summary')}
-                                                                        style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === 'summary' ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === 'summary' ? '2px solid #6366f1' : 'none', transition: '0.2s' }}
-                                                                    >
-                                                                        Profile Summary
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={async () => {
-                                                                            setPatientTab('documents');
-                                                                            if (patientDocs.length === 0 || selected?.patient_key !== p.patient_key) {
-                                                                                setDocsLoading(true);
-                                                                                try {
-                                                                                    const r = await getMRDByPatientId(p.patient_key || p.patient_id);
-                                                                                    const entries = r.data?.data?.entries || [];
-                                                                                    const docs = entries.flatMap(e => (e.attachments || []).map(a => ({ ...a, date: e.visit_date || e.createdAt, diagnosis: e.diagnosis })));
-                                                                                    setPatientDocs(docs);
-                                                                                } catch (e) { console.error(e); }
-                                                                                finally { setDocsLoading(false); }
-                                                                            }
-                                                                        }}
-                                                                        style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === 'documents' ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === 'documents' ? '2px solid #6366f1' : 'none', transition: '0.2s' }}
-                                                                    >
-                                                                        Patient Documents
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={async () => {
-                                                                            setPatientTab('history');
-                                                                            if (patientAppointments.length === 0 || selected?.patient_key !== p.patient_key) {
-                                                                                setApptsLoading(true);
-                                                                                try {
-                                                                                    const lookupId = p.patient_key || p.patient_id;
-                                                                                    const r = await getAppointments({ patient_id: lookupId, search: lookupId, limit: 100 });
-                                                                                    const allAppts = r.data?.data || [];
-                                                                                    const patientOnlyAppts = allAppts.filter(a => a.patient_id === lookupId);
-                                                                                    setPatientAppointments(patientOnlyAppts);
-                                                                                } catch (e) { console.error(e); }
-                                                                                finally { setApptsLoading(false); }
-                                                                            }
-                                                                        }}
-                                                                        style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === 'history' ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === 'history' ? '2px solid #6366f1' : 'none', transition: '0.2s' }}
-                                                                    >
-                                                                        Appointment History
-                                                                    </button>
-                                                                    <button
-                                                                         onClick={async () => {
-                                                                             setPatientTab('clinical_360');
-                                                                             if (patientAppointments.length === 0 || selected?.patient_key !== p.patient_key) {
-                                                                                 setApptsLoading(true);
-                                                                                 try {
-                                                                                     const lookupId = p.patient_key || p.patient_id;
-                                                                                     const r_mrd = await getMRDByPatientId(lookupId);
-                                                                                     const r_appts = await getAppointments({ patient_id: lookupId, search: lookupId, limit: 100 });
-                                                                                     setPatientDocs(r_mrd.data?.data?.entries || []);
-                                                                                     setPatientAppointments(r_appts.data?.data?.filter(a => a.patient_id === lookupId) || []);
-                                                                                 } catch (e) { console.error(e); }
-                                                                                 finally { setApptsLoading(false); }
-                                                                             }
-                                                                         }}
-                                                                         style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === 'clinical_360' ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === 'clinical_360' ? '2px solid #6366f1' : 'none', transition: '0.2s' }}
-                                                                     >
-                                                                         Clinical Command Center (360°)
-                                                                     </button>
+                                                                <div className="expansion-tabs" style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', borderBottom: '1px solid #f1f5f9', padding: '0 1rem', flexWrap: 'wrap' }}>
+                                                                    {[['summary','Profile Summary'],['history','Appointment History'],['documents','Medical Documentation'],['clinical_360','Clinical Command Center (360°)']].map(([tab, label]) => (
+                                                                        <button key={tab}
+                                                                            onClick={async () => {
+                                                                                setPatientTab(tab);
+                                                                                if (!comprehensiveData || comprehensiveData._patientId !== (p.patient_key || p.patient_id)) {
+                                                                                    setComprehensiveLoading(true);
+                                                                                    try {
+                                                                                        const r = await getComprehensiveProfile(p.patient_key || p.patient_id);
+                                                                                        const d = r.data?.data || {};
+                                                                                        d._patientId = p.patient_key || p.patient_id;
+                                                                                        setComprehensiveData(d);
+                                                                                        setPatientAppointments(d.appointments || []);
+                                                                                        const mrdEntries = d.mrd?.entries || [];
+                                                                                        setPatientDocs(mrdEntries.flatMap(e => (e.attachments || []).map(a => ({ ...a, date: e.visit_date || e.createdAt, diagnosis: e.diagnosis }))));
+                                                                                    } catch(e2) { console.error('comprehensive fetch failed', e2); }
+                                                                                    finally { setComprehensiveLoading(false); }
+                                                                                }
+                                                                            }}
+                                                                            style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === tab ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === tab ? '2px solid #6366f1' : '2px solid transparent', transition: '0.2s', whiteSpace: 'nowrap' }}
+                                                                        >{label}</button>
+                                                                    ))}
                                                                  </div>
 
                                                                  {patientTab === 'summary' ? (
@@ -756,64 +717,170 @@ const Patients = () => {
                                                                         )}
                                                                     </div>
                                                                 ) : patientTab === 'history' ? (
-                                                                    <div className="history-view-premium" style={{ marginTop: '1.5rem' }}>
-                                                                        {apptsLoading ? (
+                                                                    <div style={{ marginTop: '1.5rem', padding: '0 1rem 1rem' }}>
+                                                                        {comprehensiveLoading ? (
                                                                             <div style={{ padding: '4rem', textAlign: 'center' }}><RefreshCw size={24} className="animate-spin" color="#6366f1" /></div>
-                                                                        ) : patientAppointments.length === 0 ? (
-                                                                            <div className="empty-history-premium" style={{ padding: '4rem', textAlign: 'center', opacity: 0.5 }}>
-                                                                                <History size={48} style={{ marginBottom: '1rem', color: '#94a3b8' }} />
-                                                                                <p style={{ color: '#64748b', fontWeight: 600 }}>No past appointments found for this patient.</p>
-                                                                            </div>
                                                                         ) : (
-                                                                            <div className="doc-history-timeline" style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-                                                                                <table className="table-premium-v3" style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
-                                                                                    <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                                                                                        <tr>
-                                                                                            <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Patient ID</th>
-                                                                                            <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Date & Time</th>
-                                                                                            <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Type</th>
-                                                                                            <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Doctor</th>
-                                                                                            <th style={{ padding: '1rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
-                                                                                        </tr>
-                                                                                    </thead>
-                                                                                    <tbody>
-                                                                                        {patientAppointments.map((appt, idx) => (
-                                                                                            <tr key={appt._id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                                                                <td style={{ padding: '1rem' }}>
-                                                                                                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#6366f1', background: '#f8fafc', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
-                                                                                                        {appt.patient_id || 'N/A'}
-                                                                                                    </span>
-                                                                                                </td>
-                                                                                                <td style={{ padding: '1rem' }}>
-                                                                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                                                                                                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>
-                                                                                                            {new Date(appt.appointment_date || appt.start_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                                                                        </span>
-                                                                                                        <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.2rem', fontWeight: 600 }}>
-                                                                                                            <Clock size={12} /> {appt.appointment_time || appt.start_time || 'N/A'}
-                                                                                                        </span>
+                                                                            <>
+                                                                                <div style={{ marginBottom: '2rem' }}>
+                                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                                                                                        <CalendarIcon size={16} color="#6366f1" />
+                                                                                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>Clinic Appointments</span>
+                                                                                        <span style={{ background: '#ede9fe', color: '#6d28d9', borderRadius: '20px', padding: '1px 10px', fontSize: '0.72rem', fontWeight: 800 }}>{patientAppointments.length}</span>
+                                                                                    </div>
+                                                                                    {patientAppointments.length === 0 ? (
+                                                                                        <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #e2e8f0' }}>
+                                                                                            <History size={32} style={{ marginBottom: '0.5rem' }} />
+                                                                                            <p style={{ margin: 0, fontWeight: 600, fontSize: '0.85rem' }}>No clinic appointments yet.</p>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                                                                                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                                                                                <thead style={{ background: '#f8fafc' }}>
+                                                                                                    <tr>
+                                                                                                        {['Appt ID','Date & Time','Type','Doctor','Status','Token'].map(h => <th key={h} style={{ padding: '0.75rem 1rem', fontSize: '0.7rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>{h}</th>)}
+                                                                                                    </tr>
+                                                                                                </thead>
+                                                                                                <tbody>
+                                                                                                    {patientAppointments.map((appt, apptIdx) => (
+                                                                                                        <tr key={appt._id || apptIdx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                                                                            <td style={{ padding: '0.85rem 1rem' }}><span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#6366f1', background: '#ede9fe', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>{appt.appointment_id || ('APT-' + String(apptIdx + 1).padStart(3,'0'))}</span></td>
+                                                                                                            <td style={{ padding: '0.85rem 1rem' }}>
+                                                                                                                <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b' }}>{new Date(appt.appointment_date || appt.start_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                                                                                                                <div style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}><Clock size={11} />{appt.appointment_time || '—'}</div>
+                                                                                                            </td>
+                                                                                                            <td style={{ padding: '0.85rem 1rem' }}><span style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', color: '#475569', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700 }}>{(appt.visit_category || appt.visit_type || 'Consultation').replace(/_/g, ' ')}</span></td>
+                                                                                                            <td style={{ padding: '0.85rem 1rem', fontSize: '0.82rem', fontWeight: 700, color: '#334155' }}>{appt.doctor_name || appt.attending_doctor || 'Dr. Indu'}</td>
+                                                                                                            <td style={{ padding: '0.85rem 1rem' }}><span className={`status-chip-v3 ${String(appt.status || 'PENDING').toLowerCase()}`}>{appt.status || 'PENDING'}</span></td>
+                                                                                                            <td style={{ padding: '0.85rem 1rem', fontSize: '0.8rem', fontWeight: 700, color: '#7c3aed' }}>{appt.token_number ? `#${appt.token_number}` : '—'}</td>
+                                                                                                        </tr>
+                                                                                                    ))}
+                                                                                                </tbody>
+                                                                                            </table>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                                {comprehensiveData?.legacy?.pid && (
+                                                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                                                                                        <div>
+                                                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                                                                                                <Clipboard size={15} color="#0ea5e9" />
+                                                                                                <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b' }}>Legacy Prescriptions</span>
+                                                                                                <span style={{ background: '#e0f2fe', color: '#0369a1', borderRadius: '20px', padding: '1px 8px', fontSize: '0.7rem', fontWeight: 800 }}>{comprehensiveData.legacy.prescriptions?.length || 0}</span>
+                                                                                            </div>
+                                                                                            {(comprehensiveData.legacy.prescriptions || []).length === 0 ? (
+                                                                                                <div style={{ padding: '1.5rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #e2e8f0', fontSize: '0.8rem' }}>No legacy prescriptions.</div>
+                                                                                            ) : (
+                                                                                                <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', maxHeight: '300px', overflowY: 'auto' }}>
+                                                                                                    {comprehensiveData.legacy.prescriptions.map((rx, rxIdx) => (
+                                                                                                        <div key={rxIdx} style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                                                                            <div>
+                                                                                                                <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b' }}>{rx.prescription?.medication || 'Medication'}</div>
+                                                                                                                <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>{rx.prescription?.instruction || '—'}</div>
+                                                                                                            </div>
+                                                                                                            <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 600, whiteSpace: 'nowrap' }}>{rx.metadata?.createdOn ? new Date(rx.metadata.createdOn).toLocaleDateString('en-GB') : '—'}</div>
+                                                                                                        </div>
+                                                                                                    ))}
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                                                                                                <Syringe size={15} color="#10b981" />
+                                                                                                <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b' }}>Legacy Vaccinations</span>
+                                                                                                <span style={{ background: '#d1fae5', color: '#065f46', borderRadius: '20px', padding: '1px 8px', fontSize: '0.7rem', fontWeight: 800 }}>{comprehensiveData.legacy.vaccinations?.length || 0}</span>
+                                                                                            </div>
+                                                                                            {(comprehensiveData.legacy.vaccinations || []).length === 0 ? (
+                                                                                                <div style={{ padding: '1.5rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #e2e8f0', fontSize: '0.8rem' }}>No vaccination records.</div>
+                                                                                            ) : (
+                                                                                                <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', maxHeight: '300px', overflowY: 'auto' }}>
+                                                                                                    {comprehensiveData.legacy.vaccinations.map((vx, vxIdx) => (
+                                                                                                        <div key={vxIdx} style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                                                            <div>
+                                                                                                                <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b' }}>Vaccine #{vx.vaccine?.vaccineId || vxIdx+1}</div>
+                                                                                                                <div style={{ fontSize: '0.72rem', marginTop: '2px' }}><span style={{ color: vx.vaccine?.isGiven ? '#10b981' : '#f59e0b', fontWeight: 800 }}>{vx.vaccine?.isGiven ? 'Given' : 'Pending'}</span></div>
+                                                                                                            </div>
+                                                                                                            <div style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 600 }}>{vx.metadata?.createdOn ? new Date(vx.metadata.createdOn).toLocaleDateString('en-GB') : '—'}</div>
+                                                                                                        </div>
+                                                                                                    ))}
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                ) : patientTab === 'documents' ? (
+                                                                    <div style={{ padding: '0 1rem 1rem' }}>
+                                                                        {comprehensiveLoading ? (
+                                                                            <div style={{ padding: '4rem', textAlign: 'center' }}><RefreshCw size={24} className="animate-spin" /></div>
+                                                                        ) : (
+                                                                            <>
+                                                                                <div style={{ marginBottom: '2rem' }}>
+                                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                                                                                        <Stethoscope size={16} color="#6366f1" />
+                                                                                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>Medical Record Entries (MRD)</span>
+                                                                                        <span style={{ background: '#ede9fe', color: '#6d28d9', borderRadius: '20px', padding: '1px 10px', fontSize: '0.72rem', fontWeight: 800 }}>{comprehensiveData?.mrd?.entries?.length || 0}</span>
+                                                                                    </div>
+                                                                                    {!(comprehensiveData?.mrd?.entries?.length) ? (
+                                                                                        <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #e2e8f0' }}>
+                                                                                            <FileText size={32} style={{ marginBottom: '0.5rem' }} />
+                                                                                            <p style={{ margin: 0, fontWeight: 600, fontSize: '0.85rem' }}>No medical record entries found.</p>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                                                                            {comprehensiveData.mrd.entries.map((entry, entryIdx) => (
+                                                                                                <div key={entryIdx} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.25rem' }}>
+                                                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                                                                                                        <div>
+                                                                                                            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>{entry.diagnosis || 'Visit Note'}</div>
+                                                                                                            <div style={{ fontSize: '0.73rem', color: '#94a3b8', fontWeight: 600, marginTop: '2px' }}>{entry.visit_date ? new Date(entry.visit_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'} - {entry.visit_type || 'Consultation'}</div>
+                                                                                                        </div>
+                                                                                                        {entry.is_locked && <span style={{ background: '#fef3c7', color: '#92400e', borderRadius: '6px', padding: '2px 8px', fontSize: '0.68rem', fontWeight: 800 }}>LOCKED</span>}
                                                                                                     </div>
-                                                                                                </td>
-                                                                                                <td style={{ padding: '1rem' }}>
-                                                                                                    <span style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569', padding: '0.25rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'capitalize' }}>
-                                                                                                        {(appt.visit_category || appt.visit_type || 'Consultation').replace('_', ' ')}
-                                                                                                    </span>
-                                                                                                </td>
-                                                                                                <td style={{ padding: '1rem' }}>
-                                                                                                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155' }}>
-                                                                                                        {appt.doctor_name || appt.attending_doctor || 'Clinic'}
+                                                                                                    {entry.chief_complaint && <div style={{ fontSize: '0.78rem', color: '#475569', marginBottom: '0.5rem' }}><strong>Chief Complaint:</strong> {entry.chief_complaint}</div>}
+                                                                                                    {entry.treatment && <div style={{ fontSize: '0.78rem', color: '#475569', marginBottom: '0.5rem' }}><strong>Treatment:</strong> {entry.treatment}</div>}
+                                                                                                    <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                                                                        {entry.weight && <span style={{ fontSize: '0.72rem', background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '2px 8px', fontWeight: 700 }}>{entry.weight} kg</span>}
+                                                                                                        {entry.height && <span style={{ fontSize: '0.72rem', background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '2px 8px', fontWeight: 700 }}>{entry.height} cm</span>}
                                                                                                     </div>
-                                                                                                </td>
-                                                                                                <td style={{ padding: '1rem' }}>
-                                                                                                    <span className={`status-chip-v3 ${String(appt.status || 'PENDING').toLowerCase()}`}>
-                                                                                                        {appt.status || 'PENDING'}
-                                                                                                    </span>
-                                                                                                </td>
-                                                                                            </tr>
-                                                                                        ))}
-                                                                                    </tbody>
-                                                                                </table>
-                                                                            </div>
+                                                                                                    {(entry.attachments || []).length > 0 && (
+                                                                                                        <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                                                                            {entry.attachments.map((att, attIdx) => (
+                                                                                                                <button key={attIdx} onClick={() => window.open(att.url, '_blank')} style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '4px 10px', fontSize: '0.72rem', fontWeight: 800, color: '#4338ca', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                                                                    <FileText size={11} /> {att.name || 'Document'}
+                                                                                                                </button>
+                                                                                                            ))}
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                                {comprehensiveData?.legacy?.pid && (comprehensiveData.legacy.child_history || []).length > 0 && (
+                                                                                    <div>
+                                                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                                                                                            <Baby size={15} color="#f59e0b" />
+                                                                                            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b' }}>Legacy Child History</span>
+                                                                                            <span style={{ background: '#fef3c7', color: '#92400e', borderRadius: '20px', padding: '1px 8px', fontSize: '0.7rem', fontWeight: 800 }}>{comprehensiveData.legacy.child_history.length}</span>
+                                                                                        </div>
+                                                                                        <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', maxHeight: '300px', overflowY: 'auto' }}>
+                                                                                            {comprehensiveData.legacy.child_history.map((h, hIdx) => (
+                                                                                                <div key={hIdx} style={{ padding: '0.85rem 1rem', borderBottom: '1px solid #f1f5f9' }}>
+                                                                                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                                                                        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#b45309', background: '#fef3c7', padding: '1px 6px', borderRadius: '4px' }}>{h.HistoryType || 'History'}</span>
+                                                                                                        <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 600 }}>{h.CreatedOn ? new Date(h.CreatedOn).toLocaleDateString('en-GB') : '—'}</span>
+                                                                                                    </div>
+                                                                                                    <div style={{ fontSize: '0.8rem', color: '#334155', fontWeight: 600, marginTop: '0.4rem', lineHeight: 1.5 }}>{h.History}</div>
+                                                                                                    {h.AddInfo && <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.25rem' }}>{h.AddInfo}</div>}
+                                                                                                </div>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                            </>
                                                                         )}
                                                                     </div>
                                                                 ) : null}

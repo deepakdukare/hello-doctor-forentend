@@ -23,7 +23,8 @@ import {
     Check,
     X,
     Loader2,
-    Menu
+    Menu,
+    Tent
 } from 'lucide-react';
 
 // Lazy load page components
@@ -45,6 +46,7 @@ const FeedbackReports = lazy(() => import('./pages/FeedbackReports'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const ImmunizationDashboard = lazy(() => import('./pages/ImmunizationDashboard'));
 const ReferringDoctors = lazy(() => import('./pages/ReferringDoctors'));
+const ScheduleCamp = lazy(() => import('./pages/ScheduleCamp'));
 import clinicLogo from './assets/logo.jpg';
 import { hasPermission, getUser, getToken } from './utils/auth';
 import { removeSalutation } from './utils/formatters';
@@ -93,6 +95,7 @@ const Sidebar = ({ onLogout, isCollapsed, isMobileMenuOpen, onMobileClose }) => 
                 { name: 'Doctors', path: '/doctors', icon: Stethoscope, permission: 'view_doctors' },
                 { name: 'Medical Records', path: '/mrd', icon: FileText, permission: 'view_mrd' },
                 { name: 'Immunization Intelligence', path: '/immunization', icon: Hash, permission: 'view_reports' },
+                { name: 'Schedule Camp', path: '/camps', icon: Tent, permission: 'view_reports' },
                 { name: 'Referral Network', path: '/referrals', icon: LinkIcon, permission: 'view_reports' },
                 { name: 'Reports & Analytics', path: '/analytics', icon: TrendingUp, permission: 'view_reports' },
                 { name: 'Feedback Hub', path: '/feedback', icon: MessageSquare, permission: 'view_feedback' },
@@ -465,6 +468,7 @@ const App = () => {
                                     <Route path="/admins" element={<ProtectedRoute permission="view_admins"><Admins /></ProtectedRoute>} />
                                     <Route path="/mrd" element={<ProtectedRoute permission="view_mrd"><MRD /></ProtectedRoute>} />
                                     <Route path="/immunization" element={<ProtectedRoute permission="view_reports"><ImmunizationDashboard /></ProtectedRoute>} />
+                                    <Route path="/camps" element={<ProtectedRoute permission="view_reports"><ScheduleCamp /></ProtectedRoute>} />
                                     <Route path="/referrals" element={<ProtectedRoute permission="view_reports"><ReferringDoctors /></ProtectedRoute>} />
                                     <Route path="/queue" element={<ProtectedRoute permission="view_queue"><QueueDisplay /></ProtectedRoute>} />
                                     <Route path="/reports" element={<Navigate to="/analytics" replace />} />

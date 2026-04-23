@@ -190,6 +190,27 @@ export const lockMRDEntry = (id, data) => api.patch(`/mrd/entry/${id}/lock`, dat
 export const uploadMRDAttachment = (id, data) => api.post(`/mrd/entry/${id}/attachment`, data);
 export const sendPrescriptionViaWhatsApp = (id) => api.post(`/mrd/entry/${id}/send-whatsapp`);
 
+// Comprehensive Patient Profile (appointments + MRD + legacy prescriptions/vaccinations)
+export const getComprehensiveProfile = (patientId) => api.get(`/patients/${patientId}/comprehensive`);
+
+// Camps (Schedule Camp)
+export const getCamps = (params) => api.get('/camps', { params });
+export const getCampById = (id) => api.get(`/camps/${id}`);
+export const getCampStats = () => api.get('/camps/stats');
+export const createCamp = (data) => api.post('/camps', data);
+export const updateCamp = (id, data) => api.patch(`/camps/${id}`, data);
+export const updateCampStatus = (id, status) => api.patch(`/camps/${id}/status`, { status });
+export const deleteCamp = (id) => api.delete(`/camps/${id}`);
+
+// Vaccinations
+export const getVaccinations = (params) => api.get('/vaccinations', { params });
+export const getVaccinationById = (id) => api.get(`/vaccinations/${id}`);
+export const createVaccination = (data) => api.post('/vaccinations', data);
+export const updateVaccination = (id, data) => api.put(`/vaccinations/${id}`, data);
+export const deleteVaccination = (id) => api.delete(`/vaccinations/${id}`);
+
+
+
 // System
 export const getSystemHealth = () => api.get('/system/health');
 export const getConfig = () => api.get('/config');

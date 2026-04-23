@@ -508,28 +508,28 @@ const PublicRegister = () => {
                             <div className="pf-welcome-banner">
                                 <span className="pf-welcome-pill">Welcome</span>
                                 <h2 className="pf-welcome-title">Happy Smiles,<br />Healthy Kids</h2>
-                                <p className="pf-welcome-sub">Compassionate medical care for your little wonders.</p>
-                                <span className="pf-welcome-icon">👶</span>
+                                <p className="pf-welcome-sub">Compassionate medical care<br />for your little wonders.</p>
+                                <Baby className="pf-welcome-icon-svg" />
                             </div>
 
                             {/* 3 Action Cards (2-col mobile / 3-col desktop) */}
                             <div className="pf-top-cards">
                                 <button className="pf-action-card" onClick={() => { setIsNewPatient(true); setStep(1); }}>
-                                    <div className="pf-card-icon pf-icon-teal"><UserPlus size={22} /></div>
+                                    <div className="pf-card-icon pf-icon-teal"><UserPlus size={34} strokeWidth={1.5} /></div>
                                     <span className="pf-card-label">New<br />Registration</span>
                                 </button>
                                 <button className="pf-action-card" onClick={() => {
                                     setActiveInput(prev => prev === 'book' ? null : 'book');
                                     setTimeout(() => document.getElementById('pf-book-input')?.focus(), 50);
                                 }}>
-                                    <div className="pf-card-icon pf-icon-pink"><Calendar size={22} /></div>
+                                    <div className="pf-card-icon pf-icon-pink"><Calendar size={34} strokeWidth={1.5} /></div>
                                     <span className="pf-card-label">Book<br />Appointment</span>
                                 </button>
                                 <button className="pf-action-card pf-reschedule-tile" onClick={() => {
                                     setActiveInput(prev => prev === 'reschedule' ? null : 'reschedule');
                                     setTimeout(() => document.getElementById('pf-reschedule-input')?.focus(), 50);
                                 }}>
-                                    <div className="pf-card-icon pf-icon-orange"><CalendarClock size={22} /></div>
+                                    <div className="pf-card-icon pf-icon-orange"><CalendarClock size={34} strokeWidth={1.5} /></div>
                                     <span className="pf-card-label">Reschedule<br />Visit</span>
                                 </button>
                             </div>

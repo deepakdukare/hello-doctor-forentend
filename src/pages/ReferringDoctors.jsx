@@ -173,7 +173,7 @@ const ReferringDoctors = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
     const [newDoctor, setNewDoctor] = useState({
-        name: '', specialization: '', clinic_name: '', phone: '', email: '', address: ''
+        name: '', speciality: '', clinic_name: '', mobile: '', email: '', address: ''
     });
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -218,8 +218,8 @@ const ReferringDoctors = () => {
     };
 
     const filteredDoctors = doctors.filter(doc =>
-        doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        doc.specialization?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        doc.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        doc.speciality?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         doc.clinic_name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -401,14 +401,14 @@ const ReferringDoctors = () => {
                                             <td>
                                                 <span className="rd-spec-badge">
                                                     <Stethoscope size={12} />
-                                                    {doc.specialization || 'General Practitioner'}
+                                                    {doc.speciality || 'General Practitioner'}
                                                 </span>
                                             </td>
                                             {/* Contact */}
                                             <td>
                                                 <div className="rd-contact-line">
                                                     <Phone size={12} color="#94a3b8" />
-                                                    {doc.phone || 'N/A'}
+                                                    {doc.mobile || 'N/A'}
                                                 </div>
                                                 <div className="rd-contact-line" style={{ marginBottom: 0 }}>
                                                     <Mail size={12} color="#94a3b8" />
@@ -488,8 +488,8 @@ const ReferringDoctors = () => {
                                             className="rd-input"
                                             type="text"
                                             placeholder="Pediatrician"
-                                            value={newDoctor.specialization}
-                                            onChange={e => setNewDoctor({ ...newDoctor, specialization: e.target.value })}
+                                            value={newDoctor.speciality}
+                                            onChange={e => setNewDoctor({ ...newDoctor, speciality: e.target.value })}
                                         />
                                     </div>
                                     <div className="rd-form-group">
@@ -511,8 +511,8 @@ const ReferringDoctors = () => {
                                             className="rd-input"
                                             type="tel"
                                             placeholder="+91 98765 43210"
-                                            value={newDoctor.phone}
-                                            onChange={e => setNewDoctor({ ...newDoctor, phone: e.target.value })}
+                                            value={newDoctor.mobile}
+                                            onChange={e => setNewDoctor({ ...newDoctor, mobile: e.target.value })}
                                         />
                                     </div>
                                     <div className="rd-form-group">
