@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const REMOTE_API_BASE_URL = 'https://api-dr-indu-child-care.brahmaastra.ai/api';
+const REMOTE_API_BASE_URL = 'https://api-vfbnzo4maa-uc.a.run.app/api';
 let API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : REMOTE_API_BASE_URL);
 if (API_BASE_URL.endsWith('/')) {
     API_BASE_URL = API_BASE_URL.slice(0, -1);
