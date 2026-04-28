@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@ant-design/icons": "^6.2.2",
     "@vitejs/plugin-react": "^5.1.4",
     "axios": "^1.13.5",
     "lucide-react": "^0.574.0",
