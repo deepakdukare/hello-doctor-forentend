@@ -2,7 +2,7 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "https://api-dr-indu-child-care.brahmaastra.ai/api/$1"
+            "destination": "https://api-vfbnzo4maa-uc.a.run.app/api/$1"
         },
         {
             "source": "/(.*)",

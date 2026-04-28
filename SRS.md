@@ -84,7 +84,7 @@ The system is built using modern web technologies (**React + Vite**) and communi
 - Optimized "Clinic Display" mode for large screens.
 
 #### 4.2 Software Interfaces
-- **API**: Communicates with the backend at `https://api-dr-indu-child-care.brahmaastra.ai/api`.
+- **API**: Communicates with the backend at `https://api-vfbnzo4maa-uc.a.run.app`.
 - **Vite**: Frontend build tool and development server.
 - **React Router**: For client-side navigation.
 
