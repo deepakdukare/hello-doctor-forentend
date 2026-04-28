@@ -79,8 +79,8 @@ const FeedbackForm = ({ appointmentId = null, onComplete = null }) => {
                     <div className="feedback-branding">
                         <img src={clinicIcon} alt="Logo" className="feedback-logo-mini" />
                         <div className="feedback-branding-text">
-                            <span className="feedback-brand-main">DR. INDU'S NEW BORN</span>
-                            <span className="feedback-brand-sub">CHILDCARE CENTER</span>
+                            <span className="feedback-brand-main" style={{ color: '#0d7f6e', fontWeight: 900, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>PediPulse</span>
+                            <span className="feedback-brand-sub" style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pediatric Care</span>
                         </div>
                     </div>
                     <h2 style={{ fontSize: '1.75rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#1e293b' }}>
