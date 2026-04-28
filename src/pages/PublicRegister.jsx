@@ -478,6 +478,16 @@ const PublicRegister = () => {
                     <section className="pf-hero-section">
                         <div className="pf-hero-overlay" />
                         <div className="pf-hero-content">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginBottom: '0.75rem', filter: 'drop-shadow(0px 8px 16px rgba(13, 127, 110, 0.3))' }}>
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="url(#heroHeartGrad)" />
+                                <path d="M4 11h2.5l1.5-4 2 9 1.5-7 1.5 5 1-3h3.5" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                <defs>
+                                    <linearGradient id="heroHeartGrad" x1="2" y1="3" x2="22" y2="21.35" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stopColor="#0d7f6e" />
+                                        <stop offset="100%" stopColor="#14b8a6" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
                             <h1 className="pf-hero-title">PediPulse</h1>
                             <p className="pf-hero-sub">Pediatric Care Portal</p>
                             <button
