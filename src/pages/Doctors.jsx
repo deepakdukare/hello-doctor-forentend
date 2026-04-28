@@ -69,7 +69,7 @@ const getStatusColor = (status) => {
         case 'PRESENT': return { color: '#059669', bg: '#ecfdf5' };
         case 'LATE': return { color: '#d97706', bg: '#fffbeb' };
         case 'ABSENT': return { color: '#dc2626', bg: '#fef2f2' };
-        case 'ON_LEAVE': return { color: '#4f46e5', bg: '#f5f3ff' };
+        case 'ON_LEAVE': return { color: '#0d7f6e', bg: '#f4fdfa' };
         default: return { color: '#475569', bg: '#f1f5f9' };
     }
 };
@@ -618,7 +618,7 @@ const Doctors = () => {
                             <div style={{ padding: '1.25rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'center' }}>
                                 <button 
                                     className="d-btn d-btn-outline" 
-                                    style={{ width: '100%', borderColor: '#6366f1', color: '#6366f1' }}
+                                    style={{ width: '100%', borderColor: '#0d7f6e', color: '#0d7f6e' }}
                                     onClick={() => {
                                         if (editingId) {
                                             runAvailabilityAction(() => notifyPatientsOfTime({ doctor_id: editingId }), 'Patient notifications triggered').then(() => showToast('All waiting patients have been notified of their current slots'));

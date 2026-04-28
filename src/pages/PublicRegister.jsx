@@ -951,8 +951,8 @@ const PublicRegister = () => {
                                                     <ArrowLeft size={20} />
                                                     <span>Back</span>
                                                 </button>
-                                                <div className="p-badge-v4" style={{ background: '#f8fafc', padding: '6px 16px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #eef2ff' }}>
-                                                    <div className="p-avatar-v4" style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}><User size={18} /></div>
+                                                <div className="p-badge-v4" style={{ background: '#f8fafc', padding: '6px 16px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '10px', border: '1.5px solid #f4fdfa' }}>
+                                                    <div className="p-avatar-v4" style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0d7f6e', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}><User size={18} /></div>
                                                     <div className="p-meta-v4" style={{ display: 'flex', flexDirection: 'column' }}>
                                                         <strong style={{ fontSize: '13px', color: '#1e293b' }}>{removeSalutation(registeredPatient?.child_name) || patientForm.first_name}</strong>
                                                         <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 600 }}>ID: {registeredPatient?.patient_id || 'New Record'}</span>
@@ -1004,14 +1004,14 @@ const PublicRegister = () => {
                                                                 </div>
                                                             ) : (
                                                                 <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '1rem', marginTop: '1.5rem' }}>
-                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', justifyContent: 'space-between', background: '#f8faff', padding: '12px 16px', borderRadius: '14px', border: '1.5px solid #eef2ff' }}>
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', justifyContent: 'space-between', background: '#f8faff', padding: '12px 16px', borderRadius: '14px', border: '1.5px solid #f4fdfa' }}>
                                                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                                                            <span style={{ fontSize: '10px', fontWeight: 800, color: '#6366f1', textTransform: 'uppercase' }}>Next Online Token</span>
+                                                                            <span style={{ fontSize: '10px', fontWeight: 800, color: '#0d7f6e', textTransform: 'uppercase' }}>Next Online Token</span>
                                                                             <span style={{ fontSize: '28px', fontWeight: 950, color: '#1e293b' }}>#{availableTokens.online_next_token ?? '--'}</span>
                                                                         </div>
                                                                         <div style={{ textAlign: 'right' }}>
                                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#1e293b', fontWeight: 800, justifyContent: 'flex-end' }}>
-                                                                                <Clock size={16} color="#6366f1" />
+                                                                                <Clock size={16} color="#0d7f6e" />
                                                                                 <span>{availableTokens.start_time || '--:--'}</span>
                                                                             </div>
                                                                             <p style={{ fontSize: '10px', color: '#94a3b8', margin: 0, fontWeight: 600 }}>Estimated arrival time</p>
@@ -1136,7 +1136,7 @@ const PublicRegister = () => {
                                                                 setStep(2);
                                                             }}
                                                         >
-                                                            <div style={{ background: '#f0f4ff', color: '#4f46e5', width: '56px', height: '56px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                            <div style={{ background: '#f0f4ff', color: '#0d7f6e', width: '56px', height: '56px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                                                 <CalendarClock size={28} />
                                                             </div>
                                                             <div style={{ flex: 1 }}>
@@ -1150,7 +1150,7 @@ const PublicRegister = () => {
                                                                     with {appt.doctor_name || 'Clinic Clinician'}
                                                                 </p>
                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-                                                                    <div style={{ fontSize: '12px', fontWeight: 800, color: '#4f46e5', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                    <div style={{ fontSize: '12px', fontWeight: 800, color: '#0d7f6e', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                                         <span>Tap to reschedule</span>
                                                                         <ChevronRight size={14} />
                                                                     </div>
@@ -1184,14 +1184,14 @@ const PublicRegister = () => {
                                                     }
                                                 </p>
                                                 
-                                                <div style={{ background: '#f8faff', borderRadius: '20px', padding: '1.5rem', textAlign: 'left', marginBottom: '2.5rem', border: '1.5px solid #eef2ff' }}>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', borderBottom: '1px solid #eef2ff', paddingBottom: '14px' }}>
+                                                <div style={{ background: '#f8faff', borderRadius: '20px', padding: '1.5rem', textAlign: 'left', marginBottom: '2.5rem', border: '1.5px solid #f4fdfa' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', borderBottom: '1px solid #f4fdfa', paddingBottom: '14px' }}>
                                                         <span style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Patient</span>
                                                         <span style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>{removeSalutation(registeredPatient?.child_name || registeredPatient?.first_name || 'Patient')}</span>
                                                     </div>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', borderBottom: '1px solid #eef2ff', paddingBottom: '14px' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '14px', borderBottom: '1px solid #f4fdfa', paddingBottom: '14px' }}>
                                                         <span style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Token ID</span>
-                                                        <span style={{ fontSize: '15px', fontWeight: 950, color: '#6366f1' }}>{registeredPatient?.token_display || registeredPatient?.token_number || 'T-RESERVED'}</span>
+                                                        <span style={{ fontSize: '15px', fontWeight: 950, color: '#0d7f6e' }}>{registeredPatient?.token_display || registeredPatient?.token_number || 'T-RESERVED'}</span>
                                                     </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                                         <span style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Patient ID</span>

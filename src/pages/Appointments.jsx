@@ -162,7 +162,7 @@ const InlineCalendar = ({ value, onChange }) => {
                                 key={`d-${d}`}
                                 onClick={(e) => handleDayClick(e, d)}
                                 style={{
-                                    background: isSelected ? '#6366f1' : 'none',
+                                    background: isSelected ? '#0d7f6e' : 'none',
                                     border: 'none',
                                     color: isSelected ? '#fff' : '#1e293b',
                                     fontSize: '14px',
@@ -188,7 +188,7 @@ const InlineCalendar = ({ value, onChange }) => {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', padding: '0 8px' }}>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: '#94a3b8' }}>Selected Date:</span>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#6366f1' }}>{selectedDate.toLocaleString('default', { month: 'long', day: '2-digit', year: 'numeric' })}</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#0d7f6e' }}>{selectedDate.toLocaleString('default', { month: 'long', day: '2-digit', year: 'numeric' })}</span>
             </div>
         </div>
     );
@@ -619,7 +619,7 @@ const Appointments = () => {
                         title="Today's Appointments" 
                         value={appointments.length} 
                         icon={Users} 
-                        color="#6366f1" 
+                        color="#0d7f6e" 
                         loading={loading} 
                         trend={trends.load} 
                     />
@@ -682,9 +682,9 @@ const Appointments = () => {
                                     onClick={() => setFilters(f => ({ ...f, showAll: !f.showAll, date: f.showAll ? toIsoDate() : f.date }))}
                                     style={{
                                         height: '42px', borderRadius: '10px', padding: '0 14px',
-                                        border: filters.showAll ? '1.5px solid #6366f1' : '1px solid #e5e7eb',
-                                        background: filters.showAll ? '#ede9fe' : '#fff',
-                                        color: filters.showAll ? '#6366f1' : '#64748b',
+                                        border: filters.showAll ? '1.5px solid #0d7f6e' : '1px solid #e5e7eb',
+                                        background: filters.showAll ? '#f4fdfa' : '#fff',
+                                        color: filters.showAll ? '#0d7f6e' : '#64748b',
                                         fontWeight: 800, fontSize: '13px', cursor: 'pointer',
                                         display: 'flex', alignItems: 'center', gap: '6px',
                                         boxShadow: '0 1px 2px rgba(0,0,0,0.05)', whiteSpace: 'nowrap'
@@ -738,7 +738,7 @@ const Appointments = () => {
 
                         <div className="repository-card-v3">
                             {filters.showAll && (
-                                <div style={{ padding: '0.5rem 1rem', background: '#ede9fe', borderRadius: '10px', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', fontWeight: 700, color: '#6366f1' }}>
+                                <div style={{ padding: '0.5rem 1rem', background: '#f4fdfa', borderRadius: '10px', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', fontWeight: 700, color: '#0d7f6e' }}>
                                     <CalendarIcon size={14} />
                                     Showing all {appointments.length} appointments across all dates
                                 </div>
@@ -747,7 +747,7 @@ const Appointments = () => {
                                 <table className="main-table-v3" style={{ width: '100%', borderCollapse: 'collapse', borderSpacing: 0, textAlign: 'left', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', backgroundColor: '#fff' }}>
                                     <thead>
                                         <tr style={{ backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0' }}>
-                                            {filters.showAll && <th style={{ padding: '16px 14px', fontSize: '12px', fontWeight: 800, color: '#6366f1', textTransform: 'uppercase', background: '#f5f3ff' }}>Date</th>}
+                                            {filters.showAll && <th style={{ padding: '16px 14px', fontSize: '12px', fontWeight: 800, color: '#0d7f6e', textTransform: 'uppercase', background: '#f4fdfa' }}>Date</th>}
                                             <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Doctor</th>
                                             <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Token</th>
                                             <th style={{ padding: '16px 20px', fontSize: '12px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Patient ID</th>
@@ -785,8 +785,8 @@ const Appointments = () => {
                                             <React.Fragment key={appt.appointment_id || idx}>
                                                 {filters.showAll ? (
                                                     <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                        <td style={{ padding: '0 0 0 14px', background: '#f5f3ff', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
-                                                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#6366f1', background: '#ede9fe', borderRadius: '6px', padding: '3px 8px', display: 'inline-block' }}>
+                                                        <td style={{ padding: '0 0 0 14px', background: '#f4fdfa', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                                                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0d7f6e', background: '#f4fdfa', borderRadius: '6px', padding: '3px 8px', display: 'inline-block' }}>
                                                                 {formatCompactDate(appt.appointment_date || appt.formatted_date)}
                                                             </span>
                                                         </td>
@@ -873,8 +873,8 @@ const Appointments = () => {
                                                     onClick={() => setPage(p)}
                                                     style={{
                                                         width: '36px', height: '36px', borderRadius: '8px',
-                                                        border: isActive ? '1.5px solid #6366f1' : '1px solid #e2e8f0',
-                                                        background: isActive ? '#6366f1' : '#fff',
+                                                        border: isActive ? '1.5px solid #0d7f6e' : '1px solid #e2e8f0',
+                                                        background: isActive ? '#0d7f6e' : '#fff',
                                                         color: isActive ? '#fff' : '#334155',
                                                         fontWeight: isActive ? 800 : 600, fontSize: '13px',
                                                         cursor: 'pointer', transition: 'all 0.15s'
@@ -922,7 +922,7 @@ const Appointments = () => {
                     <div className="reg-form-clean" style={{ maxWidth: '100%', background: '#fff', padding: '2rem', borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.04)', height: 'fit-content' }}>
                         <div className="reg-unified-header">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div className="modal-header-icon-container" style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', padding: '10px', borderRadius: '12px' }}>
+                                <div className="modal-header-icon-container" style={{ background: 'linear-gradient(135deg, #0d7f6e, #0d7f6e)', padding: '10px', borderRadius: '12px' }}>
                                     <CalendarClock size={24} color="#fff" />
                                 </div>
                                 <div>
@@ -963,7 +963,7 @@ const Appointments = () => {
                                         </div>
                                     </div>
 
-                                    {searching && <div style={{ fontSize: '11px', color: '#6366f1', fontWeight: 800, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '12px 0' }}>Updating Registry View...</div>}
+                                    {searching && <div style={{ fontSize: '11px', color: '#0d7f6e', fontWeight: 800, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '12px 0' }}>Updating Registry View...</div>}
 
                                     <div className="search-results-premium" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem', maxHeight: '400px', overflowY: 'auto', padding: '4px' }}>
                                         {searchResults.map(p => {
@@ -994,7 +994,7 @@ const Appointments = () => {
                                                             ID: {p.patient_id} <span style={{ color: '#cbd5e1', margin: '0 4px' }}>|</span> {p.parent_mobile || 'No Mobile'}
                                                         </span>
                                                     </div>
-                                                    <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '50%', color: '#6366f1' }}>
+                                                    <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '50%', color: '#0d7f6e' }}>
                                                         <ArrowRight size={16} />
                                                     </div>
                                                 </div>
@@ -1022,14 +1022,14 @@ const Appointments = () => {
                                 </div>
                             ) : (
                                 <form onSubmit={handleFormSubmit} className="reg-form" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                    <div style={{ border: '1.5px solid #eef2ff', borderRadius: '20px', background: '#f8faff', padding: '1rem 1.25rem' }}>
+                                    <div style={{ border: '1.5px solid #f4fdfa', borderRadius: '20px', background: '#f8faff', padding: '1rem 1.25rem' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.12)' }}>
+                                                <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0d7f6e', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.12)' }}>
                                                     <Baby size={22} />
                                                 </div>
                                                 <div>
-                                                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Selected Patient</span>
+                                                    <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#0d7f6e', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Selected Patient</span>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                         <span style={{ fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>{removeSalutation(selectedPatient?.child_name)}</span>
                                                         <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>• ID: {selectedPatient?.patient_id}</span>
@@ -1037,7 +1037,7 @@ const Appointments = () => {
                                                 </div>
                                             </div>
                                             {!editMode && (
-                                                <button type="button" onClick={() => setActiveTab('patient')} style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#fff', border: '1.5px solid #eef2ff', padding: '6px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 800, color: '#4f46e5', cursor: 'pointer', transition: 'all 0.2s' }}>
+                                                <button type="button" onClick={() => setActiveTab('patient')} style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#fff', border: '1.5px solid #f4fdfa', padding: '6px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 800, color: '#0d7f6e', cursor: 'pointer', transition: 'all 0.2s' }}>
                                                     <Edit2 size={12} />
                                                     <span>Change</span>
                                                 </button>
@@ -1108,7 +1108,7 @@ const Appointments = () => {
                                                         </div>
                                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'right' }}>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#64748b', fontWeight: 700, justifyContent: 'flex-end' }}>
-                                                                <Clock size={16} color="#6366f1" />
+                                                                <Clock size={16} color="#0d7f6e" />
                                                                 <span>Estimated Time: {availableTokens.start_time || '--:--'}</span>
                                                             </div>
                                                             <p style={{ fontSize: '11px', color: '#94a3b8', margin: 0, fontWeight: 500 }}>Subject to clinic flow on visit day</p>

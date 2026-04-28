@@ -9,7 +9,7 @@ const PatientExpansion = ({ patient: p, onPhotoUpload }) => {
                     <div className="expansion-grid">
                         <div className="expansion-card" style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
                             <div className="avatar-preview-box">
-                                <div className="large-avatar-premium" style={{ width: '100px', height: '100px', borderRadius: '24px', background: '#f8fafc', overflow: 'hidden', border: '2px solid #eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <div className="large-avatar-premium" style={{ width: '100px', height: '100px', borderRadius: '24px', background: '#f8fafc', overflow: 'hidden', border: '2px solid #f4fdfa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     {p.patient_photo ? (
                                         <img src={p.patient_photo} alt="Patient" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     ) : (
@@ -51,7 +51,7 @@ const PatientExpansion = ({ patient: p, onPhotoUpload }) => {
                     </div>
                     {p.remarks && (
                         <div key="remarks" style={{ display: 'flex', gap: '0.75rem', padding: '1rem', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                            <FileText size={18} color="#6366f1" style={{ flexShrink: 0 }} />
+                            <FileText size={18} color="#0d7f6e" style={{ flexShrink: 0 }} />
                             <div>
                                 <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Clinical Note / Remarks</div>
                                 <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.9rem', color: '#475569', fontWeight: 600, lineHeight: 1.5 }}>{p.remarks}</p>

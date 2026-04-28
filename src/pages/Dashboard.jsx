@@ -221,7 +221,7 @@ const Dashboard = () => {
                 </div>
                 <div className="header-right-v4">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '6px 14px', height: '42px' }}>
-                        <Calendar size={16} style={{ color: '#6366f1', flexShrink: 0 }} />
+                        <Calendar size={16} style={{ color: '#0d7f6e', flexShrink: 0 }} />
                         <input
                             type="date"
                             value={selectedDate}
@@ -248,7 +248,7 @@ const Dashboard = () => {
             )}
 
             <div className="stats-grid-v4" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '24px' }}>
-                {hasPermission('view_patients') && <StatCard title="Total Patients" value={data.stats.totalPatients} icon={Users} color="#6366f1" loading={loading} trend={data.trends.totalPatients} />}
+                {hasPermission('view_patients') && <StatCard title="Total Patients" value={data.stats.totalPatients} icon={Users} color="#0d7f6e" loading={loading} trend={data.trends.totalPatients} />}
                 {hasPermission('view_appointments') && <StatCard title="Today's Visits" value={data.stats.todayVisits} icon={Calendar} color="#f59e0b" loading={loading} trend={data.trends.todayVisits} />}
                 <StatCard title="Completed" value={data.stats.completed} icon={CheckCircle} color="#10b981" loading={loading} trend={data.trends.completed} />
                 <StatCard title="Pending" value={data.stats.pending} icon={Clock} color="#ef4444" loading={loading} trend={data.trends.pending} />
@@ -341,7 +341,7 @@ const Dashboard = () => {
                     <div className="sidebar-card-v3">
                         <h4>Quick Actions</h4>
                         <div className="action-stack-v3">
-                            {hasPermission('view_patients') && <QuickAction label="Enroll Patient" description="Add new medical profile" icon="👶" to="/patients" color="#6366f1" />}
+                            {hasPermission('view_patients') && <QuickAction label="Enroll Patient" description="Add new medical profile" icon="👶" to="/patients" color="#0d7f6e" />}
                             {hasPermission('view_appointments') && <QuickAction label="Book Appointment" description="Schedule a visit slot" icon="📅" to="/appointments" color="#0ea5e9" />}
                             {hasPermission('view_mrd') && <QuickAction label="Medical Records" description="Access patient history" icon="🗂️" to="/mrd" color="#10b981" />}
                         </div>
@@ -358,7 +358,7 @@ const Dashboard = () => {
                                     title="Bot Interactions"
                                     status={`${data.botInteractions} new unregistered inquiries`}
                                     icon={MessageSquare}
-                                    color="#6366f1"
+                                    color="#0d7f6e"
                                     badge={data.botInteractions > 0 ? data.botInteractions : null}
                                 />
                             )}

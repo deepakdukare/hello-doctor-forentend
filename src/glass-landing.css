@@ -136,7 +136,7 @@
 .glass-card-icon {
     width: 48px;
     height: 48px;
-    background: #eef2ff;
+    background: #f4fdfa;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -145,7 +145,7 @@
 }
 
 .glass-card-icon svg {
-    color: #4f46e5;
+    color: #0d7f6e;
     width: 24px;
     height: 24px;
 }
@@ -322,8 +322,8 @@
 }
 
 .reg-gender-card.selected {
-    background: #eef2ff;
-    border-color: #4f46e5;
+    background: #f4fdfa;
+    border-color: #0d7f6e;
 }
 
 .reg-gender-avatar {
@@ -347,7 +347,7 @@
 }
 
 .reg-gender-card.selected .reg-gender-label {
-    color: #4f46e5;
+    color: #0d7f6e;
 }
 
 /* Fields & Inputs */
@@ -379,7 +379,7 @@
 
 .reg-input:focus {
     outline: none;
-    border-color: #4f46e5;
+    border-color: #0d7f6e;
     background: #fff;
 }
 
@@ -461,7 +461,7 @@
 }
 
 .reg-doctor-card.selected {
-    border-color: #4f46e5;
+    border-color: #0d7f6e;
     background: #eff6ff;
 }
 
@@ -513,7 +513,7 @@
 .reg-submit-btn {
     width: 100%;
     max-width: 500px;
-    background: #4f46e5;
+    background: #0d7f6e;
     color: #fff;
     border: none;
     border-radius: 12px;
@@ -529,7 +529,7 @@
 }
 
 .reg-submit-btn:hover {
-    background: #4338ca;
+    background: #064e3b;
 }
 
 .reg-submit-btn:active {

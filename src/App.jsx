@@ -241,7 +241,7 @@ const Header = ({ onMenuClick }) => {
                     </button>
 
                     <div className="mobile-hide header-bell-container" onClick={() => setIsNotifOpen(!isNotifOpen)} style={{ position: 'relative', cursor: 'pointer' }}>
-                        <Bell size={22} color={isNotifOpen ? "#6366f1" : "#64748b"} />
+                        <Bell size={22} color={isNotifOpen ? "#0d7f6e" : "#64748b"} />
                         {unreadCount > 0 && <span className="header-bell-dot">{unreadCount}</span>}
                         <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
                     </div>

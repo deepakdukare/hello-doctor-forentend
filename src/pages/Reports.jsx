@@ -133,14 +133,14 @@ const Reports = () => {
                     <option value="">All Statuses</option>
                     {['CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'].map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
-                <button onClick={fetchReports} style={{ padding: '0.5rem 1rem', borderRadius: '10px', background: '#6366f1', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>Apply</button>
+                <button onClick={fetchReports} style={{ padding: '0.5rem 1rem', borderRadius: '10px', background: '#0d7f6e', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}>Apply</button>
             </div>
 
             {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '0.85rem 1.25rem', marginBottom: '1rem', color: '#dc2626', display: 'flex', gap: '0.75rem', alignItems: 'center' }}><AlertCircle size={18} />{error}</div>}
 
             <div className="stats-grid-v4 grid-6" style={{ marginBottom: '24px' }}>
                 {[
-                    { title: "Total Appointments", value: overview?.total_appointments ?? total, icon: Calendar, color: "#6366f1" },
+                    { title: "Total Appointments", value: overview?.total_appointments ?? total, icon: Calendar, color: "#0d7f6e" },
                     { title: "Completed", value: overview?.completed ?? completed, icon: CheckCircle2, color: "#10b981" },
                     { title: "Cancelled", value: overview?.cancelled ?? appointments.filter(a => a.status === 'CANCELLED').length, icon: XCircle, color: "#ef4444" },
                     { title: "No Shows", value: overview?.no_show ?? appointments.filter(a => a.status === 'NO_SHOW').length, icon: Clock, color: "#f59e0b" },

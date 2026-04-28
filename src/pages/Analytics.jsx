@@ -277,7 +277,7 @@ const Analytics = () => {
 
             <div className="stats-grid-v4 grid-6" style={{ marginBottom: '24px' }}>
                 {[
-                    { label: 'Total Appointments', value: displayMetrics.total, icon: Calendar, color: '#4f46e5' },
+                    { label: 'Total Appointments', value: displayMetrics.total, icon: Calendar, color: '#0d7f6e' },
                     { label: 'Completed', value: displayMetrics.completed, icon: Users, color: '#10b981' },
                     { label: 'Cancelled', value: displayMetrics.cancelled, icon: Users, color: '#ef4444' },
                     { label: 'No Shows', value: displayMetrics.no_show, icon: FileText, color: '#f59e0b' },
@@ -355,7 +355,7 @@ const Analytics = () => {
                                     itemStyle={{ color: '#fff', fontWeight: 700 }}
                                     labelStyle={{ color: '#cbd5e1', fontSize: '10px', marginBottom: '4px' }}
                                     formatter={(val) => [val, 'Appointments']}
-                                    cursor={{ stroke: '#6366f1', strokeWidth: 1 }}
+                                    cursor={{ stroke: '#0d7f6e', strokeWidth: 1 }}
                                 />
                                 <Area
                                     type="monotone"
@@ -379,7 +379,7 @@ const Analytics = () => {
                             {(() => {
                                 const total = Math.max(Object.values(displayMetrics.categories).reduce((a, b) => a + b, 0), 1);
                                 let currentOffset = 0;
-                                const colors = ['#60a5fa', '#a855f7', '#6366f1', '#f43f5e', '#10b981', '#f59e0b'];
+                                const colors = ['#60a5fa', '#a855f7', '#0d7f6e', '#f43f5e', '#10b981', '#f59e0b'];
                                 return Object.entries(displayMetrics.categories).map(([name, count], idx) => {
                                     const percent = (count / total) * 100;
                                     const c = (
@@ -402,7 +402,7 @@ const Analytics = () => {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '2rem' }}>
                         {Object.entries(displayMetrics.categories).map(([name, count], idx) => {
-                            const colors = ['#60a5fa', '#a855f7', '#6366f1', '#f43f5e', '#10b981', '#f59e0b'];
+                            const colors = ['#60a5fa', '#a855f7', '#0d7f6e', '#f43f5e', '#10b981', '#f59e0b'];
                             return (
                                 <div key={idx} style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', fontSize: '13px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -432,7 +432,7 @@ const Analytics = () => {
                                     <div 
                                         style={{ 
                                             height: '100%', 
-                                            background: 'linear-gradient(90deg, #6366f1, #a855f7)', 
+                                            background: 'linear-gradient(90deg, #0d7f6e, #a855f7)', 
                                             width: `${Math.min(100, (region.count / Math.max(insightData?.metrics?.total_patients || 1, demographics.regions.reduce((s, r) => s + (r.count || 0), 0) || 1)) * 100)}%`
                                         }} 
                                     />

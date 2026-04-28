@@ -12,7 +12,7 @@ const EMPTY_ENTRY = {
     symptoms: '', advice: '', attachments: []
 };
 
-const PALETTE = ['#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#f97316', '#ec4899'];
+const PALETTE = ['#0d7f6e', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#f97316', '#ec4899'];
 const avatarColor = (s = '') => PALETTE[s.charCodeAt(0) % PALETTE.length];
 const initials = (p) => {
     if (!p) return '?';
@@ -320,7 +320,7 @@ const MRD = () => {
                 <aside className="mrd-panel-v3 sidebar-panel">
                     {pendingCompletions.length > 0 && (
                         <div className="worklist-section">
-                            <div className="panel-label" style={{ color: '#6366f1', display: 'flex', justifyContent: 'space-between' }}>
+                            <div className="panel-label" style={{ color: '#0d7f6e', display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Pending clinical records</span>
                                 <span className="badge">{pendingCompletions.length}</span>
                             </div>
@@ -663,7 +663,7 @@ const MRD = () => {
                     <div className="modal-content-v3">
                         <header className="modal-header-v3">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <Clipboard size={24} color="#6366f1" />
+                                <Clipboard size={24} color="#0d7f6e" />
                                 <h3>New Clinical Entry</h3>
                             </div>
                             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>

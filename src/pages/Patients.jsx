@@ -509,7 +509,7 @@ const Patients = () => {
                                                         </td>
                                                     )}
                                                     <td>
-                                                        <div style={{ fontWeight: 800, color: '#6366f1', fontSize: '13px' }}>
+                                                        <div style={{ fontWeight: 800, color: '#0d7f6e', fontSize: '13px' }}>
                                                             {p.doctor || 'Dr. Indu Khosla'}
                                                         </div>
                                                     </td>
@@ -559,7 +559,7 @@ const Patients = () => {
                                                                                     finally { setComprehensiveLoading(false); }
                                                                                 }
                                                                             }}
-                                                                            style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === tab ? '#6366f1' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === tab ? '2px solid #6366f1' : '2px solid transparent', transition: '0.2s', whiteSpace: 'nowrap' }}
+                                                                            style={{ padding: '0.75rem 0.5rem', border: 'none', background: 'transparent', fontSize: '0.85rem', fontWeight: 800, color: patientTab === tab ? '#0d7f6e' : '#94a3b8', cursor: 'pointer', borderBottom: patientTab === tab ? '2px solid #0d7f6e' : '2px solid transparent', transition: '0.2s', whiteSpace: 'nowrap' }}
                                                                         >{label}</button>
                                                                     ))}
                                                                  </div>
@@ -600,7 +600,7 @@ const Patients = () => {
                                                                          </div>
                                                                          {p.remarks && (
                                                                              <div key="remarks" style={{ display: 'flex', gap: '0.75rem', padding: '1rem', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                                                                                 <FileText size={18} color="#6366f1" style={{ flexShrink: 0 }} />
+                                                                                 <FileText size={18} color="#0d7f6e" style={{ flexShrink: 0 }} />
                                                                                  <div>
                                                                                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Clinical Note / Remarks</div>
                                                                                      <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.9rem', color: '#475569', fontWeight: 600, lineHeight: 1.5 }}>{p.remarks}</p>
@@ -614,7 +614,7 @@ const Patients = () => {
                                                                             {/* Growth Tracking Section */}
                                                                             <div className="growth-tracking-section">
                                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
-                                                                                    <TrendingUp size={20} color="#6366f1" />
+                                                                                    <TrendingUp size={20} color="#0d7f6e" />
                                                                                     <h3 style={{ fontSize: '1rem', fontWeight: 850, color: '#1e293b', margin: 0 }}>Automated Growth Charts</h3>
                                                                                 </div>
                                                                                 <div className="growth-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
@@ -627,7 +627,7 @@ const Patients = () => {
                                                                                                     <XAxis dataKey="date" hide />
                                                                                                     <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
                                                                                                     <Tooltip />
-                                                                                                    <Line type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={3} dot={{ r: 4, fill: '#6366f1' }} activeDot={{ r: 6 }} />
+                                                                                                    <Line type="monotone" dataKey="value" stroke="#0d7f6e" strokeWidth={3} dot={{ r: 4, fill: '#0d7f6e' }} activeDot={{ r: 6 }} />
                                                                                                 </LineChart>
                                                                                             </ResponsiveContainer>
                                                                                         </div>
@@ -658,14 +658,14 @@ const Patients = () => {
                                                                             {/* Unified Timeline Section */}
                                                                             <div className="unified-timeline">
                                                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
-                                                                                    <Activity size={20} color="#6366f1" />
+                                                                                    <Activity size={20} color="#0d7f6e" />
                                                                                     <h3 style={{ fontSize: '1rem', fontWeight: 850, color: '#1e293b', margin: 0 }}>Vertical Patient Timeline</h3>
                                                                                 </div>
                                                                                 <div className="timeline-trail" style={{ position: 'relative', paddingLeft: '2rem', borderLeft: '2px dashed #e2e8f0', marginLeft: '0.5rem' }}>
                                                                                     {/* Start Point: Registration */}
                                                                                     <div style={{ position: 'relative', marginBottom: '2.5rem' }}>
-                                                                                        <div style={{ position: 'absolute', left: '-2.6rem', top: '0', background: '#6366f1', color: '#fff', padding: '6px', borderRadius: '50%' }}><CheckCircle2 size={12} /></div>
-                                                                                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#6366f1' }}>REGISTRATION ({new Date(p.registered_at || p.createdAt).getFullYear()})</div>
+                                                                                        <div style={{ position: 'absolute', left: '-2.6rem', top: '0', background: '#0d7f6e', color: '#fff', padding: '6px', borderRadius: '50%' }}><CheckCircle2 size={12} /></div>
+                                                                                        <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0d7f6e' }}>REGISTRATION ({new Date(p.registered_at || p.createdAt).getFullYear()})</div>
                                                                                         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>Enrolled via {p.registration_source || 'Dashboard'}</div>
                                                                                     </div>
 
@@ -708,7 +708,7 @@ const Patients = () => {
                                                                                             <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#94a3b8' }}>{new Date(doc.date).toLocaleDateString()} • {doc.diagnosis || 'Visit'}</div>
                                                                                             <button
                                                                                                 onClick={() => window.open(doc.url, '_blank')}
-                                                                                                style={{ marginTop: '1rem', width: '100%', padding: '0.5rem', background: '#f1f5f9', border: 'none', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 800, color: '#4338ca', cursor: 'pointer' }}
+                                                                                                style={{ marginTop: '1rem', width: '100%', padding: '0.5rem', background: '#f1f5f9', border: 'none', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 800, color: '#064e3b', cursor: 'pointer' }}
                                                                                             >
                                                                                                 View Original
                                                                                             </button>
@@ -721,14 +721,14 @@ const Patients = () => {
                                                                 ) : patientTab === 'history' ? (
                                                                     <div style={{ marginTop: '1.5rem', padding: '0 1rem 1rem' }}>
                                                                         {comprehensiveLoading ? (
-                                                                            <div style={{ padding: '4rem', textAlign: 'center' }}><RefreshCw size={24} className="animate-spin" color="#6366f1" /></div>
+                                                                            <div style={{ padding: '4rem', textAlign: 'center' }}><RefreshCw size={24} className="animate-spin" color="#0d7f6e" /></div>
                                                                         ) : (
                                                                             <>
                                                                                 <div style={{ marginBottom: '2rem' }}>
                                                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                                                                                        <CalendarIcon size={16} color="#6366f1" />
+                                                                                        <CalendarIcon size={16} color="#0d7f6e" />
                                                                                         <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>Clinic Appointments</span>
-                                                                                        <span style={{ background: '#ede9fe', color: '#6d28d9', borderRadius: '20px', padding: '1px 10px', fontSize: '0.72rem', fontWeight: 800 }}>{patientAppointments.length}</span>
+                                                                                        <span style={{ background: '#f4fdfa', color: '#6d28d9', borderRadius: '20px', padding: '1px 10px', fontSize: '0.72rem', fontWeight: 800 }}>{patientAppointments.length}</span>
                                                                                     </div>
                                                                                     {patientAppointments.length === 0 ? (
                                                                                         <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #e2e8f0' }}>
@@ -746,7 +746,7 @@ const Patients = () => {
                                                                                                 <tbody>
                                                                                                     {patientAppointments.map((appt, apptIdx) => (
                                                                                                         <tr key={appt._id || apptIdx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                                                                            <td style={{ padding: '0.85rem 1rem' }}><span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#6366f1', background: '#ede9fe', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>{appt.appointment_id || ('APT-' + String(apptIdx + 1).padStart(3,'0'))}</span></td>
+                                                                                                            <td style={{ padding: '0.85rem 1rem' }}><span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0d7f6e', background: '#f4fdfa', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>{appt.appointment_id || ('APT-' + String(apptIdx + 1).padStart(3,'0'))}</span></td>
                                                                                                             <td style={{ padding: '0.85rem 1rem' }}>
                                                                                                                 <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b' }}>{new Date(appt.appointment_date || appt.start_time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                                                                                                                 <div style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px' }}><Clock size={11} />{appt.appointment_time || '—'}</div>
@@ -821,9 +821,9 @@ const Patients = () => {
                                                                             <>
                                                                                 <div style={{ marginBottom: '2rem' }}>
                                                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                                                                                        <Stethoscope size={16} color="#6366f1" />
+                                                                                        <Stethoscope size={16} color="#0d7f6e" />
                                                                                         <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>Medical Record Entries (MRD)</span>
-                                                                                        <span style={{ background: '#ede9fe', color: '#6d28d9', borderRadius: '20px', padding: '1px 10px', fontSize: '0.72rem', fontWeight: 800 }}>{comprehensiveData?.mrd?.entries?.length || 0}</span>
+                                                                                        <span style={{ background: '#f4fdfa', color: '#6d28d9', borderRadius: '20px', padding: '1px 10px', fontSize: '0.72rem', fontWeight: 800 }}>{comprehensiveData?.mrd?.entries?.length || 0}</span>
                                                                                     </div>
                                                                                     {!(comprehensiveData?.mrd?.entries?.length) ? (
                                                                                         <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #e2e8f0' }}>
@@ -850,7 +850,7 @@ const Patients = () => {
                                                                                                     {(entry.attachments || []).length > 0 && (
                                                                                                         <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                                                                                             {entry.attachments.map((att, attIdx) => (
-                                                                                                                <button key={attIdx} onClick={() => window.open(att.url, '_blank')} style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '4px 10px', fontSize: '0.72rem', fontWeight: 800, color: '#4338ca', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                                                                <button key={attIdx} onClick={() => window.open(att.url, '_blank')} style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '4px 10px', fontSize: '0.72rem', fontWeight: 800, color: '#064e3b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                                                                                     <FileText size={11} /> {att.name || 'Document'}
                                                                                                                 </button>
                                                                                                             ))}
@@ -927,7 +927,7 @@ const Patients = () => {
                                             <span>Previous</span>
                                         </button>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '0 0.5rem' }}>
-                                            <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#6366f1' }}>{page}</span>
+                                            <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0d7f6e' }}>{page}</span>
                                             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#94a3b8' }}>/ {pagination.pages}</span>
                                         </div>
                                         <button className="pag-btn" onClick={() => setPage(p => Math.min(pagination.pages, p + 1))} disabled={page === pagination.pages} style={{ opacity: page === pagination.pages ? 0.5 : 1, cursor: page === pagination.pages ? 'not-allowed' : 'pointer' }}>

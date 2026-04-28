@@ -369,7 +369,7 @@ const Admins = () => {
             )}
 
             <div className="stats-grid-v4" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '24px' }}>
-                <StatCard title="Active Users" value={overview?.counts?.active_users} icon={Users} color="#6366f1" />
+                <StatCard title="Active Users" value={overview?.counts?.active_users} icon={Users} color="#0d7f6e" />
                 <StatCard title="Clinicians" value={overview?.counts?.doctors} icon={Shield} color="#0ea5e9" />
                 <StatCard title="Patients" value={overview?.counts?.patients} icon={User} color="#10b981" />
                 <StatCard title="Audit Logs" value={overview?.counts?.total_audit_logs} icon={Eye} color="#f59e0b" />
@@ -385,8 +385,8 @@ const Admins = () => {
                             padding: '1.5rem 2rem',
                             border: 'none',
                             background: activeSection === 'roles' ? '#fff' : '#fcfdfe',
-                            borderBottom: activeSection === 'roles' ? '3px solid #6366f1' : 'none',
-                            color: activeSection === 'roles' ? '#6366f1' : '#64748b',
+                            borderBottom: activeSection === 'roles' ? '3px solid #0d7f6e' : 'none',
+                            color: activeSection === 'roles' ? '#0d7f6e' : '#64748b',
                             fontWeight: activeSection === 'roles' ? 800 : 600,
                             fontSize: '1rem',
                             cursor: 'pointer',
@@ -413,8 +413,8 @@ const Admins = () => {
                             padding: '1.5rem 2rem',
                             border: 'none',
                             background: activeSection === 'account' ? '#fff' : '#fcfdfe',
-                            borderBottom: activeSection === 'account' ? '3px solid #6366f1' : 'none',
-                            color: activeSection === 'account' ? '#6366f1' : '#64748b',
+                            borderBottom: activeSection === 'account' ? '3px solid #0d7f6e' : 'none',
+                            color: activeSection === 'account' ? '#0d7f6e' : '#64748b',
                             fontWeight: activeSection === 'account' ? 800 : 600,
                             fontSize: '1rem',
                             cursor: 'pointer',
@@ -442,8 +442,8 @@ const Admins = () => {
                             padding: '1.5rem 2rem',
                             border: 'none',
                             background: activeSection === 'directory' ? '#fff' : '#fcfdfe',
-                            borderBottom: activeSection === 'directory' ? '3px solid #6366f1' : 'none',
-                            color: activeSection === 'directory' ? '#6366f1' : '#64748b',
+                            borderBottom: activeSection === 'directory' ? '3px solid #0d7f6e' : 'none',
+                            color: activeSection === 'directory' ? '#0d7f6e' : '#64748b',
                             fontWeight: activeSection === 'directory' ? 800 : 600,
                             fontSize: '1rem',
                             cursor: 'pointer',
@@ -512,7 +512,7 @@ const Admins = () => {
                                     alignItems: 'center',
                                     gap: '0.5rem',
                                     padding: '0.65rem 1.25rem',
-                                    background: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)',
+                                    background: 'linear-gradient(135deg, #0d7f6e 0%, #064e3b 100%)',
                                     color: '#fff',
                                     border: 'none',
                                     borderRadius: '12px',
@@ -538,7 +538,7 @@ const Admins = () => {
                                         width: '56px',
                                         height: '56px',
                                         borderRadius: '14px',
-                                        background: 'linear-gradient(135deg, #6366f1, #4338ca)',
+                                        background: 'linear-gradient(135deg, #0d7f6e, #064e3b)',
                                         color: '#fff',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -552,7 +552,7 @@ const Admins = () => {
                                         <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' }}>{profile?.full_name || 'System Admin'}</div>
                                         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                                             <span style={{
-                                                background: '#6366f1',
+                                                background: '#0d7f6e',
                                                 color: '#fff',
                                                 padding: '0.35rem 0.85rem',
                                                 borderRadius: '8px',
@@ -729,7 +729,7 @@ const Admins = () => {
                                             <tr key={user._id}>
                                                 <td>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                        <div className="user-avatar" style={{ background: 'linear-gradient(135deg, #6366f1, #4338ca)', width: '48px', height: '48px', borderRadius: '15px' }}>
+                                                        <div className="user-avatar" style={{ background: 'linear-gradient(135deg, #0d7f6e, #064e3b)', width: '48px', height: '48px', borderRadius: '15px' }}>
                                                             {(user.full_name || user.username || 'U').charAt(0).toUpperCase()}
                                                         </div>
                                                         <div>

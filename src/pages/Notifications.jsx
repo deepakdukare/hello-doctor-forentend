@@ -9,7 +9,7 @@ const SEVERITY_COLOR = {
     high: { bg: '#fee2e2', color: '#ef4444', dot: '#ef4444' },
     medium: { bg: '#fef3c7', color: '#d97706', dot: '#f59e0b' },
     low: { bg: '#e0f2fe', color: '#0284c7', dot: '#0ea5e9' },
-    info: { bg: '#eef2ff', color: '#6366f1', dot: '#6366f1' },
+    info: { bg: '#f4fdfa', color: '#0d7f6e', dot: '#0d7f6e' },
 };
 
 const NotifCard = ({ notif, onMarkRead }) => {
@@ -131,7 +131,7 @@ const Notifications = () => {
 
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '0.4rem', width: 'fit-content' }}>
                 {['ALL', 'UNREAD', 'HIGH'].map(f => (
-                    <button key={f} onClick={() => setFilter(f)} style={{ padding: '0.45rem 1rem', borderRadius: '8px', border: 'none', background: filter === f ? '#6366f1' : 'transparent', color: filter === f ? '#fff' : '#64748b', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem', transition: 'all 0.2s' }}>
+                    <button key={f} onClick={() => setFilter(f)} style={{ padding: '0.45rem 1rem', borderRadius: '8px', border: 'none', background: filter === f ? '#0d7f6e' : 'transparent', color: filter === f ? '#fff' : '#64748b', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem', transition: 'all 0.2s' }}>
                         {f === 'HIGH' ? 'High Priority' : f === 'UNREAD' ? 'Unread' : 'All'}
                     </button>
                 ))}
@@ -182,7 +182,7 @@ const Notifications = () => {
                                 <input type="datetime-local" value={reminder.scheduled_at} onChange={e => setReminder(p => ({ ...p, scheduled_at: e.target.value }))} required style={{ width: '100%', border: '1.5px solid #e2e8f0', borderRadius: '10px', padding: '0.7rem 0.9rem', fontSize: '0.875rem', boxSizing: 'border-box' }} />
                             </div>
                             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                                <button type="submit" disabled={savingReminder} style={{ flex: 1, padding: '0.75rem', borderRadius: '10px', background: 'linear-gradient(135deg, #6366f1, #4338ca)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}>
+                                <button type="submit" disabled={savingReminder} style={{ flex: 1, padding: '0.75rem', borderRadius: '10px', background: 'linear-gradient(135deg, #0d7f6e, #064e3b)', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem' }}>
                                     {savingReminder ? 'Scheduling...' : 'Schedule'}
                                 </button>
                                 <button type="button" onClick={() => setShowReminder(false)} style={{ flex: 1, padding: '0.75rem', borderRadius: '10px', border: '1.5px solid #e2e8f0', background: '#fff', color: '#64748b', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>Cancel</button>

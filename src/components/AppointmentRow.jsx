@@ -52,7 +52,7 @@ const AppointmentRow = ({ appt, onEdit, onCancel }) => {
 
             {/* 2. Token */}
             <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: '#6366f1' }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#0d7f6e' }}>
                     {appt?.token_display || appt?.token_number || 'T-XX'}
                 </span>
             </td>

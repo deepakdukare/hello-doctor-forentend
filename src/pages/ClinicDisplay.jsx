@@ -84,7 +84,7 @@ const ClinicDisplay = () => {
                                 <div className="serving-section-v2" style={{ textAlign: 'center' }}>
                                     <div style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.2em', marginBottom: '0.5rem' }}>NOW SERVING</div>
                                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                                        <Hash size={32} color="#6366f1" />
+                                        <Hash size={32} color="#0d7f6e" />
                                         <span>{doctor.now_serving_token || '—'}</span>
                                     </div>
                                     <div className="patient-label" style={{ marginTop: '0.5rem', opacity: 0.9 }}>

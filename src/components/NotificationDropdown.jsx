@@ -9,7 +9,7 @@ const SEVERITY_COLOR = {
     high: { bg: '#fee2e2', color: '#ef4444', dot: '#ef4444' },
     medium: { bg: '#fef3c7', color: '#d97706', dot: '#f59e0b' },
     low: { bg: '#e0f2fe', color: '#0284c7', dot: '#0ea5e9' },
-    info: { bg: '#eef2ff', color: '#6366f1', dot: '#6366f1' },
+    info: { bg: '#f4fdfa', color: '#0d7f6e', dot: '#0d7f6e' },
 };
 
 const NotificationItem = ({ notif, onMarkRead }) => {
@@ -54,7 +54,7 @@ const NotificationItem = ({ notif, onMarkRead }) => {
                             marginTop: '8px',
                             background: 'transparent',
                             border: 'none',
-                            color: '#6366f1',
+                            color: '#0d7f6e',
                             fontSize: '11px',
                             fontWeight: 700,
                             padding: 0,
@@ -172,7 +172,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                         <button
                             onClick={() => setShowReminderModal(true)}
                             title="Schedule Reminder"
-                            style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #eef2ff', background: '#f5f3ff', color: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                            style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #f4fdfa', background: '#f4fdfa', color: '#0d7f6e', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                         >
                             <Calendar size={16} />
                         </button>
@@ -195,7 +195,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                                 padding: '4px 10px',
                                 borderRadius: '6px',
                                 border: 'none',
-                                background: filter === f ? '#6366f1' : 'transparent',
+                                background: filter === f ? '#0d7f6e' : 'transparent',
                                 color: filter === f ? '#fff' : '#64748b',
                                 fontSize: '11px',
                                 fontWeight: 700,
@@ -227,7 +227,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                 </div>
 
                 <div style={{ padding: '12px', borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
-                    <a href="/notifications" style={{ fontSize: '12px', fontWeight: 800, color: '#6366f1', textDecoration: 'none' }}>
+                    <a href="/notifications" style={{ fontSize: '12px', fontWeight: 800, color: '#0d7f6e', textDecoration: 'none' }}>
                         View All Notifications
                     </a>
                 </div>
@@ -318,7 +318,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: '#fff', border: 'none', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)' }}
+                                    style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #0d7f6e, #0d7f6e)', color: '#fff', border: 'none', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)' }}
                                 >
                                     {saving ? 'Processing...' : 'Schedule Now'}
                                 </button>

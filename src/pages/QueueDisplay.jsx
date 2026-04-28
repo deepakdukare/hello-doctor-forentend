@@ -15,7 +15,7 @@ import { getUser } from '../utils/auth';
 
 const STATUS_CONFIG = {
     WAITING: { color: '#f59e0b', bg: '#fef3c7', label: 'Pending' },
-    CHECKED_IN: { color: '#6366f1', bg: '#eef2ff', label: 'Called' },
+    CHECKED_IN: { color: '#0d7f6e', bg: '#f4fdfa', label: 'Called' },
     IN_PROGRESS: { color: '#0ea5e9', bg: '#e0f2fe', label: 'In Progress' },
     COMPLETED: { color: '#10b981', bg: '#d1fae5', label: 'Completed' },
     SKIPPED: { color: '#94a3b8', bg: '#f1f5f9', label: 'Skipped' },
@@ -25,7 +25,7 @@ const STATUS_CONFIG = {
 // Context-aware actions per token status
 const TOKEN_STATUS_ACTIONS = {
     WAITING: [
-        { label: 'Check In', value: 'CHECKED_IN', icon: UserCheck, color: '#6366f1' },
+        { label: 'Check In', value: 'CHECKED_IN', icon: UserCheck, color: '#0d7f6e' },
         { label: 'Mark No-Show', value: 'NO_SHOW', icon: AlertCircle, color: '#ef4444' },
     ],
     CHECKED_IN: [
@@ -105,7 +105,7 @@ const TokenRow = ({ token, onCheckin, onStatusChange, onNext, isNext, isToday })
                                 <button
                                     onClick={() => token.token && onCheckin(token.token, token.doctor_id)}
                                     disabled={!token.token}
-                                    style={{ background: '#fff', border: '1px solid #6366f1', color: '#6366f1', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                                    style={{ background: '#fff', border: '1px solid #0d7f6e', color: '#0d7f6e', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
                                     <Check size={14} /> Check In
                                 </button>
                                 <button
@@ -348,7 +348,7 @@ const QueueDisplay = () => {
             <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
                 <StatBadge label="Total" value={stats.total} color="#0f172a" isActive={statusFilter === 'ALL'} onClick={() => setStatusFilter('ALL')} />
                 <StatBadge label="Waiting" value={stats.waiting} color="#f59e0b" isActive={statusFilter === 'WAITING'} onClick={() => setStatusFilter('WAITING')} />
-                <StatBadge label="Checked In" value={stats.checkedIn} color="#6366f1" isActive={statusFilter === 'CHECKED_IN'} onClick={() => setStatusFilter('CHECKED_IN')} />
+                <StatBadge label="Checked In" value={stats.checkedIn} color="#0d7f6e" isActive={statusFilter === 'CHECKED_IN'} onClick={() => setStatusFilter('CHECKED_IN')} />
                 <StatBadge label="Completed" value={stats.completed} color="#10b981" isActive={statusFilter === 'COMPLETED'} onClick={() => setStatusFilter('COMPLETED')} />
                 <StatBadge label="No Show" value={stats.noShow} color="#ef4444" isActive={statusFilter === 'NO_SHOW'} onClick={() => setStatusFilter('NO_SHOW')} />
             </div>
@@ -398,7 +398,7 @@ const QueueDisplay = () => {
             {tokenStatusData && (
                 <div className="token-status-banner" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 20px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-                        <div style={{ background: '#6366f1', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontWeight: 900 }}>{tokenStatusData.token}</div>
+                        <div style={{ background: '#0d7f6e', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontWeight: 900 }}>{tokenStatusData.token}</div>
                         <div>
                             <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>Status</div>
                             <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>{tokenStatusData.status}</div>
@@ -422,7 +422,7 @@ const QueueDisplay = () => {
             <div className="queue-table-card">
                 <div className="queue-table-header">
                     <h3>
-                        <Hash size={16} style={{ display: 'inline', marginRight: '0.3rem', verticalAlign: 'middle', color: '#6366f1' }} />
+                        <Hash size={16} style={{ display: 'inline', marginRight: '0.3rem', verticalAlign: 'middle', color: '#0d7f6e' }} />
                         Token List
                     </h3>
                 </div>

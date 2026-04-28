@@ -30,7 +30,7 @@ const AdminProfile = ({
                     <div>
                         <div className="profile-name">{profile?.full_name || 'System Admin'}</div>
                         <div className="profile-meta">
-                            <span className="badge-v3" style={{ background: '#6366f1', color: '#fff' }}>
+                            <span className="badge-v3" style={{ background: '#0d7f6e', color: '#fff' }}>
                                 {toRoleLabel(profile?.role).toUpperCase()}
                             </span>
                             {profile?.is_active ? (

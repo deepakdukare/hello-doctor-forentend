@@ -64,7 +64,7 @@ const FeedbackForm = ({ appointmentId = null, onComplete = null }) => {
                 <h3>Feedback Submitted!</h3>
                 <p>Thank you for sharing your experience with us.</p>
                 <div style={{ marginTop: '2rem' }}>
-                    <RefreshCw className="spinning" size={32} style={{ color: '#6366f1' }} />
+                    <RefreshCw className="spinning" size={32} style={{ color: '#0d7f6e' }} />
                 </div>
             </div>
         );

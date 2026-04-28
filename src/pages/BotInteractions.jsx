@@ -152,7 +152,7 @@ const BotInteractions = () => {
 
             <div className="stats-grid-v4" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '24px' }}>
                 <div className="stat-card-v4">
-                    <div className="stat-icon-v4" style={{ backgroundColor: `rgba(99, 102, 241, 0.1)`, color: '#6366f1' }}>
+                    <div className="stat-icon-v4" style={{ backgroundColor: `rgba(99, 102, 241, 0.1)`, color: '#0d7f6e' }}>
                         <Bot size={24} />
                     </div>
                     <div className="stat-info-v4">
@@ -280,7 +280,7 @@ const BotInteractions = () => {
                                                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.25rem' }}>
                                                     <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '2px 8px', borderRadius: '12px', background: '#eff6ff', color: '#2563eb' }}>{it.session_data?.source?.toUpperCase() || 'EXTERNAL'}</span>
                                                 </div>
-                                                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#4338ca' }}>STATE: {it.current_state}</div>
+                                                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#064e3b' }}>STATE: {it.current_state}</div>
                                             </td>
                                             <td style={{ padding: '1.5rem 2rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748b', fontWeight: 600, fontSize: '0.85rem' }}>

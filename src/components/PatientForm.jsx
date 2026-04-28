@@ -54,7 +54,7 @@ const PatientForm = ({
         <form onSubmit={handleFormSubmit} className="reg-form-clean" style={{ maxWidth: '100%', background: '#fff', padding: '2rem', borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.04)' }}>
             <div className="reg-unified-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div className="modal-header-icon-container" style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)', padding: '10px', borderRadius: '12px' }}>
+                    <div className="modal-header-icon-container" style={{ background: 'linear-gradient(135deg, #0d7f6e, #0d7f6e)', padding: '10px', borderRadius: '12px' }}>
                         <UserPlus size={24} color="#fff" />
                     </div>
                     <div>
