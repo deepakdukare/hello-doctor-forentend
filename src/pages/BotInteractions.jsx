@@ -30,7 +30,7 @@ const BotInteractions = () => {
                 getNotifications()
             ]);
 
-            const notifications = notificationsRes.data?.data || [];
+            const notifications = Array.isArray(notificationsRes.data?.data) ? notificationsRes.data.data : [];
             const escalations = notifications
                 .filter((item) => {
                     if (item?.is_read) return false;
@@ -47,7 +47,7 @@ const BotInteractions = () => {
 
             setData(prev => ({
                 ...prev,
-                leads: leadsRes.data.data || [],
+                leads: Array.isArray(leadsRes?.data?.data) ? leadsRes.data.data : [],
                 escalations,
             }));
         } catch (e) {
@@ -60,8 +60,7 @@ const BotInteractions = () => {
     const fetchHistory = async () => {
         setLoading(true);
         try {
-            const res = await getChatHistory(filters);
-            setData(prev => ({ ...prev, history: res.data.data || [] }));
+            setData(prev => ({ ...prev, history: Array.isArray(res?.data?.data) ? res.data.data : [] }));
         } catch (e) {
             setError("Failed to fetch history");
         } finally {
