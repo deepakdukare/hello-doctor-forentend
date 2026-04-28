@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import StatCard from '../components/StatCard';
 import PatientForm, { EMPTY_FORM } from '../components/PatientForm';
-import { getPatients, registerPatient, updatePatient, getDoctors, getReferringDoctors, uploadPatientPhoto, toIsoDate, getMRDByPatientId, getAppointments, lookupAppointments, getComprehensiveProfile } from '../api/index';
+import { getPatients, registerPatient, updatePatient, getDoctors, uploadPatientPhoto, toIsoDate, getMRDByPatientId, getAppointments, lookupAppointments, getComprehensiveProfile } from '../api/index';
 import { removeSalutation } from '../utils/formatters';
 import { hasPermission } from '../utils/auth';
 import { 
@@ -106,8 +106,6 @@ const Patients = () => {
             try {
                 const res = await getDoctors({ all: true });
                 setDoctors(res.data.data || []);
-                const refRes = await getReferringDoctors();
-                setReferringDoctors(refRes.data.data || []);
             } catch (e) {
                 console.error("Failed to load metadata", e);
             }

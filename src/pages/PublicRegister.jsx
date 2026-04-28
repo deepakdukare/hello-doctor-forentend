@@ -6,7 +6,7 @@ import {
     Check, RefreshCw, Activity, Clipboard, Edit2, Plus, XCircle,
     ArrowRight, Map, ShieldCheck, ArrowLeft, Zap, Shield, ChevronDown, UserPlus, CalendarClock, CheckCircle2
 } from 'lucide-react';
-import { registerFromForm, bookByForm, getAvailableTokens, getTokenConfig, getDoctors, getReferringDoctors, getPatientByWa, getPatientByEmail, getAppointmentsByWaId, getAppointmentById, updateAppointment, lookupAppointments } from '../api/index';
+import { registerFromForm, bookByForm, getAvailableTokens, getTokenConfig, getDoctors, getPatientByWa, getPatientByEmail, getAppointmentsByWaId, getAppointmentById, updateAppointment, lookupAppointments } from '../api/index';
 import '../glass-landing.css';
 import { removeSalutation } from '../utils/formatters';
 
@@ -103,13 +103,9 @@ const PublicRegister = () => {
     useEffect(() => {
         const fetchMetadata = async () => {
             try {
-                const [docRes, refRes] = await Promise.all([
-                    getDoctors({ all: true }),
-                    getReferringDoctors()
-                ]);
+                const docRes = await getDoctors({ all: true });
                 const docs = docRes.data.data || [];
                 setDoctors(docs);
-                setReferringDoctors(refRes.data.data || []);
                 if (docs.length > 0) {
                     setPatientForm(prev => ({ ...prev, preferred_doctor: getDoctorDisplayName(docs[0]) }));
                     setBookingForm(prev => ({ ...prev, doctor_name: getRawDoctorName(docs[0]) }));
