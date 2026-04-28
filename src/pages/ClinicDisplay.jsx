@@ -44,7 +44,7 @@ const ClinicDisplay = () => {
                 <div className="clinic-display-logo-box">
                     <img src={clinicLogo} alt="Clinic Logo" className="clinic-display-logo-img" />
                     <div className="clinic-display-brand">
-                        <h1>DR. INDU'S NEW BORN & CHILDCARE CENTER</h1>
+                        <h1>PediPulse</h1>
                         <p>PREMIUM PEDIATRIC CARE • O.P.D. MANAGEMENT</p>
                     </div>
                 </div>
