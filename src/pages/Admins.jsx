@@ -464,85 +464,12 @@ const Admins = () => {
                     >
                         Admin User Directory
                     </button>
-                    <button
-                        onClick={() => setActiveSection('clinic')}
-                        style={{
-                            flex: 1,
-                            padding: '1.5rem 2rem',
-                            border: 'none',
-                            background: activeSection === 'clinic' ? '#fff' : '#fcfdfe',
-                            borderBottom: activeSection === 'clinic' ? '3px solid #6366f1' : 'none',
-                            color: activeSection === 'clinic' ? '#6366f1' : '#64748b',
-                            fontWeight: activeSection === 'clinic' ? 800 : 600,
-                            fontSize: '1rem',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            textAlign: 'left',
-                            borderLeft: '1px solid #f1f5f9'
-                        }}
-                        onMouseEnter={(e) => {
-                            if (activeSection !== 'clinic') {
-                                e.target.style.background = '#f8fafc';
-                            }
-                        }}
-                        onMouseLeave={(e) => {
-                            if (activeSection !== 'clinic') {
-                                e.target.style.background = '#fcfdfe';
-                            }
-                        }}
-                    >
-                        Clinic Config
-                    </button>
+
                 </div>
             </div>
 
             {/* Tab Content - Clinic Config */}
-            {activeSection === 'clinic' && (
-                <div className="card shadow-premium" style={{ marginBottom: '1.5rem', padding: '2rem' }}>
-                    <div className="card-header" style={{ padding: '0 0 1.5rem 0', borderBottom: '1px solid #f1f5f9', marginBottom: '1.5rem' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>Clinical Configuration</h3>
-                    </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-                        <div className="clinic-info-group">
-                            <h4 style={{ color: '#6366f1', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Shield size={18} /> General Identity
-                            </h4>
-                            <div className="input-group-v3" style={{ marginBottom: '1rem' }}>
-                                <label>Clinic Name</label>
-                                <input type="text" className="input-premium" value="Dr. Indu Child Care Clinic" readOnly />
-                            </div>
-                            <div className="input-group-v3">
-                                <label>Provider ID / License</label>
-                                <input type="text" className="input-premium" value="DICC-HR-001" readOnly />
-                            </div>
-                        </div>
-
-                        <div className="clinic-info-group">
-                            <h4 style={{ color: '#0ea5e9', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <Mail size={18} /> Communication
-                            </h4>
-                            <div className="input-group-v3" style={{ marginBottom: '1rem' }}>
-                                <label>Primary Email</label>
-                                <input type="text" className="input-premium" value="support@drinduchildcare.com" readOnly />
-                            </div>
-                            <div className="input-group-v3">
-                                <label>Contact Number</label>
-                                <input type="text" className="input-premium" value="+91 99999 99999" readOnly />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style={{ marginTop: '2rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: '#64748b' }}>
-                            <AlertCircle size={20} />
-                            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>
-                                Clinic-wide configurations are managed by the System Super-Admin. Contact IT support for changes.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Tab Content - Role Distribution */}
             {activeSection === 'roles' && (
