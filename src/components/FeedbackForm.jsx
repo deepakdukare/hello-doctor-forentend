@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Send, User, Phone, Smile, RefreshCw, Activity, ArrowRight, BriefcaseMedical, Headphones, HeartPulse } from 'lucide-react';
 import { submitFeedback } from '../api/index';
-import doctorAvatar from '../assets/doctor-avatar.png';
-import frontdeskAvatar from '../assets/frontdesk-avatar.png';
+
 import clinicIcon from '../assets/logo.jpg';
 
 const FeedbackForm = ({ appointmentId = null, onComplete = null }) => {
@@ -136,9 +135,9 @@ const FeedbackForm = ({ appointmentId = null, onComplete = null }) => {
                             <div key={cat.key} className="rating-item-compact-v2">
                                 <div className="rating-cat-head-compact">
                                     <div className="rating-cat-icon-mini">
-                                        {cat.key === 'doctor_rating' && <img src={doctorAvatar} alt="Doctor" />}
-                                        {cat.key === 'frontdesk_rating' && <img src={frontdeskAvatar} alt="Front-desk" />}
-                                        {cat.key === 'hospital_rating' && <img src={clinicIcon} alt="Clinic" />}
+                                        {cat.key === 'doctor_rating' && <HeartPulse size={24} style={{ color: '#0d7f6e' }} />}
+                                        {cat.key === 'frontdesk_rating' && <Headphones size={24} style={{ color: '#0d7f6e' }} />}
+                                        {cat.key === 'hospital_rating' && <BriefcaseMedical size={24} style={{ color: '#0d7f6e' }} />}
                                     </div>
                                     <div className="rating-texts">
                                         <span className="rating-title-main">{cat.title}</span>
