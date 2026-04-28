@@ -53,7 +53,7 @@ const Login = ({ onLogin }) => {
                         <div className="clinic-portal-label">Clinic Portal</div>
                         <div className="login-logo">
                             <Stethoscope size={48} className="highlight-icon" style={{ marginBottom: '0.5rem' }} />
-                            <h1>Hello Doctor</h1>
+                            <h1>PediPulse</h1>
                         </div>
                         <div className="branding-highlights">
                             <div className="highlight-item">

@@ -119,7 +119,7 @@ const Sidebar = ({ onLogout, isCollapsed, isMobileMenuOpen, onMobileClose }) => 
             <div className="sidebar-header-premium">
                 <Link to="/" className="brand-link-modern">
                     <div className="brand-info-modern">
-                        <span className="brand-name-mini">Hello Doctor</span>
+                        <span className="brand-name-mini">PediPulse</span>
                         <span className="brand-desc-mini">Pediatric Care Portal</span>
                     </div>
                 </Link>

@@ -482,8 +482,8 @@ const PublicRegister = () => {
                     <section className="pf-hero-section">
                         <div className="pf-hero-overlay" />
                         <div className="pf-hero-content">
-                            <h1 className="pf-hero-title">Dr. Indu's</h1>
-                            <p className="pf-hero-sub">New Born &amp; Childcare Center</p>
+                            <h1 className="pf-hero-title">PediPulse</h1>
+                            <p className="pf-hero-sub">Pediatric Care Portal</p>
                             <button
                                 className="pf-scroll-btn"
                                 onClick={() => {
@@ -602,10 +602,10 @@ const PublicRegister = () => {
                                                 </button>
 
                                                 <div className="logo-box mini">
-                                                    <img src="/logo.jpg" alt="DICC" />
+                                                    <img src="/logo.jpg" alt="PediPulse" />
                                                     <div className="logo-text">
-                                                        <span className="brand">Dr. Indu's</span>
-                                                        <span className="sub">New Born &<br />Childcare<br />Center</span>
+                                                        <span className="brand">PediPulse</span>
+                                                        <span className="sub">Pediatric<br />Care<br />Portal</span>
                                                     </div>
                                                 </div>
                                             </div>
