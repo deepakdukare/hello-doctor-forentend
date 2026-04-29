@@ -14,7 +14,7 @@ For detailed project requirements, see the [Software Requirements Specification 
    - Build Command: `npm run build`
    - Output Directory: `dist`
 4. Add environment variable:
-   - `VITE_API_BASE_URL=https://api-dr-indu-child-care.brahmaastra.ai/api`
+   - `VITE_API_BASE_URL=https://api-vfbnzo4maa-uc.a.run.app/api`
 5. Redeploy.
 
 ## Why this works

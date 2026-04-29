@@ -23,7 +23,8 @@ import {
     Check,
     X,
     Loader2,
-    Menu
+    Menu,
+    Clipboard as ClipboardIcon
 } from 'lucide-react';
 
 // Lazy load page components
@@ -93,7 +94,7 @@ const Sidebar = ({ onLogout, isCollapsed, isMobileMenuOpen, onMobileClose }) => 
                 { name: 'Patients', path: '/patients', icon: Users, permission: 'view_patients' },
                 { name: 'Doctors', path: '/doctors', icon: Stethoscope, permission: 'view_doctors' },
                 { name: 'Medical Records', path: '/mrd', icon: FileText, permission: 'view_mrd' },
-                { name: 'New Clinical Entry', path: '/clinical-entry', icon: Clipboard, permission: 'view_mrd' },
+                { name: 'New Clinical Entry', path: '/clinical-entry', icon: ClipboardIcon, permission: 'view_mrd' },
 
                 { name: 'Reports & Analytics', path: '/analytics', icon: TrendingUp, permission: 'view_reports' },
                 { name: 'Bot & Feedback Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },

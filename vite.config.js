@@ -13,7 +13,7 @@ export default defineConfig({
         },
         proxy: {
             '/api': {
-                target: 'http://localhost:5000',
+                target: 'https://api-vfbnzo4maa-uc.a.run.app',
                 changeOrigin: true,
                 secure: false,
             },
