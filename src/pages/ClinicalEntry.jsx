@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
     Clipboard, Heart, AlertCircle, Sparkles, User, FileText, Activity, 
-    Stethoscope, Pill, CheckSquare, Plus, Save, Trash, Calendar, ArrowLeft
+    Stethoscope, Pill, CheckSquare, Plus, Save, Trash, Calendar, ArrowLeft, Search, ChevronRight
 } from 'lucide-react';
-import { getPatients, addMRDEntry, getDoctors } from '../services/api';
+import { getPatients, addMRDEntry, getDoctors, getMRDByPatientId } from '../api';
 
 const VISIT_TYPES = ['CONSULTATION', 'VACCINATION', 'PULMONARY', 'FOLLOWUP'];
 
@@ -48,6 +48,9 @@ export default function ClinicalEntry() {
     const [form, setForm] = useState(INITIAL_FORM);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [pastRecords, setPastRecords] = useState([]);
+    const [loadingRecords, setLoadingRecords] = useState(false);
+    const [patientSearch, setPatientSearch] = useState('');
     
     // Temporary states for array builders
     const [tempAllergy, setTempAllergy] = useState({ type: 'Drugs', name: '', reaction: '', intensity: 'Mild', duration: '' });
@@ -67,9 +70,18 @@ export default function ClinicalEntry() {
         fetchMeta();
     }, []);
 
-    const selectPatient = (p) => {
+    const selectPatient = async (p) => {
         setSelectedPatient(p);
         setForm(prev => ({ ...prev, patient_id: p.patient_id }));
+        setLoadingRecords(true);
+        try {
+            const r = await getMRDByPatientId(p.patient_id);
+            setPastRecords(r.data?.data?.entries || []);
+        } catch (e) {
+            setPastRecords([]);
+        } finally {
+            setLoadingRecords(false);
+        }
     };
 
     const handleFormSubmit = async (e) => {
@@ -137,7 +149,7 @@ export default function ClinicalEntry() {
             <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                     <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <Clipboard size={28} color="#0d7f6e" /> New Clinical Entry
+                        <Clipboard size={28} color="#0d7f6e" /> E-prescription
                     </h1>
                     <p style={{ color: '#64748b', fontSize: '14px', marginTop: '4px' }}>Document comprehensive patient visits with advanced medical protocols</p>
                 </div>
@@ -150,22 +162,53 @@ export default function ClinicalEntry() {
             )}
 
             {!selectedPatient ? (
-                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                    <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b', marginBottom: '16px' }}>Select Patient to Begin</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-                        {patients.map(p => (
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', gap: '20px', flexWrap: 'wrap' }}>
+                        <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b', margin: 0 }}>Select Patient to Begin</h2>
+                        <div style={{ position: 'relative', flex: '1', maxWidth: '400px' }}>
+                            <Search size={18} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+                            <input 
+                                type="text" 
+                                placeholder="Search by name or ID..." 
+                                value={patientSearch}
+                                onChange={e => setPatientSearch(e.target.value)}
+                                style={{ width: '100%', padding: '12px 12px 12px 42px', borderRadius: '10px', border: '1.5px solid #e2e8f0', background: '#fff', fontSize: '14px', fontWeight: 600, outline: 'none', transition: 'all 0.2s' }}
+                                onFocus={e => e.target.style.borderColor = '#0d7f6e'}
+                                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                            />
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+                        {patients.filter(p => {
+                            const q = patientSearch.toLowerCase();
+                            return (p.child_name || p.name || '').toLowerCase().includes(q) || (p.patient_id || '').toLowerCase().includes(q);
+                        }).map(p => (
                             <div 
                                 key={p.patient_id}
                                 onClick={() => selectPatient(p)}
-                                style={{ padding: '16px', border: '1.5px solid #f1f5f9', background: '#f8fafc', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s' }}
-                                onMouseEnter={e => { e.currentTarget.style.borderColor = '#0d7f6e'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.borderColor = '#f1f5f9'; e.currentTarget.style.boxShadow = 'none'; }}
+                                style={{ padding: '20px', border: '1.5px solid #f1f5f9', background: '#fff', borderRadius: '16px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = '#0d7f6e'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.06)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = '#f1f5f9'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                             >
-                                <div style={{ fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>{p.child_name || p.name}</div>
-                                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>ID: {p.patient_id} • Mob: {p.patient_mobile || 'N/A'}</div>
+                                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#f0fdf4', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 800 }}>
+                                    {(p.child_name || p.name || 'P')[0].toUpperCase()}
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>{p.child_name || p.name}</div>
+                                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontWeight: 600 }}>
+                                        <span style={{ color: '#0d7f6e' }}>ID: {p.patient_id}</span> • Mob: {p.patient_mobile || 'N/A'}
+                                    </div>
+                                </div>
+                                <div style={{ color: '#cbd5e1' }}><ChevronRight size={20} /></div>
                             </div>
                         ))}
                     </div>
+                    {patients.length === 0 && (
+                        <div style={{ padding: '60px', textAlign: 'center', color: '#64748b', background: '#fff', borderRadius: '16px', border: '1px dashed #e2e8f0' }}>
+                            No patients found.
+                        </div>
+                    )}
                 </div>
             ) : (
                 <form onSubmit={handleFormSubmit} style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '2rem', alignItems: 'start' }}>
@@ -188,42 +231,49 @@ export default function ClinicalEntry() {
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                            {[
-                                { id: 'overview', label: 'Vitals & Summary', icon: Heart },
-                                { id: 'allergies', label: 'Allergy Records', icon: AlertCircle },
-                                { id: 'history', label: 'History of Illness', icon: FileText },
-                                { id: 'exam', label: 'Physical Exams', icon: Stethoscope },
-                                { id: 'diagnosis', label: 'Provisional Diagnosis', icon: Activity },
-                                { id: 'meds', label: 'Medications & Advice', icon: Pill }
-                            ].map(t => {
-                                const Icon = t.icon;
-                                return (
-                                    <button
-                                        key={t.id}
-                                        type="button"
-                                        onClick={() => setActiveTab(t.id)}
-                                        style={{
-                                            padding: '14px 20px',
-                                            border: 'none',
-                                            borderBottom: '1px solid #f1f5f9',
-                                            background: activeTab === t.id ? '#0d7f6e10' : 'none',
-                                            color: activeTab === t.id ? '#0d7f6e' : '#475569',
-                                            fontSize: '14px',
-                                            fontWeight: activeTab === t.id ? 800 : 600,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '12px',
-                                            textAlign: 'left',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        <Icon size={18} color={activeTab === t.id ? '#0d7f6e' : '#64748b'} />
-                                        {t.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                            {/* Sidebar Tab Navigation */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {[
+                                    { id: 'overview', label: 'Vitals & Summary', icon: Heart },
+                                    { id: 'allergies', label: 'Allergy Records', icon: AlertCircle },
+                                    { id: 'history', label: 'History of Illness', icon: FileText },
+                                    { id: 'exam', label: 'Physical Exams', icon: Stethoscope },
+                                    { id: 'diagnosis', label: 'Provisional Diagnosis', icon: Activity },
+                                    { id: 'meds', label: 'Medications & Advice', icon: Pill },
+                                    { id: 'past_records', label: 'Past Records', icon: Calendar }
+                                ].map(t => {
+                                    const Icon = t.icon;
+                                    const isActive = activeTab === t.id;
+                                    return (
+                                        <button
+                                            key={t.id}
+                                            type="button"
+                                            onClick={() => setActiveTab(t.id)}
+                                            style={{
+                                                padding: '12px 16px',
+                                                border: 'none',
+                                                borderRadius: '10px',
+                                                background: isActive ? '#0d7f6e' : 'transparent',
+                                                color: isActive ? '#fff' : '#64748b',
+                                                fontSize: '14px',
+                                                fontWeight: isActive ? 800 : 600,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '12px',
+                                                textAlign: 'left',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                boxShadow: isActive ? '0 4px 12px rgba(13,127,110,0.2)' : 'none'
+                                            }}
+                                            onMouseEnter={e => { if(!isActive) e.currentTarget.style.background = '#f1f5f9'; }}
+                                            onMouseLeave={e => { if(!isActive) e.currentTarget.style.background = 'transparent'; }}
+                                        >
+                                            <Icon size={18} color={isActive ? '#fff' : '#94a3b8'} />
+                                            {t.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
 
                         <button 
                             type="submit" 
@@ -418,6 +468,38 @@ export default function ClinicalEntry() {
                                     <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>Additional Advice & Instructions</label>
                                     <textarea rows={3} value={form.advice} onChange={e => setForm({ ...form, advice: e.target.value })} placeholder="Type follow-up rules..." style={{ width: '100%', padding: '10px', border: '1.5px solid #e2e8f0', borderRadius: '6px', resize: 'none' }} />
                                 </div>
+                            </div>
+                        )}
+
+                        {/* Tab 7: Past Records */}
+                        {activeTab === 'past_records' && (
+                            <div>
+                                <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#1e293b', marginBottom: '16px', borderBottom: '2px solid #f1f5f9', paddingBottom: '8px' }}>Patient Medical History</h3>
+                                {loadingRecords ? (
+                                    <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>Loading records...</div>
+                                ) : pastRecords.length === 0 ? (
+                                    <div style={{ padding: '40px', background: '#f8fafc', borderRadius: '12px', textAlign: 'center', border: '1px dashed #cbd5e1', color: '#64748b' }}>
+                                        No historical records available.
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {pastRecords.map((rec, i) => (
+                                            <div key={rec._id || i} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                                    <span style={{ fontWeight: 800, color: '#0d7f6e' }}>{new Date(rec.visit_date || rec.createdAt).toLocaleDateString('en-IN')}</span>
+                                                    <span style={{ fontSize: '10px', background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>{rec.visit_type}</span>
+                                                </div>
+                                                <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>{rec.diagnosis || 'Clinical Review'}</div>
+                                                <div style={{ fontSize: '12px', color: '#475569', marginBottom: '8px' }}>Chief Complaint: {rec.chief_complaint || 'N/A'}</div>
+                                                {rec.prescription && (
+                                                    <div style={{ fontSize: '12px', background: '#fff', padding: '8px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                                                        <strong>Rx:</strong> {rec.prescription}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
 

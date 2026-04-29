@@ -31,7 +31,7 @@ import {
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Appointments = lazy(() => import('./pages/Appointments'));
 const Patients = lazy(() => import('./pages/Patients'));
-const MRD = lazy(() => import('./pages/MRD'));
+
 const Login = lazy(() => import('./pages/Login'));
 const Settings = lazy(() => import('./pages/Settings'));
 const PublicRegister = lazy(() => import('./pages/PublicRegister'));
@@ -93,8 +93,7 @@ const Sidebar = ({ onLogout, isCollapsed, isMobileMenuOpen, onMobileClose }) => 
                 { name: 'Queue Tokens', path: '/queue', icon: Hash, permission: 'view_queue' },
                 { name: 'Patients', path: '/patients', icon: Users, permission: 'view_patients' },
                 { name: 'Doctors', path: '/doctors', icon: Stethoscope, permission: 'view_doctors' },
-                { name: 'Medical Records', path: '/mrd', icon: FileText, permission: 'view_mrd' },
-                { name: 'New Clinical Entry', path: '/clinical-entry', icon: ClipboardIcon, permission: 'view_mrd' },
+                { name: 'E-prescription', path: '/clinical-entry', icon: ClipboardIcon, permission: 'view_mrd' },
 
                 { name: 'Reports & Analytics', path: '/analytics', icon: TrendingUp, permission: 'view_reports' },
                 { name: 'Bot & Feedback Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },
@@ -705,7 +704,6 @@ const App = () => {
                                     <Route path="/bot-interactions" element={<ProtectedRoute permission="view_bot_hub"><BotInteractions /></ProtectedRoute>} />
                                     <Route path="/doctors" element={<ProtectedRoute permission="view_doctors"><Doctors /></ProtectedRoute>} />
                                     <Route path="/admins" element={<ProtectedRoute permission="view_admins"><Admins /></ProtectedRoute>} />
-                                    <Route path="/mrd" element={<ProtectedRoute permission="view_mrd"><MRD /></ProtectedRoute>} />
                                     <Route path="/clinical-entry" element={<ProtectedRoute permission="view_mrd"><ClinicalEntry /></ProtectedRoute>} />
 
                                     <Route path="/queue" element={<ProtectedRoute permission="view_queue"><QueueDisplay /></ProtectedRoute>} />
