@@ -275,7 +275,7 @@ const Analytics = () => {
                 </div>
             </div>
 
-            <div className="stats-grid-v4 grid-6" style={{ marginBottom: '24px' }}>
+            <div className="stats-grid-v4 grid-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px', marginBottom: '12px' }}>
                 {[
                     { label: 'Total Appointments', value: displayMetrics.total, icon: Calendar, color: '#0d7f6e' },
                     { label: 'Completed', value: displayMetrics.completed, icon: Users, color: '#10b981' },
@@ -284,22 +284,22 @@ const Analytics = () => {
                     { label: 'Unique Patients', value: displayMetrics.unique, icon: Hash, color: '#06b6d4' },
                     { label: 'Completion Rate', value: `${completionRate}%`, icon: TrendingUp, color: '#8b5cf6' }
                 ].map((stat, i) => (
-                    <div key={i} className="stat-card-v4 compact-v4">
-                        <div className="stat-icon-v4" style={{ backgroundColor: `${stat.color}15`, color: stat.color }}>
-                            <stat.icon size={20} />
+                    <div key={i} className="stat-card-v4 compact-v4" style={{ padding: '6px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', background: '#fff', border: '1px solid #eef2f6' }}>
+                        <div className="stat-icon-v4" style={{ width: '28px', height: '28px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: `${stat.color}15`, color: stat.color, flexShrink: 0 }}>
+                            <stat.icon size={16} />
                         </div>
                         <div className="stat-info-v4">
-                            <span className="stat-label-v4">{stat.label}</span>
-                            <div className="stat-value-v4">{loading ? '...' : (typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value)}</div>
+                            <span className="stat-label-v4" style={{ fontSize: '8px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '1px' }}>{stat.label}</span>
+                            <div className="stat-value-v4" style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1e293b', lineHeight: 1 }}>{loading ? '...' : (typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value)}</div>
                         </div>
                     </div>
                 ))}
             </div>
 
             <div className="analytics-main-grid">
-                <div className="analytics-card-white" style={{ background: '#fff', border: '1px solid #eef2f6', padding: '24px', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                        <h3 style={{ color: '#1e293b', fontSize: '1rem', fontWeight: 850, margin: 0 }}>Appointment Trends</h3>
+                <div className="analytics-card-white" style={{ background: '#fff', border: '1px solid #eef2f6', padding: '16px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ color: '#1e293b', fontSize: '14px', fontWeight: 850, margin: 0 }}>Appointment Trends</h3>
                         <div className="timeframe-selector-v4" style={{ display: 'flex', gap: '8px' }}>
                             {['1D', '7D', '1M', '6M', 'YTD'].map(tf => (
                                 <button
@@ -324,7 +324,7 @@ const Analytics = () => {
                         </div>
                     </div>
 
-                    <div style={{ height: '300px', width: '100%', position: 'relative' }}>
+                    <div style={{ height: '220px', width: '100%', position: 'relative' }}>
                         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <AreaChart data={displayMetrics.trends.length > 0 ? displayMetrics.trends : [{ name: 'No Data', value: 0 }]}>
                                 <defs>
@@ -371,9 +371,9 @@ const Analytics = () => {
                     </div>
                 </div>
 
-                <div className="analytics-card-white">
-                    <div className="card-title-v4">Visit Type Distribution</div>
-                    <div style={{ position: 'relative', width: '180px', height: '180px', margin: '2rem auto' }}>
+                <div className="analytics-card-white" style={{ background: '#fff', border: '1px solid #eef2f6', padding: '16px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                    <div style={{ color: '#1e293b', fontSize: '14px', fontWeight: 850, margin: 0 }}>Visit Type Distribution</div>
+                    <div style={{ position: 'relative', width: '140px', height: '140px', margin: '1rem auto' }}>
                         <svg viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%' }}>
                             <circle cx="18" cy="18" r="15.5" fill="none" stroke="#f1f5f9" strokeWidth="4" />
                             {(() => {
@@ -400,7 +400,7 @@ const Analytics = () => {
                             <span style={{ fontSize: '20px', fontWeight: 850, color: '#1e293b' }}>{displayMetrics.total}</span>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '2rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '1rem' }}>
                         {Object.entries(displayMetrics.categories).map(([name, count], idx) => {
                             const colors = ['#60a5fa', '#a855f7', '#0d7f6e', '#f43f5e', '#10b981', '#f59e0b'];
                             return (

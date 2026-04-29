@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { getFeedback } from '../api/index';
 
-const FeedbackReports = () => {
+const FeedbackReports = ({ hideHeader = false }) => {
     const [feedback, setFeedback] = useState([]);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
@@ -62,46 +62,48 @@ const FeedbackReports = () => {
 
     return (
         <div className="reports-container-v5">
-            <div className="header-section-premium">
-                <div className="header-content-premium">
-                    <h1 className="header-title-premium">Feedback Hub</h1>
-                    <p className="header-subtitle-premium">Patient satisfaction and service quality metrics</p>
+            {!hideHeader && (
+                <div className="header-section-premium">
+                    <div className="header-content-premium">
+                        <h1 className="header-title-premium">Feedback Hub</h1>
+                        <p className="header-subtitle-premium">Patient satisfaction and service quality metrics</p>
+                    </div>
+                    <div className="header-actions-premium">
+                        <button onClick={fetchData} className="btn-refresh">
+                            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                            <span>Refresh Data</span>
+                        </button>
+                    </div>
                 </div>
-                <div className="header-actions-premium">
-                    <button onClick={fetchData} className="btn-refresh">
-                        <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-                        <span>Refresh Data</span>
-                    </button>
-                </div>
-            </div>
+            )}
 
-            <div className="stats-grid-v5">
-                <div className="stat-card-v5 purple">
-                    <Award size={24} />
+            <div className="stats-grid-v5" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                <div className="stat-card-v5 purple" style={{ padding: '8px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', border: '1px solid #e2e8f0', color: '#7c3aed' }}>
+                    <Award size={18} />
                     <div className="s-data">
-                        <span className="s-val">{stats.avg_doctor}</span>
-                        <span className="s-lbl">Doctor Interaction</span>
+                        <span className="s-val" style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', lineHeight: 1 }}>{stats.avg_doctor}</span>
+                        <span className="s-lbl" style={{ fontSize: '9px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginTop: '2px' }}>Doctor Interaction</span>
                     </div>
                 </div>
-                <div className="stat-card-v5 blue">
-                    <TrendingUp size={24} />
+                <div className="stat-card-v5 blue" style={{ padding: '8px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', border: '1px solid #e2e8f0', color: '#3b82f6' }}>
+                    <TrendingUp size={18} />
                     <div className="s-data">
-                        <span className="s-val">{stats.avg_front}</span>
-                        <span className="s-lbl">Front-desk Rating</span>
+                        <span className="s-val" style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', lineHeight: 1 }}>{stats.avg_front}</span>
+                        <span className="s-lbl" style={{ fontSize: '9px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginTop: '2px' }}>Front-desk Rating</span>
                     </div>
                 </div>
-                <div className="stat-card-v5 orange">
-                    <Activity size={24} />
+                <div className="stat-card-v5 orange" style={{ padding: '8px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', border: '1px solid #e2e8f0', color: '#f59e0b' }}>
+                    <Activity size={18} />
                     <div className="s-data">
-                        <span className="s-val">{stats.avg_hosp}</span>
-                        <span className="s-lbl">Hospital Score</span>
+                        <span className="s-val" style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', lineHeight: 1 }}>{stats.avg_hosp}</span>
+                        <span className="s-lbl" style={{ fontSize: '9px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginTop: '2px' }}>Hospital Score</span>
                     </div>
                 </div>
-                <div className="stat-card-v5 total">
-                    <MessageSquare size={24} />
+                <div className="stat-card-v5 total" style={{ padding: '8px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', border: '1px solid #e2e8f0', color: '#0d7f6e' }}>
+                    <MessageSquare size={18} />
                     <div className="s-data">
-                        <span className="s-val">{stats.total}</span>
-                        <span className="s-lbl">Total Responses</span>
+                        <span className="s-val" style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', lineHeight: 1 }}>{stats.total}</span>
+                        <span className="s-lbl" style={{ fontSize: '9px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginTop: '2px' }}>Total Responses</span>
                     </div>
                 </div>
             </div>

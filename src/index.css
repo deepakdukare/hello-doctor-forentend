@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
 
+html {
+  font-size: 75% !important;
+}
+
 :root {
   --primary: #0d7f6e;
   --primary-hover: #064e3b;
@@ -18057,7 +18061,7 @@ input:checked+.slider:before {
 }
 
 .header-left-v4 h1 {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 850;
   color: #0f172a;
   margin: 0;
@@ -18065,7 +18069,7 @@ input:checked+.slider:before {
 }
 
 .header-left-v4 p {
-  font-size: 0.8rem;
+  font-size: 0.725rem;
   color: #64748b;
   margin: 4px 0 0 0;
   font-weight: 500;
@@ -18080,13 +18084,13 @@ input:checked+.slider:before {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
+  padding: 6px 12px;
   border-radius: 10px;
   border: 1px solid #e2e8f0;
   background: white;
   color: #475569;
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
@@ -18123,7 +18127,7 @@ input:checked+.slider:before {
 
 .stat-card-v4 {
   background: white;
-  padding: 12px;
+  padding: 8px 12px;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   display: flex;
@@ -18141,8 +18145,8 @@ input:checked+.slider:before {
 }
 
 .stat-icon-v4 {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -18156,7 +18160,7 @@ input:checked+.slider:before {
 }
 
 .stat-label-v4 {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
@@ -18164,7 +18168,7 @@ input:checked+.slider:before {
 }
 
 .stat-value-v4 {
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   font-weight: 900;
   color: #0f172a;
   line-height: 1.2;

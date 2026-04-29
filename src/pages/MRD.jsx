@@ -159,7 +159,7 @@ const MRD = () => {
         }
 
         if (prefFromAppt) {
-            setShowModal(true);
+            setTab('add_record');
             setForm({
                 ...EMPTY_ENTRY,
                 patient_id: p.patient_id,
@@ -233,7 +233,7 @@ const MRD = () => {
                 patient_id: form.patient_id || selectedPatient?.patient_id
             });
             setFormStatus({ error: null, success: 'Entry added successfully.' });
-            setForm(EMPTY_ENTRY);
+            setForm({ ...EMPTY_ENTRY, patient_id: selectedPatient?.patient_id || form.patient_id });
             // Refresh worklist since an entry was added
             loadWorklist();
             if (selectedPatient) {
@@ -308,354 +308,345 @@ const MRD = () => {
                         <RefreshCw size={16} className={dirLoading ? 'spinning' : ''} />
                         <span>Sync Directory</span>
                     </button>
-                    <button className="btn-header-v4 btn-primary-v4" onClick={openEntryModal}>
-                        <Plus size={16} />
-                        <span>New Entry</span>
-                    </button>
+                    {selectedPatient && (
+                        <button className="btn-header-v4 btn-primary-v4" onClick={openEntryModal}>
+                            <Plus size={16} />
+                            <span>New Entry</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
-            <div className="mrd-workspace-v3">
-                {/* 1. Directory Panel */}
-                <aside className="mrd-panel-v3 sidebar-panel">
+            {!selectedPatient ? (
+                <div style={{ padding: '1.5rem', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
                     {pendingCompletions.length > 0 && (
-                        <div className="worklist-section">
-                            <div className="panel-label" style={{ color: '#0d7f6e', display: 'flex', justifyContent: 'space-between' }}>
-                                <span>Pending clinical records</span>
-                                <span className="badge">{pendingCompletions.length}</span>
+                        <div style={{ background: '#fff', border: '1.5px dashed #0d7f6e', borderRadius: '12px', padding: '16px', marginBottom: '24px', background: '#fdfdff' }}>
+                            <div style={{ fontSize: '13px', fontWeight: 900, textTransform: 'uppercase', color: '#0d7f6e', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Pending Clinical Records (Complete Visit)</span>
+                                <span style={{ background: '#0d7f6e', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '11px' }}>{pendingCompletions.length}</span>
                             </div>
-                            <div className="worklist-container">
+                            <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
                                 {pendingCompletions.map(a => (
-                                    <div key={a.appointment_id} className="worklist-item" onClick={async () => {
-                                        let p = patients.find(pat => pat.patient_id === a.patient_id);
-                                        if (!p) {
-                                            const res = await getPatientById(a.patient_id);
-                                            p = res.data?.data;
-                                        }
-                                        if (p) selectPatientRecord(p, a);
-                                    }}>
-                                        <div className="dot"></div>
-                                        <div className="wi-content">
-                                            <div className="wi-name">{removeSalutation(a.child_name) || 'Unknown Patient'}</div>
-                                            <div className="wi-meta">{fmt(a.appointment_date)} • {a.appointment_id}</div>
-                                        </div>
+                                    <div 
+                                        key={a.appointment_id} 
+                                        onClick={async () => {
+                                            let p = patients.find(pat => pat.patient_id === a.patient_id);
+                                            if (!p) {
+                                                const res = await getPatientById(a.patient_id);
+                                                p = res.data?.data;
+                                            }
+                                            if (p) selectPatientRecord(p, a);
+                                        }}
+                                        style={{ minWidth: '240px', padding: '12px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s' }}
+                                        onMouseEnter={e => e.currentTarget.style.borderColor = '#0d7f6e'}
+                                        onMouseLeave={e => e.currentTarget.style.borderColor = '#e2e8f0'}
+                                    >
+                                        <div style={{ fontWeight: 900, fontSize: '14px', color: '#1e293b', marginBottom: '4px' }}>{removeSalutation(a.child_name) || 'Unknown Patient'}</div>
+                                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>{fmt(a.appointment_date)} • {a.appointment_id}</div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     )}
 
-                    <div className="directory-search-container">
-                        <div className="panel-label">Patient Directory</div>
-                        <div className="search-bar-v3 sidebar-search">
-                            <Search size={14} className="search-icon" />
-                            <input
-                                type="text"
-                                placeholder="Search by name or ID..."
-                                value={patientSearch}
-                                onChange={(e) => setPatientSearch(e.target.value)}
-                            />
-                            {dirLoading && <RefreshCw size={12} className="spinning" />}
+                    <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px', boxShadow: '0 4px 20px rgba(15,23,42,0.04)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                            <div>
+                                <h2 style={{ fontSize: '18px', fontWeight: 850, color: '#1e293b', margin: 0 }}>Patient Directory</h2>
+                                <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0' }}>Select a patient profile to review or construct longitudinal health charts</p>
+                            </div>
+                            <div style={{ position: 'relative', width: '320px' }}>
+                                <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                <input
+                                    type="text"
+                                    placeholder="Search by name, ID or mobile..."
+                                    value={patientSearch}
+                                    onChange={(e) => setPatientSearch(e.target.value)}
+                                    style={{ width: '100%', padding: '8px 12px 8px 36px', border: '1.5px solid #e2e8f0', borderRadius: '8px', outline: 'none', fontSize: '13px' }}
+                                />
+                                {dirLoading && <RefreshCw size={14} className="spinning" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />}
+                            </div>
                         </div>
-                    </div>
-                    <div className="patient-list-v3">
+
                         {dirLoading && patients.length === 0 ? (
-                            <div className="loading-state">
-                                <RefreshCw size={24} className="spinning" />
-                                <span>Loading Records...</span>
+                            <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                                <RefreshCw size={32} className="spinning" style={{ margin: '0 auto 12px', color: '#0d7f6e' }} />
+                                <div style={{ fontSize: '13px', fontWeight: 600 }}>Syncing Patient Database...</div>
                             </div>
-                        ) : patients.map(p => {
-                            const isSelected = selectedPatient?.patient_id === p.patient_id;
-                            const ini = initials(p);
-                            return (
-                                <div
-                                    key={p.patient_id}
-                                    className={`patient-item-v3 ${isSelected ? 'selected' : ''}`}
-                                    onClick={() => selectPatientRecord(p)}
-                                >
-                                    <div className="avatar" style={{ background: isSelected ? avatarColor(ini) : '#f1f5f9', color: isSelected ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <User size={14} />
-                                    </div>
-                                    <div className="info">
-                                        <div className="p-name">{pname(p)}</div>
-                                        <div className="p-meta">{p.patient_id} • {age(p.dob) || 'No Age'}</div>
-                                    </div>
-                                    {isSelected && <ArrowRight size={14} className="selected-indicator" />}
-                                </div>
-                            );
-                        })}
+                        ) : patients.length === 0 ? (
+                            <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                                <User size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
+                                <div style={{ fontSize: '13px', fontWeight: 600 }}>No profiles identified in this repository.</div>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {patients.map(p => {
+                                    const ini = initials(p);
+                                    return (
+                                        <div
+                                            key={p.patient_id}
+                                            onClick={() => selectPatientRecord(p)}
+                                            style={{ padding: '12px 16px', background: '#f8fafc', border: '1px solid #eef2f6', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#0d7f6e'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#eef2f6'; e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.boxShadow = 'none'; }}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+                                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: avatarColor(ini), color: '#fff', fontSize: '15px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                    {ini}
+                                                </div>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '16px', flex: 1, alignItems: 'center' }}>
+                                                    <div style={{ fontSize: '15px', fontWeight: 850, color: '#1e293b' }}>{pname(p)}</div>
+                                                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>ID: {p.patient_id}</div>
+                                                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#0d7f6e' }}>{age(p.dob) || '—'}</div>
+                                                </div>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); selectPatientRecord(p); }}
+                                                    style={{ background: '#0d7f6e10', color: '#0d7f6e', border: 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 800, cursor: 'pointer' }}
+                                                >
+                                                    Select
+                                                </button>
+                                                <ArrowRight size={18} color="#cbd5e1" />
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
-                </aside>
-
-                {/* 2. Timeline Panel */}
-                <aside className="mrd-panel-v3 timeline-panel">
-                    {!selectedPatient ? (
-                        <div className="empty-selection">
-                            <FileText size={48} />
-                            <h3>Choose a Patient</h3>
-                            <p>Select a profile from the directory to view their health journey.</p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="panel-header-v3">
-                                <div className="selected-patient-meta">
-                                    <h3>{pname(selectedPatient)}</h3>
-                                    <p>{selectedPatient.patient_id}</p>
+                </div>
+            ) : (
+                <div style={{ padding: '1.5rem', width: '100%', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {/* Patient Profile Summary Card */}
+                    <div style={{ background: '#fff', border: '1px solid #eef2f6', borderRadius: '12px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 12px rgba(15,23,42,0.03)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: avatarColor(initials(selectedPatient)), color: '#fff', fontSize: '18px', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {initials(selectedPatient)}
+                            </div>
+                            <div>
+                                <h2 style={{ fontSize: '18px', fontWeight: 850, color: '#1e293b', margin: 0 }}>{pname(selectedPatient)}</h2>
+                                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'flex', gap: '12px' }}>
+                                    <span><strong>Age:</strong> {age(selectedPatient.dob) || '—'}</span>
+                                    <span><strong>ID:</strong> {selectedPatient.patient_id}</span>
+                                    <span><strong>Mobile:</strong> {selectedPatient.patient_mobile || '—'}</span>
                                 </div>
-                                <button className="btn-add-mini" onClick={openEntryModal}>
-                                    <Plus size={16} />
-                                </button>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={() => setSelectedPatient(null)} 
+                            style={{ background: '#f1f5f9', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 800, color: '#475569' }}
+                        >
+                            Change Patient
+                        </button>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1.5rem', alignItems: 'start' }}>
+                        {/* Left Workspace: Tabs + Form/Timeline */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ display: 'flex', borderBottom: '2px solid #f1f5f9' }}>
+                                {['add_record', 'patient_history', 'attachments'].map(t => (
+                                    <button 
+                                        key={t}
+                                        onClick={() => setTab(t)}
+                                        style={{ 
+                                            padding: '10px 20px', 
+                                            border: 'none', 
+                                            background: 'none', 
+                                            fontSize: '14px', 
+                                            fontWeight: tab === t || (tab === 'details' && t === 'add_record') ? 850 : 600, 
+                                            color: tab === t || (tab === 'details' && t === 'add_record') ? '#0d7f6e' : '#64748b', 
+                                            borderBottom: tab === t || (tab === 'details' && t === 'add_record') ? '2px solid #0d7f6e' : '2px solid transparent',
+                                            cursor: 'pointer',
+                                            marginBottom: '-2px'
+                                        }}
+                                    >
+                                        {t === 'add_record' ? 'E-prescription' : t === 'patient_history' ? 'Patient History' : 'View & Upload Documents'}
+                                    </button>
+                                ))}
                             </div>
 
-                            <div className="timeline-filters">
-                                <div className="keyword-search">
-                                    <Search size={14} />
-                                    <input
-                                        type="text"
-                                        placeholder="Filter records..."
-                                        value={keywordSearch}
-                                        onChange={(e) => setKeywordSearch(e.target.value)}
+                            {/* Tab 1: E-Prescription Form Workspace */}
+                            {(tab === 'add_record' || tab === 'details') && (
+                                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(15,23,42,0.04)' }}>
+                                     <form onSubmit={handleAddEntry} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                          {/* Vitals Grid */}
+                                          <div>
+                                              <div style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Vitals</div>
+                                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px' }}>
+                                                  {[{ label: 'Weight', key: 'weight', unit: 'kg' }, { label: 'Temp', key: 'temperature', unit: '°F' }, { label: 'SPO2', key: 'spo2', unit: '%' }, { label: 'Pulse', key: 'pulse', unit: 'bpm' }, { label: 'Head Cir.', key: 'head_circumference', unit: 'cm' }].map(v => (
+                                                      <div key={v.key} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                          <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>{v.label}</label>
+                                                          <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid #e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
+                                                              <input 
+                                                                  type="text" 
+                                                                  placeholder={v.unit}
+                                                                  value={form[v.key]} 
+                                                                  onChange={e => setForm({ ...form, [v.key]: e.target.value })} 
+                                                                  style={{ width: '100%', border: 'none', padding: '6px 10px', fontSize: '12px', outline: 'none' }} 
+                                                              />
+                                                          </div>
+                                                      </div>
+                                                  ))}
+                                              </div>
+                                          </div>
+
+                                          {/* Clinical & Diagnosis */}
+                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>Primary Diagnosis / Purpose</label>
+                                                  <input 
+                                                      type="text" 
+                                                      placeholder="Enter primary diagnosis..." 
+                                                      value={form.diagnosis} 
+                                                      onChange={e => setForm({ ...form, diagnosis: e.target.value })} 
+                                                      style={{ padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', outline: 'none' }} 
+                                                  />
+                                              </div>
+                                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>Chief Complaint</label>
+                                                  <input 
+                                                      type="text" 
+                                                      placeholder="Enter chief complaint..." 
+                                                      value={form.chief_complaint} 
+                                                      onChange={e => setForm({ ...form, chief_complaint: e.target.value })} 
+                                                      style={{ padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', outline: 'none' }} 
+                                                  />
+                                              </div>
+                                          </div>
+
+                                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                              <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>Medications & Prescription</label>
+                                              <textarea 
+                                                  rows={4} 
+                                                  placeholder="Medicine Name - Dosage - Frequency - Duration" 
+                                                  value={form.prescription} 
+                                                  onChange={e => setForm({ ...form, prescription: e.target.value })} 
+                                                  style={{ padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', outline: 'none', resize: 'none' }} 
+                                              />
+                                          </div>
+
+                                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>Clinical Notes & Observations</label>
+                                                  <textarea 
+                                                      rows={3} 
+                                                      placeholder="Detailed clinical findings..." 
+                                                      value={form.clinical_notes} 
+                                                      onChange={e => setForm({ ...form, clinical_notes: e.target.value })} 
+                                                      style={{ padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', outline: 'none', resize: 'none' }} 
+                                                  />
+                                              </div>
+                                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>Patient Advice</label>
+                                                  <textarea 
+                                                      rows={3} 
+                                                      placeholder="Dietary rules, instructions..." 
+                                                      value={form.advice} 
+                                                      onChange={e => setForm({ ...form, advice: e.target.value })} 
+                                                      style={{ padding: '8px 12px', border: '1.5px solid #e2e8f0', borderRadius: '6px', fontSize: '13px', outline: 'none', resize: 'none' }} 
+                                                  />
+                                              </div>
+                                          </div>
+
+                                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                                               <button 
+                                                   type="submit" 
+                                                   disabled={saving} 
+                                                   style={{ background: '#0d7f6e', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '6px', fontSize: '14px', fontWeight: 800, cursor: 'pointer' }}
+                                               >
+                                                   {saving ? 'Processing...' : 'Save E-prescription'}
+                                               </button>
+                                          </div>
+                                          {formStatus.error && <p style={{ color: '#ef4444', fontSize: '12px', margin: 0 }}>{formStatus.error}</p>}
+                                          {formStatus.success && <p style={{ color: '#10b981', fontSize: '12px', margin: 0 }}>{formStatus.success}</p>}
+                                     </form>
+                                </div>
+                            )}
+
+                            {/* Tab 2: Patient History */}
+                            {tab === 'patient_history' && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {filteredRecords.length === 0 ? (
+                                        <div style={{ padding: '40px', background: '#fff', borderRadius: '12px', textAlign: 'center', border: '1px solid #e2e8f0', color: '#64748b' }}>
+                                            No historical records available.
+                                        </div>
+                                    ) : filteredRecords.map((rec, i) => (
+                                        <div 
+                                            key={rec._id || i} 
+                                            style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', boxShadow: '0 4px 12px rgba(15,23,42,0.02)' }}
+                                        >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                                <span style={{ fontSize: '12px', fontWeight: 800, color: '#0d7f6e' }}>{fmt(rec.visit_date || rec.createdAt)}</span>
+                                                <span style={{ fontSize: '10px', textTransform: 'uppercase', padding: '2px 8px', background: '#f1f5f9', color: '#475569', borderRadius: '12px', fontWeight: 800 }}>{rec.visit_type}</span>
+                                            </div>
+                                            <div style={{ fontSize: '14px', fontWeight: 800, color: '#1e293b', marginBottom: '6px' }}>{rec.diagnosis || 'General Clinical Review'}</div>
+                                            {rec.prescription && (
+                                                <div style={{ fontSize: '12px', color: '#475569', background: '#f8fafc', padding: '8px', borderRadius: '6px', marginTop: '8px' }}>
+                                                    <strong>Rx:</strong> {rec.prescription}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Tab 3: Attachments */}
+                            {tab === 'attachments' && (
+                                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(15,23,42,0.04)' }}>
+                                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', marginBottom: '12px', textTransform: 'uppercase' }}>Upload Scans & Reports</div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '12px' }}>
+                                        {form.attachments?.map((att, idx) => (
+                                            <div key={idx} style={{ position: 'relative', width: '120px', height: '120px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                                                <img src={att.preview || att.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                <button type="button" onClick={() => removeAttachment(idx)} style={{ position: 'absolute', top: '4px', right: '4px', padding: '2px', borderRadius: '50%', background: '#ef4444', color: '#fff', border: 'none', cursor: 'pointer' }}><X size={12} /></button>
+                                            </div>
+                                        ))}
+                                        <label style={{ width: '120px', height: '120px', borderRadius: '8px', border: '1.5px dashed #0d7f6e', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#0d7f6e' }}>
+                                            <Plus size={24} />
+                                            <span style={{ fontSize: '11px', fontWeight: 700, marginTop: '4px' }}>Add File</span>
+                                            <input type="file" multiple accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Right Sidebar: Quick Selection & Direct Search */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ background: '#fff', border: '1px solid #eef2f6', borderRadius: '12px', padding: '16px', boxShadow: '0 4px 12px rgba(15,23,42,0.03)' }}>
+                                <div style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>Search Patient</div>
+                                <div style={{ position: 'relative' }}>
+                                    <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Lookup patient..." 
+                                        value={patientSearch}
+                                        onChange={(e) => setPatientSearch(e.target.value)}
+                                        style={{ width: '100%', padding: '6px 10px 6px 30px', border: '1.5px solid #e2e8f0', borderRadius: '6px', fontSize: '12px', outline: 'none' }} 
                                     />
                                 </div>
-                                <div className="type-pills">
-                                    {['ALL', 'CONSULTATION', 'VACCINATION'].map(type => (
-                                        <button
-                                            key={type}
-                                            className={filterType === type ? 'active' : ''}
-                                            onClick={() => setFilterType(type)}
+                            </div>
+
+                            <div style={{ background: '#fff', border: '1px solid #eef2f6', borderRadius: '12px', padding: '16px', boxShadow: '0 4px 12px rgba(15,23,42,0.03)' }}>
+                                <div style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', marginBottom: '8px' }}>Previous Records</div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+                                    {filteredRecords.map((r, i) => (
+                                        <div 
+                                            key={r._id || i}
+                                            style={{ padding: '8px 12px', border: '1px solid #f1f5f9', background: '#f8fafc', borderRadius: '6px', fontSize: '11px', cursor: 'pointer' }}
+                                            onClick={() => { setSelectedRecord(r); setTab('patient_history'); }}
                                         >
-                                            {type === 'ALL' ? 'Total' : type === 'CONSULTATION' ? 'Clinic' : 'Immune'}
-                                        </button>
+                                            <div style={{ fontWeight: 800, color: '#1e293b' }}>{fmt(r.visit_date || r.createdAt)}</div>
+                                            <div style={{ color: '#64748b', marginTop: '2px' }}>{r.diagnosis || 'Checkup'}</div>
+                                        </div>
                                     ))}
                                 </div>
                             </div>
-
-                            <div className="records-timeline-v3">
-                                {recLoading ? (
-                                    <div className="loading-state">
-                                        <RefreshCw size={24} className="spinning" />
-                                    </div>
-                                ) : filteredRecords.length === 0 ? (
-                                    <div className="no-records">
-                                        <FileText size={40} style={{ opacity: 0.2 }} />
-                                        <p>No records identified.</p>
-                                    </div>
-                                ) : filteredRecords.map((rec, i) => (
-                                    <div
-                                        key={rec._id || rec.appointment_id || i}
-                                        className={`record-card-v3 ${selectedRecord === rec ? 'selected' : ''} ${rec.is_pending_record ? 'pending-state' : ''}`}
-                                        onClick={() => { setSelectedRecord(rec); setTab('details'); }}
-                                    >
-                                        <div className="record-header">
-                                            <span className="record-date">{fmt(rec.visit_date || rec.createdAt)}</span>
-                                            <span className={`type-tag ${rec.visit_type?.toLowerCase()}`}>{rec.visit_type}</span>
-                                        </div>
-                                        <div className="record-diagnosis">
-                                            {rec.is_pending_record && <Clock size={14} className="pending-icon" />}
-                                            {rec.diagnosis || rec.vaccine_given || rec.chief_complaint || 'General Checkup'}
-                                        </div>
-                                        <div className="record-footer">
-                                            <div className="doctor-pill"><Activity size={10} /> {rec.attending_doctor}</div>
-                                            {rec.prescription && <div className="attachment-pill"><Paperclip size={10} /> Rx</div>}
-                                            {rec.attachments?.length > 0 && <div className="attachment-pill" style={{ background: '#ecfdf5', color: '#059669' }}><Paperclip size={10} /> {rec.attachments.length} Img</div>}
-                                            {rec.is_pending_record && (
-                                                <button className="btn-record-now" onClick={(e) => { e.stopPropagation(); selectPatientRecord(selectedPatient, rec); }}>
-                                                    Complete Now <Plus size={10} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </>
-                    )}
-                </aside>
-
-                {/* 3. Detailed View Panel */}
-                <main className="mrd-main-v3">
-                    {!selectedRecord ? (
-                        <div className="empty-selection">
-                            <Shield size={64} style={{ opacity: 0.1 }} />
-                            <h3>Clinical Intelligence</h3>
-                            <p>Detailed longitudinal analysis will appear here.</p>
                         </div>
-                    ) : (
-                        <div className="record-detail-v3">
-                            <div className="detail-header-v3">
-                                <div className="primary-info">
-                                    <div className="visit-badge">{selectedRecord.visit_type}</div>
-                                    <h2>{selectedRecord.diagnosis || selectedRecord.chief_complaint || 'Clinical Examination'}</h2>
-                                    <div className="meta">
-                                        <span><Calendar size={14} /> {fmt(selectedRecord.visit_date || selectedRecord.createdAt)}</span>
-                                        <span><User size={14} /> {selectedRecord.attending_doctor}</span>
-                                    </div>
-                                </div>
-                                <div className="detail-actions">
-                                    <button
-                                        className="btn-icon"
-                                        onClick={async () => {
-                                            if (!selectedRecord?._id) return;
-                                            try {
-                                                const res = await sendPrescriptionViaWhatsApp(selectedRecord._id);
-                                                alert(res.data.message || "Prescription sent via WhatsApp");
-                                            } catch (e) {
-                                                alert(e.response?.data?.message || "Failed to send via WhatsApp");
-                                            }
-                                        }}
-                                        title="Send via WhatsApp"
-                                        style={{ color: '#25d366' }}
-                                    >
-                                        <MessageCircle size={18} />
-                                    </button>
-                                    <button className="btn-icon" title="Print Record"><Printer size={18} /></button>
-                                    <button className="btn-icon" onClick={handleExport} disabled={exporting} title="Export Data">
-                                        {exporting ? <RefreshCw size={18} className="spinning" /> : <Download size={18} />}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <nav className="detail-tabs-v3">
-                                {[
-                                    { id: 'details', label: 'Clinical Summary' },
-                                    { id: 'prescription', label: `Rx Plan (${prescriptionLines.length})` },
-                                    { id: 'attachments', label: `Files & Images (${selectedRecord.attachments?.length || 0})` },
-                                    { id: 'followup', label: 'Prognosis & Follow-up' }
-                                ].map(t => (
-                                    <button
-                                        key={t.id}
-                                        className={tab === t.id ? 'active' : ''}
-                                        onClick={() => setTab(t.id)}
-                                    >
-                                        {t.label}
-                                    </button>
-                                ))}
-                            </nav>
-
-                            <div className="tab-content-v3">
-                                {tab === 'details' && (
-                                    <div className="clinical-grid-v3">
-                                        {(selectedRecord.weight || selectedRecord.temperature || selectedRecord.spo2 || selectedRecord.pulse || selectedRecord.head_circumference) && (
-                                            <article className="info-block-v3 vitals-display">
-                                                <label>Vitals Check</label>
-                                                <div className="vitals-grid">
-                                                    {selectedRecord.weight && <div className="vital-item"><span>Weight:</span> <strong>{selectedRecord.weight}</strong></div>}
-                                                    {selectedRecord.temperature && <div className="vital-item"><span>Temp:</span> <strong>{selectedRecord.temperature}</strong></div>}
-                                                    {selectedRecord.spo2 && <div className="vital-item"><span>SPO2:</span> <strong>{selectedRecord.spo2}</strong></div>}
-                                                    {selectedRecord.pulse && <div className="vital-item"><span>Pulse:</span> <strong>{selectedRecord.pulse}</strong></div>}
-                                                    {selectedRecord.head_circumference && <div className="vital-item"><span>Head Cir:</span> <strong>{selectedRecord.head_circumference}</strong></div>}
-                                                </div>
-                                            </article>
-                                        )}
-                                        {selectedRecord.symptoms && (Array.isArray(selectedRecord.symptoms) ? selectedRecord.symptoms.length > 0 : String(selectedRecord.symptoms).length > 0) && (
-                                            <article className="info-block-v3">
-                                                <label>Reporting Symptoms</label>
-                                                <div className="symptoms-chips">
-                                                    {(Array.isArray(selectedRecord.symptoms) ? selectedRecord.symptoms : [selectedRecord.symptoms]).map((s, i) => (
-                                                        <span key={i} className="sym-chip">{s}</span>
-                                                    ))}
-                                                </div>
-                                            </article>
-                                        )}
-                                        <article className="info-block-v3">
-                                            <label>Chief Complaint</label>
-                                            <p>{selectedRecord.chief_complaint || 'No complaint recorded.'}</p>
-                                        </article>
-                                        <article className="info-block-v3">
-                                            <label>Clinical Observations</label>
-                                            <p>{selectedRecord.clinical_notes || 'No observations recorded.'}</p>
-                                        </article>
-                                        {selectedRecord.advice && (
-                                            <article className="info-block-v3">
-                                                <label>Advice & Instructions</label>
-                                                <p className="advice-text">{selectedRecord.advice}</p>
-                                            </article>
-                                        )}
-                                        {selectedRecord.visit_type === 'VACCINATION' && (
-                                            <article className="info-block-v3 vaccination">
-                                                <label>Immunization Track</label>
-                                                <div className="vaccine-box">
-                                                    <Shield size={16} />
-                                                    <span>{selectedRecord.diagnosis || selectedRecord.vaccine_given || "Regular Immunization"}</span>
-                                                </div>
-                                                {selectedRecord.vaccine_batch && (
-                                                    <div className="vaccine-batch" style={{ marginTop: '0.5rem', fontSize: '0.8rem', opacity: 0.8 }}>
-                                                        <strong>Batch/Brand:</strong> {selectedRecord.vaccine_batch}
-                                                    </div>
-                                                )}
-                                            </article>
-                                        )}
-                                    </div>
-                                )}
-
-                                {tab === 'attachments' && (
-                                    <div className="attachments-view-v3">
-                                        {selectedRecord.attachments?.length > 0 ? (
-                                            <div className="image-grid-v3">
-                                                {selectedRecord.attachments.map((att, idx) => {
-                                                    const isPdf = att.file_type === 'application/pdf' || att.name?.toLowerCase().endsWith('.pdf');
-                                                    return (
-                                                        <div key={idx} className="img-card-v3">
-                                                            {isPdf ? (
-                                                                <div className="pdf-placeholder-v3">
-                                                                    <FileText size={48} />
-                                                                    <span>{att.name}</span>
-                                                                </div>
-                                                            ) : (
-                                                                <img src={att.url} alt={att.name} />
-                                                            )}
-                                                            <div className="img-overlay">
-                                                                <span className="img-name">{att.name}</span>
-                                                                <div className="img-actions">
-                                                                    <button className="img-btn" onClick={() => window.open(att.url, '_blank')}><Eye size={16} /></button>
-                                                                    <a href={att.url} download={att.name} className="img-btn"><Download size={14} /></a>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : (
-                                            <div className="empty-state-mini">
-                                                <Paperclip size={32} style={{ opacity: 0.2, marginBottom: '0.5rem' }} />
-                                                <p>No medical screenshots or scans have been uploaded for this visit.</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {tab === 'prescription' && (
-                                    <div className="prescription-view-v3">
-                                        {prescriptionLines.length > 0 ? (
-                                            prescriptionLines.map((line, idx) => (
-                                                <div key={idx} className="rx-line-v3">
-                                                    <div className="rx-num">{idx + 1}</div>
-                                                    <div className="rx-text">{line}</div>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <div className="empty-state">No pharmacological plan recorded.</div>
-                                        )}
-                                    </div>
-                                )}
-
-                                {tab === 'followup' && (
-                                    <div className="followup-view-v3">
-                                        <div className="info-block-v3">
-                                            <label>Next Recommended Visit</label>
-                                            <div className="next-due-card">
-                                                <Calendar size={24} />
-                                                <div className="val">
-                                                    {selectedRecord.next_visit_due ? fmt(selectedRecord.next_visit_due) : 'PRN (As required)'}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </main>
-            </div>
+                    </div>
+                </div>
+            )}
 
             {/* Modal */}
             {showModal && (

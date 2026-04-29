@@ -170,13 +170,6 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
                         <button
-                            onClick={() => setShowReminderModal(true)}
-                            title="Schedule Reminder"
-                            style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #f4fdfa', background: '#f4fdfa', color: '#0d7f6e', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                        >
-                            <Calendar size={16} />
-                        </button>
-                        <button
                             onClick={fetchNotifications}
                             title="Refresh"
                             style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #f1f5f9', background: '#fff', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}

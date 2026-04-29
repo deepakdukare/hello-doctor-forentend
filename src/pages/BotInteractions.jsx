@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { getUnregisteredInteractions, getNotifications, markNotificationRead, getChatHistory } from '../api/index';
 import { hasPermission } from '../utils/auth';
+import FeedbackReports from './FeedbackReports';
 
 const BotInteractions = () => {
     const [tab, setTab] = useState('leads'); // leads, escalations, history
@@ -60,6 +61,7 @@ const BotInteractions = () => {
     const fetchHistory = async () => {
         setLoading(true);
         try {
+            const res = await getChatHistory(filters);
             setData(prev => ({ ...prev, history: Array.isArray(res?.data?.data) ? res.data.data : [] }));
         } catch (e) {
             setError("Failed to fetch history");
@@ -139,6 +141,13 @@ const BotInteractions = () => {
                         >
                             <Clock size={14} /> <span>History</span>
                         </button>
+                        <button
+                            onClick={() => setTab('feedback')}
+                            className={`btn-header-v4 ${tab === 'feedback' ? 'active' : ''}`}
+                            style={{ border: 'none', background: tab === 'feedback' ? '#0d7f6e' : 'transparent', color: tab === 'feedback' ? '#fff' : '#64748b', boxShadow: tab === 'feedback' ? '0 2px 8px rgba(13, 127, 110, 0.2)' : 'none' }}
+                        >
+                            <MessageSquare size={14} /> <span>Feedback</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -150,89 +159,92 @@ const BotInteractions = () => {
                 </div>
             )}
 
-            <div className="stats-grid-v4" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '24px' }}>
-                <div className="stat-card-v4">
-                    <div className="stat-icon-v4" style={{ backgroundColor: `rgba(99, 102, 241, 0.1)`, color: '#0d7f6e' }}>
-                        <Bot size={24} />
+            <div className="stats-grid-v4" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                <div className="stat-card-v4" style={{ padding: '8px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', border: '1px solid #e2e8f0' }}>
+                    <div className="stat-icon-v4" style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(99, 102, 241, 0.1)`, color: '#0d7f6e', flexShrink: 0 }}>
+                        <Bot size={18} />
                     </div>
                     <div className="stat-info-v4">
-                        <span className="stat-label-v4">Bot Captures</span>
-                        <div className="stat-value-v4">{data.leads.length} <small style={{ fontSize: '0.7rem', color: '#64748b' }}>Unregistered</small></div>
+                        <span className="stat-label-v4" style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>Bot Captures</span>
+                        <div className="stat-value-v4" style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', lineHeight: 1 }}>{data.leads.length} <small style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 500 }}>Unreg.</small></div>
                     </div>
                 </div>
-                <div className="stat-card-v4">
-                    <div className="stat-icon-v4" style={{ backgroundColor: `rgba(239, 68, 68, 0.1)`, color: '#ef4444' }}>
-                        <ShieldAlert size={24} />
+                <div className="stat-card-v4" style={{ padding: '8px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', border: '1px solid #e2e8f0' }}>
+                    <div className="stat-icon-v4" style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(239, 68, 68, 0.1)`, color: '#ef4444', flexShrink: 0 }}>
+                        <ShieldAlert size={18} />
                     </div>
                     <div className="stat-info-v4">
-                        <span className="stat-label-v4">Support Escalations</span>
-                        <div className="stat-value-v4" style={{ color: '#ef4444' }}>{data.escalations.length} <small style={{ fontSize: '0.7rem', color: '#64748b' }}>Pending</small></div>
+                        <span className="stat-label-v4" style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>Support Escalations</span>
+                        <div className="stat-value-v4" style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ef4444', lineHeight: 1 }}>{data.escalations.length} <small style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 500 }}>Pending</small></div>
                     </div>
                 </div>
-                <div className="stat-card-v4">
-                    <div className="stat-icon-v4" style={{ backgroundColor: `rgba(16, 185, 129, 0.1)`, color: '#10b981' }}>
-                        <ShieldCheck size={24} />
+                <div className="stat-card-v4" style={{ padding: '8px 12px', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '10px', background: '#fff', border: '1px solid #e2e8f0' }}>
+                    <div className="stat-icon-v4" style={{ width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(16, 185, 129, 0.1)`, color: '#10b981', flexShrink: 0 }}>
+                        <ShieldCheck size={18} />
                     </div>
                     <div className="stat-info-v4">
-                        <span className="stat-label-v4">System Status</span>
-                        <div className="stat-value-v4" style={{ color: '#10b981' }}>Healthy <small style={{ fontSize: '0.7rem', color: '#64748b' }}>Operational</small></div>
+                        <span className="stat-label-v4" style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>System Status</span>
+                        <div className="stat-value-v4" style={{ fontSize: '1.1rem', fontWeight: 800, color: '#10b981', lineHeight: 1 }}>Healthy</div>
                     </div>
                 </div>
             </div>
 
+
             {/* History Filters */}
             {tab === 'history' && (
-                <div className="card" style={{ padding: '1.5rem', borderRadius: '20px', marginBottom: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'end' }}>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Mobile / WA ID</label>
+                <div className="card" style={{ padding: '12px 16px', borderRadius: '12px', marginBottom: '16px', display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end', background: '#fff', border: '1px solid #e2e8f0' }}>
+                    <div style={{ flex: '1', minWidth: '140px' }}>
+                        <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#64748b', marginBottom: '4px', textTransform: 'uppercase' }}>Mobile / WA ID</label>
                         <input
                             type="text"
                             placeholder="91XXXXXXXXXX"
                             value={filters.wa_id}
                             onChange={(e) => setFilters({ ...filters, wa_id: e.target.value })}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}
+                            style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px', outline: 'none' }}
                         />
                     </div>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Patient Name</label>
+                    <div style={{ flex: '1', minWidth: '140px' }}>
+                        <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#64748b', marginBottom: '4px', textTransform: 'uppercase' }}>Patient Name</label>
                         <input
                             type="text"
                             placeholder="Child Name"
                             value={filters.child_name}
                             onChange={(e) => setFilters({ ...filters, child_name: e.target.value })}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}
+                            style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px', outline: 'none' }}
                         />
                     </div>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginBottom: '0.5rem', textTransform: 'uppercase' }}>From</label>
+                    <div style={{ flex: '1', minWidth: '120px' }}>
+                        <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#64748b', marginBottom: '4px', textTransform: 'uppercase' }}>From</label>
                         <input
                             type="date"
                             value={filters.start_date}
                             onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}
+                            style={{ width: '100%', padding: '5px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px', outline: 'none' }}
                         />
                     </div>
-                    <div>
-                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginBottom: '0.5rem', textTransform: 'uppercase' }}>To</label>
+                    <div style={{ flex: '1', minWidth: '120px' }}>
+                        <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#64748b', marginBottom: '4px', textTransform: 'uppercase' }}>To</label>
                         <input
                             type="date"
                             value={filters.end_date}
                             onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
-                            style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}
+                            style={{ width: '100%', padding: '5px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px', outline: 'none' }}
                         />
                     </div>
                     <button
                         onClick={fetchHistory}
                         className="btn btn-primary"
-                        style={{ padding: '0.75rem', borderRadius: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                        style={{ padding: '7px 16px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', height: '31px', background: '#0d7f6e', border: 'none', color: '#fff', cursor: 'pointer' }}
                     >
-                        <Search size={18} /> Search History
+                        <Search size={14} /> Search
                     </button>
                 </div>
             )}
 
-            {/* Main Content Table/List */}
-            <div className="card" style={{ padding: 0, borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--border-color)', background: '#fff' }}>
+            {tab === 'feedback' ? (
+                <FeedbackReports hideHeader={true} />
+            ) : (
+                <div className="card" style={{ padding: 0, borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--border-color)', background: '#fff' }}>
                 <div style={{ padding: '1rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h2 style={{ fontSize: '1rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>
                         {tab === 'leads' ? 'Anonymous WhatsApp Leads' : tab === 'escalations' ? 'Human Support Queue' : 'Global Chat Logs'}
@@ -430,6 +442,7 @@ const BotInteractions = () => {
                     )}
                 </div>
             </div>
+            )}
 
 
         </div>

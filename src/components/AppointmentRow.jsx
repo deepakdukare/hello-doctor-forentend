@@ -52,71 +52,71 @@ const AppointmentRow = ({ appt, onEdit, onCancel, showDate }) => {
     return (
         <tr style={{ backgroundColor: '#fff', borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}>
             {showDate && (
-                <td style={{ padding: '16px 20px', background: '#f4fdfa', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                <td style={{ padding: '6px 12px', background: '#f4fdfa', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0d7f6e', background: '#f4fdfa', borderRadius: '6px', padding: '3px 8px', display: 'inline-block' }}>
                         {formatCompactDate(appt?.appointment_date || appt?.formatted_date)}
                     </span>
                 </td>
             )}
             {/* 1. Doctor */}
-            <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
+            <td style={{ padding: '6px 12px', verticalAlign: 'middle' }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                    <span style={{ fontSize: '9px', fontWeight: 600, color: '#334155' }}>
                         {docName}
                     </span>
                 </div>
             </td>
 
             {/* 2. Token */}
-            <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: '#0d7f6e' }}>
+            <td style={{ padding: '6px 12px', verticalAlign: 'middle' }}>
+                <span style={{ fontSize: '9px', fontWeight: 800, color: '#0d7f6e' }}>
                     {appt?.token_display || appt?.token_number || 'T-XX'}
                 </span>
             </td>
 
             {/* 3. Patient ID */}
-            <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 800 }}>
+            <td style={{ padding: '6px 12px', verticalAlign: 'middle' }}>
+                <span style={{ fontSize: '9px', color: '#64748b', fontWeight: 800 }}>
                     {appt?.patient_id || '9022'}
                 </span>
             </td>
 
             {/* 4. Patient */}
-            <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
+            <td style={{ padding: '6px 12px', verticalAlign: 'middle' }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                    <span style={{ fontSize: '9px', fontWeight: 600, color: '#334155' }}>
                         {removeSalutation(appt?.child_name) || 'Walk-in Patient'}
                     </span>
                 </div>
             </td>
 
             {/* 5. Gender */}
-            <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
-                <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700, textTransform: 'capitalize' }}>
+            <td style={{ padding: '6px 12px', verticalAlign: 'middle' }}>
+                <span style={{ fontSize: '9px', color: '#64748b', fontWeight: 700, textTransform: 'capitalize' }}>
                     {appt?.gender || 'Boy'}
                 </span>
             </td>
 
             {/* 5. Time */}
-            <td style={{ padding: '16px 20px', verticalAlign: 'middle', fontSize: '13px', color: '#475569', fontWeight: 600 }}>
+            <td style={{ padding: '6px 12px', verticalAlign: 'middle', fontSize: '9px', color: '#475569', fontWeight: 600 }}>
                 {formatTime12h(appt?.appointment_time || appt?.start_time)}
             </td>
 
             {/* 6. Visit Category */}
-            <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
-                <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 500, backgroundColor: '#f8fafc', padding: '4px 8px', borderRadius: '4px', border: '1px solid #f1f5f9' }}>
+            <td style={{ padding: '6px 12px', verticalAlign: 'middle' }}>
+                <span style={{ fontSize: '9px', color: '#64748b', fontWeight: 500, backgroundColor: '#f8fafc', padding: '4px 8px', borderRadius: '4px', border: '1px solid #f1f5f9' }}>
                     {appt?.visit_category || 'First visit'}
                 </span>
             </td>
 
             {/* 7. Status */}
-            <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
+            <td style={{ padding: '6px 12px', verticalAlign: 'middle' }}>
                 <span style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     padding: '4px 10px',
                     borderRadius: '50px',
-                    fontSize: '10px',
+                    fontSize: '9px',
                     fontWeight: 800,
                     textTransform: 'uppercase',
                     letterSpacing: '0.02em',
@@ -129,9 +129,9 @@ const AppointmentRow = ({ appt, onEdit, onCancel, showDate }) => {
             </td>
 
             {/* 8. Token Status */}
-            <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
+            <td style={{ padding: '6px 12px', verticalAlign: 'middle' }}>
                 <span style={{
-                    fontSize: '11px',
+                    fontSize: '9px',
                     fontWeight: 700,
                     color: (appt?.token_status || 'waiting').toLowerCase() === 'called' ? '#f59e0b' : '#3b82f6',
                     textTransform: 'uppercase'
@@ -141,7 +141,7 @@ const AppointmentRow = ({ appt, onEdit, onCancel, showDate }) => {
             </td>
 
             {/* 9. Edit */}
-            <td style={{ padding: '16px 20px', verticalAlign: 'middle', textAlign: 'right' }}>
+            <td style={{ padding: '6px 12px', verticalAlign: 'middle', textAlign: 'right' }}>
                 <button
                     onClick={(e) => { e.stopPropagation(); onEdit(appt); }}
                     style={{

@@ -748,17 +748,17 @@ const Appointments = () => {
                                 <table className="main-table-v3" style={{ width: '100%', borderCollapse: 'collapse', borderSpacing: 0, textAlign: 'left', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', backgroundColor: '#fff' }}>
                                     <thead>
                                         <tr style={{ backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0' }}>
-                                            {filters.showAll && <th style={{ padding: '8px 10px', fontSize: '11px', fontWeight: 800, color: '#0d7f6e', textTransform: 'uppercase', background: '#f4fdfa' }}>Date</th>}
-                                            <th style={{ padding: '8px 12px', fontSize: '11px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Doctor</th>
-                                            <th style={{ padding: '8px 12px', fontSize: '11px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Token</th>
-                                            <th style={{ padding: '8px 12px', fontSize: '11px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Patient ID</th>
-                                            <th style={{ padding: '8px 12px', fontSize: '11px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Patient</th>
-                                            <th style={{ padding: '8px 12px', fontSize: '11px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Gender</th>
-                                            <th style={{ padding: '8px 12px', fontSize: '11px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Time</th>
-                                            <th style={{ padding: '8px 12px', fontSize: '11px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Category</th>
-                                            <th style={{ padding: '8px 12px', fontSize: '11px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Status</th>
-                                            <th style={{ padding: '8px 12px', fontSize: '11px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Token Status</th>
-                                            <th style={{ padding: '8px 12px', width: '50px' }}></th>
+                                            {filters.showAll && <th style={{ padding: '6px 8px', fontSize: '10px', fontWeight: 800, color: '#0d7f6e', textTransform: 'uppercase', background: '#f4fdfa' }}>Date</th>}
+                                            <th style={{ padding: '6px 10px', fontSize: '10px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Doctor</th>
+                                            <th style={{ padding: '6px 10px', fontSize: '10px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Token</th>
+                                            <th style={{ padding: '6px 10px', fontSize: '10px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Patient ID</th>
+                                            <th style={{ padding: '6px 10px', fontSize: '10px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Patient</th>
+                                            <th style={{ padding: '6px 10px', fontSize: '10px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Gender</th>
+                                            <th style={{ padding: '6px 10px', fontSize: '10px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Time</th>
+                                            <th style={{ padding: '6px 10px', fontSize: '10px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Category</th>
+                                            <th style={{ padding: '6px 10px', fontSize: '10px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Status</th>
+                                            <th style={{ padding: '6px 10px', fontSize: '10px', fontWeight: 800, color: '#000000', textTransform: 'uppercase' }}>Token Status</th>
+                                            <th style={{ padding: '6px 10px', width: '50px' }}></th>
                                         </tr>
                                     </thead>
                                     <tbody>

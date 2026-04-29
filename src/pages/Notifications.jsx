@@ -118,10 +118,6 @@ const Notifications = () => {
                             <span>Mark All Read</span>
                         </button>
                     )}
-                    <button className="btn-header-v4" onClick={() => setShowReminder(true)} style={{ color: '#f59e0b', borderColor: '#fef3c7', background: '#fffbeb' }}>
-                        <Plus size={16} />
-                        <span>Schedule Reminder</span>
-                    </button>
                     <button className="btn-header-v4 btn-primary-v4" onClick={fetchNotifications}>
                         <RefreshCw size={16} className={loading ? 'spinning' : ''} />
                         <span>Refresh</span>

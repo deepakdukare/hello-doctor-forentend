@@ -43,12 +43,13 @@ const ClinicDisplay = lazy(() => import('./pages/ClinicDisplay'));
 const Feedback = lazy(() => import('./pages/Feedback'));
 const FeedbackReports = lazy(() => import('./pages/FeedbackReports'));
 const Analytics = lazy(() => import('./pages/Analytics'));
+const ClinicalEntry = lazy(() => import('./pages/ClinicalEntry'));
 
 
 import { hasPermission, getUser, getToken } from './utils/auth';
 import { removeSalutation } from './utils/formatters';
 import NotificationDropdown from './components/NotificationDropdown';
-import { getNotifications } from './api';
+import { getNotifications, scheduleReminder, getDoctors, searchPatients } from './api';
 
 const MobileNav = () => {
     const location = useLocation();
@@ -81,6 +82,7 @@ const Sidebar = ({ onLogout, isCollapsed, isMobileMenuOpen, onMobileClose }) => 
     const user = getUser();
     const displayName = removeSalutation(user.full_name || user.username || 'Admin');
     const initial = displayName.charAt(0).toUpperCase();
+    const [showLogout, setShowLogout] = useState(false);
 
     const allNavSections = [
         {
@@ -91,11 +93,10 @@ const Sidebar = ({ onLogout, isCollapsed, isMobileMenuOpen, onMobileClose }) => 
                 { name: 'Patients', path: '/patients', icon: Users, permission: 'view_patients' },
                 { name: 'Doctors', path: '/doctors', icon: Stethoscope, permission: 'view_doctors' },
                 { name: 'Medical Records', path: '/mrd', icon: FileText, permission: 'view_mrd' },
+                { name: 'New Clinical Entry', path: '/clinical-entry', icon: Clipboard, permission: 'view_mrd' },
 
                 { name: 'Reports & Analytics', path: '/analytics', icon: TrendingUp, permission: 'view_reports' },
-                { name: 'Feedback Hub', path: '/feedback', icon: MessageSquare, permission: 'view_feedback' },
-                { name: 'Bot Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },
-                { name: 'Notifications', path: '/notifications', icon: BellIcon, permission: 'view_notifications' },
+                { name: 'Bot & Feedback Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },
                 { name: 'Settings', path: '/settings', icon: SettingsIcon, permission: 'view_settings' },
             ]
         }
@@ -150,18 +151,48 @@ const Sidebar = ({ onLogout, isCollapsed, isMobileMenuOpen, onMobileClose }) => 
                 ))}
             </div>
 
-            <div className="sidebar-footer-premium">
-                <div className="user-profile-compact">
-                    <div className="user-avatar-mini">{initial}</div>
-                    <div className="user-info-mini">
-                        <span className="u-name">{displayName}</span>
-                        <span className="u-role">{user.role || 'Staff'}</span>
+            <div className="sidebar-footer-premium" style={{ padding: '8px' }}>
+                <div className="user-profile-compact" style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: 0, background: 'transparent' }}>
+                    <div 
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                        onClick={() => setShowLogout(!showLogout)}
+                    >
+                        <div className="user-avatar-mini" style={{ width: '28px', height: '28px', fontSize: '12px', background: 'linear-gradient(135deg, #0d7f6e 0%, #10b981 100%)', borderRadius: '50%' }}>{initial}</div>
+                        <div className="user-info-mini" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                            <span className="u-name" style={{ fontSize: '11px', fontWeight: 700, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</span>
+                            <span className="u-role" style={{ fontSize: '9px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>{user.role || 'Staff'}</span>
+                        </div>
                     </div>
-                    <button onClick={onLogout} className="btn-logout-minimal" title="Logout">
-                        <LogOut size={16} />
-                    </button>
+                    {showLogout && (
+                        <button 
+                            onClick={onLogout} 
+                            style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'center', 
+                                gap: '6px', 
+                                width: '100%', 
+                                padding: '6px 10px', 
+                                borderRadius: '6px', 
+                                border: '1px solid #fee2e2', 
+                                background: '#fff5f5', 
+                                color: '#ef4444', 
+                                fontSize: '11px', 
+                                fontWeight: 700, 
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = '#fee2e2'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = '#fff5f5'; }}
+                            title="Logout"
+                        >
+                            <LogOut size={12} />
+                            <span>Logout</span>
+                        </button>
+                    )}
                 </div>
             </div>
+
         </div>
         </>
     );
@@ -174,6 +205,14 @@ const Header = ({ onMenuClick }) => {
     const initial = displayName.charAt(0).toUpperCase();
     const [showFormModal, setShowFormModal] = useState(false);
     const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [showReminderModal, setShowReminderModal] = useState(false);
+    const [reminder, setReminder] = useState({ patient_id: '', doctor_id: '', message: '', scheduled_at: '' });
+    const [doctors, setDoctors] = useState([]);
+    const [savingReminder, setSavingReminder] = useState(false);
+    const [patientSearch, setPatientSearch] = useState('');
+    const [selectedPatients, setSelectedPatients] = useState([]);
+    const [patientsList, setPatientsList] = useState([]);
+    const [loadingPatients, setLoadingPatients] = useState(false);
     const [copied, setCopied] = useState(false);
     const [feedbackCopied, setFeedbackCopied] = useState(false);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -190,9 +229,39 @@ const Header = ({ onMenuClick }) => {
             } catch (err) { }
         };
         fetchUnread();
+        getDoctors({ all: true }).then(r => setDoctors(r.data?.data || [])).catch(() => { });
         const interval = setInterval(fetchUnread, 60000); // Check every minute
         return () => clearInterval(interval);
     }, []);
+
+    const handleScheduleReminder = async (e) => {
+        e.preventDefault();
+        if (selectedPatients.length === 0 && !reminder.patient_id) {
+            alert('Please select or search at least one patient.');
+            return;
+        }
+        setSavingReminder(true);
+        try {
+            const pIds = [...selectedPatients.map(p => p.patient_id)];
+            if (reminder.patient_id && !pIds.includes(reminder.patient_id)) {
+                // If the user typed an ID directly instead of using search
+                pIds.push(reminder.patient_id);
+            }
+
+            await Promise.all(pIds.map(pId => 
+                scheduleReminder({ ...reminder, patient_id: pId })
+            ));
+
+            setShowReminderModal(false);
+            setReminder({ patient_id: '', doctor_id: '', message: '', scheduled_at: '' });
+            setPatientSearch('');
+            setSelectedPatients([]);
+        } catch (err) {
+            console.error('Failed to schedule reminders', err);
+        } finally {
+            setSavingReminder(false);
+        }
+    };
 
     const handleCopy = () => {
         navigator.clipboard.writeText(publicFormUrl).then(() => {
@@ -223,7 +292,17 @@ const Header = ({ onMenuClick }) => {
                     </div>
                 </div>
 
-                <div className="header-right" style={{ gap: '1rem' }}>
+                <div className="header-right" style={{ gap: '0.75rem' }}>
+                    {/* Scheduled Reminder Button */}
+                    <button
+                        onClick={() => setShowReminderModal(true)}
+                        className="mobile-hide header-btn-feedback"
+                        style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none', color: '#fff', gap: '6px' }}
+                    >
+                        <Clock size={16} />
+                        Reminder
+                    </button>
+
                     {/* Public Form Button */}
                     <button
                         onClick={() => setShowFormModal(true)}
@@ -371,6 +450,174 @@ const Header = ({ onMenuClick }) => {
                     </div>
                 </div>
             )}
+            {/* Schedule Reminder Modal */}
+            {showReminderModal && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(15,23,42,0.6)',
+                        backdropFilter: 'blur(4px)',
+                        zIndex: 10000,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
+                    onClick={() => setShowReminderModal(false)}
+                >
+                    <div
+                        style={{
+                            background: '#fff',
+                            borderRadius: '12px',
+                            padding: '16px',
+                            width: '100%',
+                            maxWidth: '360px',
+                            boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
+                            margin: '20px'
+                        }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Clock size={16} color="#f59e0b" /> Schedule Reminder
+                            </h3>
+                            <button
+                                onClick={() => setShowReminderModal(false)}
+                                style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '6px', cursor: 'pointer' }}
+                            >
+                                <X size={20} color="#64748b" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleScheduleReminder} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <div style={{ position: 'relative' }}>
+                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>Patient (ID / Name / Mobile)</label>
+                                <input
+                                    type="text"
+                                    required={selectedPatients.length === 0}
+                                    placeholder="e.g. 26-AA1 or Search Patient"
+                                    value={patientSearch}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setPatientSearch(val);
+                                        setReminder(prev => ({ ...prev, patient_id: val }));
+                                        
+                                        if (val.trim().length >= 2) {
+                                            setLoadingPatients(true);
+                                            searchPatients(val)
+                                                .then(res => {
+                                                    setPatientsList(res.data?.data || []);
+                                                })
+                                                .catch(() => {})
+                                                .finally(() => setLoadingPatients(false));
+                                        } else {
+                                            setPatientsList([]);
+                                        }
+                                    }}
+                                    style={{ width: '100%', border: '1.5px solid #e2e8f0', borderRadius: '6px', padding: '6px 10px', fontSize: '12px', outline: 'none' }}
+                                />
+                                {loadingPatients && (
+                                    <div style={{ position: 'absolute', right: '12px', top: '28px' }}>
+                                        <Loader2 size={14} className="animate-spin text-slate-400" />
+                                    </div>
+                                )}
+                                {patientsList.length > 0 && (
+                                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 10050, maxHeight: '160px', overflowY: 'auto', marginTop: '2px' }}>
+                                        {patientsList.map(p => (
+                                            <div
+                                                key={p.patient_id}
+                                                onClick={() => {
+                                                    if (!selectedPatients.some(sp => sp.patient_id === p.patient_id)) {
+                                                        setSelectedPatients([...selectedPatients, p]);
+                                                    }
+                                                    setPatientSearch('');
+                                                    setReminder(prev => ({ ...prev, patient_id: '' }));
+                                                    setPatientsList([]);
+                                                }}
+                                                style={{ padding: '6px 10px', cursor: 'pointer', borderBottom: '1px solid #f8fafc', fontSize: '12px', transition: 'background 0.2s' }}
+                                                onMouseEnter={(e) => e.target.style.background = '#f8fafc'}
+                                                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                                            >
+                                                <div style={{ fontWeight: 700, color: '#1e293b' }}>{p.child_name || p.patient_name}</div>
+                                                <div style={{ fontSize: '10px', color: '#64748b' }}>ID: {p.patient_id} | Mobile: {p.patient_mobile}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Selected Patients Chips */}
+                            {selectedPatients.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '2px' }}>
+                                    {selectedPatients.map(p => (
+                                        <div 
+                                            key={p.patient_id} 
+                                            style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '2px 6px', fontSize: '10px', fontWeight: 700, color: '#1e293b' }}
+                                        >
+                                            <span>{p.child_name || p.patient_name || p.patient_id}</span>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setSelectedPatients(selectedPatients.filter(sp => sp.patient_id !== p.patient_id))}
+                                                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#ef4444', display: 'flex', padding: 0 }}
+                                            >
+                                                <X size={10} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <div>
+                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>Attending Clinician</label>
+                                <select
+                                    value={reminder.doctor_id}
+                                    onChange={e => setReminder(p => ({ ...p, doctor_id: e.target.value }))}
+                                    style={{ width: '100%', border: '1.5px solid #e2e8f0', borderRadius: '6px', padding: '6px 10px', fontSize: '12px', background: '#fff', outline: 'none' }}
+                                >
+                                    <option value="">Select Doctor (Optional)</option>
+                                    {doctors.map(d => <option key={d.doctor_id} value={d.doctor_id}>{d.name}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>Reminder Message</label>
+                                <textarea
+                                    required
+                                    rows={2}
+                                    placeholder="Type instructions here..."
+                                    value={reminder.message}
+                                    onChange={e => setReminder(p => ({ ...p, message: e.target.value }))}
+                                    style={{ width: '100%', border: '1.5px solid #e2e8f0', borderRadius: '6px', padding: '6px 10px', fontSize: '12px', resize: 'none', outline: 'none' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>Schedule Time</label>
+                                <input
+                                    type="datetime-local"
+                                    required
+                                    value={reminder.scheduled_at}
+                                    onChange={e => setReminder(p => ({ ...p, scheduled_at: e.target.value }))}
+                                    style={{ width: '100%', border: '1.5px solid #e2e8f0', borderRadius: '6px', padding: '6px 10px', fontSize: '12px', outline: 'none' }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                                <button
+                                    type="submit"
+                                    disabled={savingReminder}
+                                    style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', background: 'linear-gradient(135deg, #0d7f6e, #0d7f6e)', color: '#fff', border: 'none', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}
+                                >
+                                    {savingReminder ? '...' : 'Schedule Now'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowReminderModal(false)}
+                                    style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1.5px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                                >
+                                    Discard
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </>
     );
 };
@@ -458,6 +705,7 @@ const App = () => {
                                     <Route path="/doctors" element={<ProtectedRoute permission="view_doctors"><Doctors /></ProtectedRoute>} />
                                     <Route path="/admins" element={<ProtectedRoute permission="view_admins"><Admins /></ProtectedRoute>} />
                                     <Route path="/mrd" element={<ProtectedRoute permission="view_mrd"><MRD /></ProtectedRoute>} />
+                                    <Route path="/clinical-entry" element={<ProtectedRoute permission="view_mrd"><ClinicalEntry /></ProtectedRoute>} />
 
                                     <Route path="/queue" element={<ProtectedRoute permission="view_queue"><QueueDisplay /></ProtectedRoute>} />
                                     <Route path="/reports" element={<Navigate to="/analytics" replace />} />

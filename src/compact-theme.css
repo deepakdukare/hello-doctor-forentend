@@ -31,7 +31,7 @@ input {
 }
 
 .sidebar {
-    width: 260px !important;
+    width: 180px !important;
     height: 100vh !important;
     background: #ffffff !important;
     border-right: 1px solid #e2e8f0 !important;
@@ -46,11 +46,11 @@ input {
 
 .main-content {
     flex: 1 !important;
-    margin-left: 260px !important;
+    margin-left: 180px !important;
     min-height: 100vh !important;
     transition: all 0.3s ease !important;
     padding: 1.5rem 2rem !important;
-    max-width: calc(100vw - 260px) !important;
+    max-width: calc(100vw - 180px) !important;
 }
 
 /* Analytics Premium Styling */
@@ -275,7 +275,7 @@ input {
 }
 
 .brand-logo-sidebar {
-    width: 64px !important;
+    width: 48px !important;
     height: auto !important;
     max-height: 48px !important;
     object-fit: contain !important;
@@ -288,7 +288,7 @@ input {
 }
 
 .brand-name-mini {
-    font-size: 18px !important;
+    font-size: 14px !important;
     font-weight: 800 !important;
     color: #000000 !important;
     letter-spacing: -0.02em !important;
@@ -326,7 +326,7 @@ input {
     border-radius: 10px !important;
     color: #000000 !important;
     text-decoration: none !important;
-    font-size: 0.95rem !important;
+    font-size: 0.8rem !important;
     font-weight: 600 !important;
     transition: all 0.2s ease !important;
     position: relative !important;
@@ -563,7 +563,7 @@ input {
 }
 
 .u-name {
-    font-size: 15px !important;
+    font-size: 12px !important;
     font-weight: 700 !important;
     color: #000000 !important;
     white-space: nowrap !important;
@@ -572,7 +572,7 @@ input {
 }
 
 .u-role {
-    font-size: 12px !important;
+    font-size: 10px !important;
     font-weight: 600 !important;
     color: #000000 !important;
     text-transform: capitalize !important;
@@ -598,11 +598,11 @@ input {
 
 .header-btn-public,
 .header-btn-feedback {
-    height: 34px !important;
-    font-size: 13px !important;
-    padding: 0 14px !important;
-    border-radius: 8px !important;
-    font-weight: 500 !important;
+    height: 26px !important;
+    font-size: 11px !important;
+    padding: 0 10px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
     display: flex !important;
     align-items: center !important;
     gap: 6px !important;
