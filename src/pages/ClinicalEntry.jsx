@@ -204,88 +204,95 @@ export default function ClinicalEntry() {
                             </div>
                         ))}
                     </div>
-                    {patients.length === 0 && (
-                        <div style={{ padding: '60px', textAlign: 'center', color: '#64748b', background: '#fff', borderRadius: '16px', border: '1px dashed #e2e8f0' }}>
-                            No patients found.
-                        </div>
-                    )}
                 </div>
             ) : (
-                <form onSubmit={handleFormSubmit} style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '2rem', alignItems: 'start' }}>
+                <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     
-                    {/* Left Panel: Summary & Tab Nav */}
-                    <aside style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'sticky', top: '24px' }}>
-                        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                            <button 
-                                type="button" 
-                                onClick={() => setSelectedPatient(null)} 
-                                style={{ background: '#f1f5f9', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 800, color: '#475569', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', marginBottom: '16px' }}
-                            >
-                                <ArrowLeft size={14} /> Back to Search
-                            </button>
-                            <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#1e293b', margin: '0 0 12px' }}>{selectedPatient.child_name || selectedPatient.name}</h3>
-                            <div style={{ fontSize: '13px', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                <span><strong>ID:</strong> {selectedPatient.patient_id}</span>
-                                <span><strong>Gender:</strong> {selectedPatient.gender || '—'}</span>
-                                <span><strong>Mobile:</strong> {selectedPatient.patient_mobile || '—'}</span>
+                    {/* Top Patient Header Area (Max Healthcare Style) */}
+                    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', display: 'grid', gridTemplateColumns: 'auto 1fr 1fr 1fr', gap: '24px', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#f8fafc', overflow: 'hidden', border: '2px solid #0d7f6e' }}>
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Doctor" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             </div>
+                            <button type="button" onClick={() => setSelectedPatient(null)} style={{ background: '#f1f5f9', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 800, color: '#64748b', cursor: 'pointer' }}>CHANGE</button>
+                        </div>
+                        
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', fontSize: '13px' }}>
+                            <span style={{ color: '#64748b' }}>Name</span><span style={{ fontWeight: 800 }}>: {selectedPatient.child_name || selectedPatient.name}</span>
+                            <span style={{ color: '#64748b' }}>Age</span><span style={{ fontWeight: 800 }}>: {selectedPatient.age || '—'}</span>
+                            <span style={{ color: '#64748b' }}>Gender</span><span style={{ fontWeight: 800 }}>: {selectedPatient.gender || '—'}</span>
                         </div>
 
-                            {/* Sidebar Tab Navigation */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                {[
-                                    { id: 'overview', label: 'Vitals & Summary', icon: Heart },
-                                    { id: 'allergies', label: 'Allergy Records', icon: AlertCircle },
-                                    { id: 'history', label: 'History of Illness', icon: FileText },
-                                    { id: 'exam', label: 'Physical Exams', icon: Stethoscope },
-                                    { id: 'diagnosis', label: 'Provisional Diagnosis', icon: Activity },
-                                    { id: 'meds', label: 'Medications & Advice', icon: Pill },
-                                    { id: 'past_records', label: 'Past Records', icon: Calendar }
-                                ].map(t => {
-                                    const Icon = t.icon;
-                                    const isActive = activeTab === t.id;
-                                    return (
-                                        <button
-                                            key={t.id}
-                                            type="button"
-                                            onClick={() => setActiveTab(t.id)}
-                                            style={{
-                                                padding: '12px 16px',
-                                                border: 'none',
-                                                borderRadius: '10px',
-                                                background: isActive ? '#0d7f6e' : 'transparent',
-                                                color: isActive ? '#fff' : '#64748b',
-                                                fontSize: '14px',
-                                                fontWeight: isActive ? 800 : 600,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '12px',
-                                                textAlign: 'left',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                                boxShadow: isActive ? '0 4px 12px rgba(13,127,110,0.2)' : 'none'
-                                            }}
-                                            onMouseEnter={e => { if(!isActive) e.currentTarget.style.background = '#f1f5f9'; }}
-                                            onMouseLeave={e => { if(!isActive) e.currentTarget.style.background = 'transparent'; }}
-                                        >
-                                            <Icon size={18} color={isActive ? '#fff' : '#94a3b8'} />
-                                            {t.label}
-                                        </button>
-                                    );
-                                })}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', fontSize: '13px' }}>
+                            <span style={{ color: '#64748b' }}>Patient ID</span><span style={{ fontWeight: 800 }}>: {selectedPatient.patient_id}</span>
+                            <span style={{ color: '#64748b' }}>Mobile</span><span style={{ fontWeight: 800 }}>: {selectedPatient.patient_mobile || '—'}</span>
+                            <span style={{ color: '#64748b' }}>Visit Type</span><span style={{ fontWeight: 800 }}>: {form.visit_type}</span>
+                        </div>
+
+                        <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', fontSize: '12px', border: '1px solid #f1f5f9' }}>
+                            <span style={{ color: '#64748b' }}>Weight</span><span style={{ fontWeight: 800 }}>: {form.weight || '—'} kg</span>
+                            <span style={{ color: '#64748b' }}>Temp</span><span style={{ fontWeight: 800 }}>: {form.temperature || '—'} °F</span>
+                            <span style={{ color: '#64748b' }}>BP</span><span style={{ fontWeight: 800 }}>: {form.advanced.vitals.BP || '—'}</span>
+                        </div>
+                    </div>
+
+                    {/* Main Content Area: Sidebar + Form + Right Side */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr 280px', gap: '20px', alignItems: 'start' }}>
+                        
+                        {/* Left Sidebar: Section Buttons */}
+                        <aside style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {[
+                                { id: 'overview', label: 'Vitals & Summary', icon: Heart },
+                                { id: 'allergies', label: 'Allergy Records', icon: AlertCircle },
+                                { id: 'history', label: 'History of Illness', icon: FileText },
+                                { id: 'exam', label: 'Physical Exams', icon: Stethoscope },
+                                { id: 'diagnosis', label: 'Provisional Diagnosis', icon: Activity },
+                                { id: 'meds', label: 'Medications & Advice', icon: Pill },
+                                { id: 'past_records', label: 'Past Records', icon: Calendar }
+                            ].map(t => {
+                                const Icon = t.icon;
+                                const isActive = activeTab === t.id;
+                                return (
+                                    <button
+                                        key={t.id}
+                                        type="button"
+                                        onClick={() => setActiveTab(t.id)}
+                                        style={{
+                                            padding: '12px 16px',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            background: isActive ? '#0d7f6e' : '#fff',
+                                            color: isActive ? '#fff' : '#64748b',
+                                            fontSize: '14px',
+                                            fontWeight: isActive ? 800 : 600,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '12px',
+                                            textAlign: 'left',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            boxShadow: isActive ? '0 4px 12px rgba(13,127,110,0.2)' : '0 1px 3px rgba(0,0,0,0.05)',
+                                            border: isActive ? 'none' : '1px solid #f1f5f9'
+                                        }}
+                                    >
+                                        <Icon size={18} color={isActive ? '#fff' : '#94a3b8'} />
+                                        {t.label}
+                                    </button>
+                                );
+                            })}
+                            
+                            <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <button type="submit" disabled={loading} style={{ width: '100%', background: '#0d7f6e', color: '#fff', border: 'none', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                    <Save size={18} /> {loading ? 'Saving...' : 'Save & Print'}
+                                </button>
+                                <button type="button" onClick={() => setForm(INITIAL_FORM)} style={{ width: '100%', background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0', padding: '10px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                                    Clear Form
+                                </button>
                             </div>
+                        </aside>
 
-                        <button 
-                            type="submit" 
-                            disabled={loading} 
-                            style={{ background: '#0d7f6e', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '8px', fontSize: '15px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(13,127,110,0.2)' }}
-                        >
-                            <Save size={18} /> {loading ? 'Processing...' : 'Save Patient Record'}
-                        </button>
-                    </aside>
-
-                    {/* Right Panel: Content Grid */}
-                    <main style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                        {/* Middle Content: The Form Section */}
+                        <main style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', minHeight: '600px' }}>
                         
                         {/* Tab 1: Vitals */}
                         {activeTab === 'overview' && (
