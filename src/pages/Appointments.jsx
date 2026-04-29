@@ -356,7 +356,7 @@ const Appointments = () => {
     useEffect(() => {
         if (location.state?.prefillPatient && doctors.length > 0 && !editMode && activeView === 'queue') {
             const p = location.state.prefillPatient;
-            
+
             setEditMode(false);
             let defaultDocId, defaultDocName, defaultDocSpeciality;
             if (isDoctor) {
@@ -391,7 +391,7 @@ const Appointments = () => {
 
             setActiveTab('visit');
             setActiveView('authorizer');
-            
+
             // Consume the state so it doesn't run again on reload
             window.history.replaceState({}, '');
         }
@@ -616,29 +616,29 @@ const Appointments = () => {
 
             {activeView === 'queue' && (
                 <div className="stats-grid-v4" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-                    <StatCard 
-                        title="Today's Appointments" 
-                        value={appointments.length} 
-                        icon={Users} 
-                        color="#0d7f6e" 
-                        loading={loading} 
-                        trend={trends.load} 
+                    <StatCard
+                        title="Today's Appointments"
+                        value={appointments.length}
+                        icon={Users}
+                        color="#0d7f6e"
+                        loading={loading}
+                        trend={trends.load}
                     />
-                    <StatCard 
-                        title="Completed Appointments" 
-                        value={appointments.filter(a => (a.status || '').toUpperCase() === 'COMPLETED').length} 
-                        icon={CheckCircle2} 
-                        color="#10b981" 
-                        loading={loading} 
-                        trend={trends.completed} 
+                    <StatCard
+                        title="Completed Appointments"
+                        value={appointments.filter(a => (a.status || '').toUpperCase() === 'COMPLETED').length}
+                        icon={CheckCircle2}
+                        color="#10b981"
+                        loading={loading}
+                        trend={trends.completed}
                     />
-                    <StatCard 
-                        title="Cancelled Appointments" 
-                        value={appointments.filter(a => (a.status || '').toUpperCase() === 'CANCELLED').length} 
-                        icon={XCircle} 
-                        color="#ef4444" 
-                        loading={loading} 
-                        trend={trends.cancelled} 
+                    <StatCard
+                        title="Cancelled Appointments"
+                        value={appointments.filter(a => (a.status || '').toUpperCase() === 'CANCELLED').length}
+                        icon={XCircle}
+                        color="#ef4444"
+                        loading={loading}
+                        trend={trends.cancelled}
                     />
                 </div>
             )}
@@ -939,8 +939,8 @@ const Appointments = () => {
                                                 value={patientSearch}
                                                 onChange={(e) => setPatientSearch(e.target.value)}
                                             />
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 onClick={() => handlePatientSearch(patientSearch)}
                                                 style={{
                                                     position: 'absolute',
@@ -1090,7 +1090,7 @@ const Appointments = () => {
                                                     <RefreshCw size={24} className="animate-spin text-primary" />
                                                 </div>
                                             )}
-                                            
+
                                             {availableTokens ? (
                                                 availableTokens.is_offline ? (
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', padding: '12px', background: '#fff1f2', borderRadius: '12px', border: '1.5px solid #fecaca' }}>
