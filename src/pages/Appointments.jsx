@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import '../glass-landing.css';
 import {
     Calendar as CalendarIcon,
     Users,
@@ -782,34 +783,13 @@ const Appointments = () => {
                                                 </td>
                                             </tr>
                                         ) : filteredAppointments.map((appt, idx) => (
-                                            <React.Fragment key={appt.appointment_id || idx}>
-                                                {filters.showAll ? (
-                                                    <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                        <td style={{ padding: '0 0 0 14px', background: '#f4fdfa', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
-                                                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0d7f6e', background: '#f4fdfa', borderRadius: '6px', padding: '3px 8px', display: 'inline-block' }}>
-                                                                {formatCompactDate(appt.appointment_date || appt.formatted_date)}
-                                                            </span>
-                                                        </td>
-                                                        <td colSpan={9} style={{ padding: 0 }}>
-                                                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                                                <tbody>
-                                                                    <AppointmentRow
-                                                                        appt={appt}
-                                                                        onEdit={openBookingModal}
-                                                                        onCancel={(id) => setCancelModal({ show: true, id, reason: '' })}
-                                                                    />
-                                                                </tbody>
-                                                            </table>
-                                                        </td>
-                                                    </tr>
-                                                ) : (
-                                                    <AppointmentRow
-                                                        appt={appt}
-                                                        onEdit={openBookingModal}
-                                                        onCancel={(id) => setCancelModal({ show: true, id, reason: '' })}
-                                                    />
-                                                )}
-                                            </React.Fragment>
+                                            <AppointmentRow
+                                                key={appt.appointment_id || idx}
+                                                appt={appt}
+                                                showDate={filters.showAll}
+                                                onEdit={openBookingModal}
+                                                onCancel={(id) => setCancelModal({ show: true, id, reason: '' })}
+                                            />
                                         ))}
 
 
@@ -919,8 +899,8 @@ const Appointments = () => {
                         </div>
                     </>
                 ) : (
-                    <div className="reg-form-clean" style={{ maxWidth: '100%', background: '#fff', padding: '2rem', borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.04)', height: 'fit-content' }}>
-                        <div className="reg-unified-header">
+                    <div className="reg-form-clean" style={{ maxWidth: '100%', background: '#fff', padding: '1.25rem', borderRadius: '24px', boxShadow: '0 10px 40px rgba(0,0,0,0.04)', height: 'fit-content' }}>
+                        <div className="reg-unified-header" style={{ marginBottom: '0.75rem', paddingBottom: '0.75rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <div className="modal-header-icon-container" style={{ background: 'linear-gradient(135deg, #0d7f6e, #0d7f6e)', padding: '10px', borderRadius: '12px' }}>
                                     <CalendarClock size={24} color="#fff" />
@@ -947,7 +927,6 @@ const Appointments = () => {
 
                             {activeTab === 'patient' ? (
                                 <div className="reg-section">
-                                    <h2 className="reg-section-title">Patient Identification</h2>
                                     <div className="reg-field">
                                         <label className="reg-label">Search Registry</label>
                                         <div style={{ position: 'relative' }}>
@@ -955,11 +934,32 @@ const Appointments = () => {
                                             <input
                                                 type="text"
                                                 className="reg-input"
-                                                style={{ paddingLeft: '44px' }}
+                                                style={{ paddingLeft: '44px', paddingRight: '90px' }}
                                                 placeholder="Search by name, ID or mobile..."
                                                 value={patientSearch}
                                                 onChange={(e) => setPatientSearch(e.target.value)}
                                             />
+                                            <button 
+                                                type="button" 
+                                                onClick={() => handlePatientSearch(patientSearch)}
+                                                style={{
+                                                    position: 'absolute',
+                                                    right: '8px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    backgroundColor: '#0d7f6e',
+                                                    color: '#fff',
+                                                    border: 'none',
+                                                    borderRadius: '8px',
+                                                    padding: '6px 16px',
+                                                    fontSize: '14px',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    transition: 'background-color 0.2s'
+                                                }}
+                                            >
+                                                Search
+                                            </button>
                                         </div>
                                     </div>
 

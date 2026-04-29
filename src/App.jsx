@@ -211,13 +211,15 @@ const Header = ({ onMenuClick }) => {
     return (
         <>
             <header className="header" style={{ height: '48px', padding: '0 1.5rem' }}>
-                <div className="header-left">
+                <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <button className="mobile-menu-btn" onClick={onMenuClick}>
                         <Menu size={20} color="#64748b" />
                     </button>
-                    <div className="header-search">
-                        <Search size={16} color="#9CA3AF" />
-                        <input type="text" placeholder="Search" className="header-search-input" />
+                    <div className="header-welcome-msg" style={{ fontSize: '1rem', fontWeight: 600, color: '#334155' }}>
+                        Welcome back, <span style={{ color: '#0d7f6e', fontWeight: 700 }}>{displayName}</span>
+                    </div>
+                    <div className="header-date" style={{ fontSize: '0.875rem', color: '#64748b', background: '#f1f5f9', padding: '4px 12px', borderRadius: '20px', fontWeight: 500 }}>
+                        {new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })}
                     </div>
                 </div>
 
@@ -244,11 +246,6 @@ const Header = ({ onMenuClick }) => {
                         <Bell size={22} color={isNotifOpen ? "#0d7f6e" : "#64748b"} />
                         {unreadCount > 0 && <span className="header-bell-dot">{unreadCount}</span>}
                         <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
-                    </div>
-                    <div className="header-profile-trigger profile-trigger">
-                        <div className="header-profile-avatar">
-                            {initial}
-                        </div>
                     </div>
                 </div>
             </header>

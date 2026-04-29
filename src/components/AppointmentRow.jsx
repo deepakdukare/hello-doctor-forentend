@@ -32,7 +32,17 @@ const getDateTime = (appt) => {
     return '10:00 AM - 10:30 AM';
 };
 
-const AppointmentRow = ({ appt, onEdit, onCancel }) => {
+const formatCompactDate = (dateStr) => {
+    if (!dateStr) return '--';
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return dateStr;
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+};
+
+const AppointmentRow = ({ appt, onEdit, onCancel, showDate }) => {
     const statusKey = String(appt?.status || 'PENDING').toUpperCase();
     const statusView = STATUS_CONFIG[statusKey] || STATUS_CONFIG.DEFAULT;
 
@@ -41,6 +51,13 @@ const AppointmentRow = ({ appt, onEdit, onCancel }) => {
 
     return (
         <tr style={{ backgroundColor: '#fff', borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}>
+            {showDate && (
+                <td style={{ padding: '16px 20px', background: '#f4fdfa', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0d7f6e', background: '#f4fdfa', borderRadius: '6px', padding: '3px 8px', display: 'inline-block' }}>
+                        {formatCompactDate(appt?.appointment_date || appt?.formatted_date)}
+                    </span>
+                </td>
+            )}
             {/* 1. Doctor */}
             <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
