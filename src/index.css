@@ -11436,7 +11436,7 @@ input:checked+.slider-premium:before {
 }
 
 .queue-table th {
-  padding: 0.6rem 1rem;
+  padding: 0.4rem 0.75rem;
   text-align: left;
   font-size: 0.65rem;
   font-weight: 800;
@@ -11447,7 +11447,7 @@ input:checked+.slider-premium:before {
 }
 
 .queue-table td {
-  padding: 0.6rem 1rem;
+  padding: 0.4rem 0.75rem;
 }
 
 .queue-table tr:hover td {
@@ -11463,7 +11463,7 @@ input:checked+.slider-premium:before {
   padding: 0.3rem 0.6rem;
   border-radius: 8px;
   font-weight: 800;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
 }
 
 .token-id-pill.active {
@@ -11474,7 +11474,7 @@ input:checked+.slider-premium:before {
 .patient-name {
   font-weight: 700;
   color: #1e293b;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
 }
 
 .patient-id {
@@ -18040,7 +18040,7 @@ input:checked+.slider:before {
 
 /* Appointments v4 Improvements */
 .appointments-page-v4 {
-  padding: 0.75rem 1.5rem 1.5rem 1.5rem; /* Reduced top padding */
+  padding: 0.5rem 1rem 1rem 1rem; /* Reduced padding */
   max-width: 100%;
   margin: 0;
   animation: pageFadeIn 0.6s ease-out;
@@ -18057,7 +18057,7 @@ input:checked+.slider:before {
 }
 
 .header-left-v4 h1 {
-  font-size: 1.75rem;
+  font-size: 1.25rem;
   font-weight: 850;
   color: #0f172a;
   margin: 0;
@@ -18065,7 +18065,7 @@ input:checked+.slider:before {
 }
 
 .header-left-v4 p {
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   color: #64748b;
   margin: 4px 0 0 0;
   font-weight: 500;
@@ -18123,12 +18123,12 @@ input:checked+.slider:before {
 
 .stat-card-v4 {
   background: white;
-  padding: 20px;
+  padding: 12px;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   height: 100%;
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
@@ -18141,8 +18141,8 @@ input:checked+.slider:before {
 }
 
 .stat-icon-v4 {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -18156,7 +18156,7 @@ input:checked+.slider:before {
 }
 
 .stat-label-v4 {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
@@ -18164,7 +18164,7 @@ input:checked+.slider:before {
 }
 
 .stat-value-v4 {
-  font-size: 1.85rem;
+  font-size: 1.35rem;
   font-weight: 900;
   color: #0f172a;
   line-height: 1.2;
