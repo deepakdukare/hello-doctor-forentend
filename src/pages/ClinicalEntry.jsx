@@ -584,27 +584,54 @@ const ClinicalEntry = () => {
                 ? form.symptoms.split(',').map(s => s.trim()).filter(Boolean)
                 : form.symptoms;
 
+            // Fail-safe: Include draft data if the doctor forgot to click "Add"
+            const finalDiagnoses = [...(form.provisional_diagnoses || [])];
+            if (diagnosisDraft.diagnosis_name && !finalDiagnoses.some(d => d.diagnosis_name === diagnosisDraft.diagnosis_name)) {
+                finalDiagnoses.push(diagnosisDraft);
+            }
+
+            const finalInvestigations = [...(form.investigations_list || [])];
+            if (investigationDraft.name && !finalInvestigations.some(i => i.name === investigationDraft.name)) {
+                finalInvestigations.push(investigationDraft);
+            }
+
+            const finalProcedures = [...(form.procedures_list || [])];
+            if (procedureDraft.name && !finalProcedures.some(p => p.name === procedureDraft.name)) {
+                finalProcedures.push(procedureDraft);
+            }
+
+            const finalPrescriptions = [...(form.prescriptions_list || [])];
+            if (prescriptionDraft.medicine && !finalPrescriptions.some(p => p.medicine === prescriptionDraft.medicine)) {
+                finalPrescriptions.push(prescriptionDraft);
+            }
+
             const payload = {
                 ...form,
                 patient_id: form.patient_id || selectedPatient?.patient_id,
                 symptoms: sym,
                 chief_complaint: form.chief_complaint || (form.chief_complaints_list || []).join(', '),
-                provisional_diagnoses: (form.provisional_diagnoses || []).map((diag) => ({
+                diagnosis: form.diagnosis || finalDiagnoses.map(d => d.diagnosis_name || d.diagnosis).filter(Boolean).join(', '),
+                prescription: form.prescription || finalPrescriptions.map(p => `${p.medicine} - ${p.dosage} - ${p.days} days`).filter(Boolean).join('\n'),
+                provisional_diagnoses: finalDiagnoses.map((diag) => ({
                     diagnosis: diag.diagnosis_name || diag.diagnosis || '',
                     code: diag.icd_10 || diag.code || '',
                     stage: diag.stage || '',
                     type: diag.type || '',
                     notes: diag.notes || ''
                 })),
-                investigations_list: (form.investigations_list || []).map((item) => ({
+                investigations_list: finalInvestigations.map((item) => ({
                     test_name: item.name || item.test_name || '',
                     priority: item.priority || 'Routine',
                     notes: item.notes || ''
                 })),
+                investigations: form.investigations || finalInvestigations.map(i => i.name || i.test_name).filter(Boolean).join(', '),
+                procedures_list: finalProcedures.map((item) => ({
+                    name: item.name || ''
+                })),
                 advice: form.advice || [
-                    form.advice_home_care ? `HOME CARE: ${form.advice_home_care}` : '',
-                    form.advice_diet ? `DIET: ${form.advice_diet}` : '',
-                    form.advice_warning_signs ? `WARNING SIGNS: ${form.advice_warning_signs}` : ''
+                    form.advice_home_care ? `HOME CARE:\n${form.advice_home_care}` : '',
+                    form.advice_diet ? `DIET:\n${form.advice_diet}` : '',
+                    form.advice_warning_signs ? `WARNING SIGNS:\n${form.advice_warning_signs}` : ''
                 ].filter(Boolean).join('\n\n'),
                 visit_tags: form.visit_tags || [],
                 consents: form.consents || [],
@@ -614,7 +641,7 @@ const ClinicalEntry = () => {
                     is_to_be_continued: String(item.to_be_continued || '').toLowerCase() === 'yes' || item.is_to_be_continued === true,
                     notes: item.notes || ''
                 })),
-                prescriptions_list: (form.prescriptions_list || []).map((item) => ({
+                prescriptions_list: finalPrescriptions.map((item) => ({
                     medicine: item.medicine || '',
                     generic_name: item.type === 'Generic' ? item.medicine : '',
                     dosage: item.dosage || '',
