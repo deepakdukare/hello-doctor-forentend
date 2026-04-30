@@ -24,7 +24,8 @@ import {
     X,
     Loader2,
     Menu,
-    Clipboard as ClipboardIcon
+    Clipboard as ClipboardIcon,
+    BookOpen
 } from 'lucide-react';
 
 // Lazy load page components
@@ -45,6 +46,7 @@ const Feedback = lazy(() => import('./pages/Feedback'));
 const FeedbackReports = lazy(() => import('./pages/FeedbackReports'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const ClinicalEntry = lazy(() => import('./pages/ClinicalEntry'));
+const ClinicalTemplates = lazy(() => import('./pages/ClinicalTemplates'));
 
 
 import { hasPermission, getUser, getToken } from './utils/auth';
@@ -94,6 +96,7 @@ const Sidebar = ({ onLogout, isCollapsed, isMobileMenuOpen, onMobileClose }) => 
                 { name: 'Patients', path: '/patients', icon: Users, permission: 'view_patients' },
                 { name: 'Doctors', path: '/doctors', icon: Stethoscope, permission: 'view_doctors' },
                 { name: 'E-prescription', path: '/clinical-entry', icon: ClipboardIcon, permission: 'view_mrd' },
+                { name: 'Clinical Templates', path: '/templates', icon: BookOpen, permission: 'view_settings' },
 
                 { name: 'Reports & Analytics', path: '/analytics', icon: TrendingUp, permission: 'view_reports' },
                 { name: 'Bot & Feedback Hub', path: '/bot-interactions', icon: MessageSquare, permission: 'view_bot_hub' },
@@ -705,6 +708,7 @@ const App = () => {
                                     <Route path="/doctors" element={<ProtectedRoute permission="view_doctors"><Doctors /></ProtectedRoute>} />
                                     <Route path="/admins" element={<ProtectedRoute permission="view_admins"><Admins /></ProtectedRoute>} />
                                     <Route path="/clinical-entry" element={<ProtectedRoute permission="view_mrd"><ClinicalEntry /></ProtectedRoute>} />
+                        <Route path="/templates" element={<ProtectedRoute permission="view_settings"><ClinicalTemplates /></ProtectedRoute>} />
 
                                     <Route path="/queue" element={<ProtectedRoute permission="view_queue"><QueueDisplay /></ProtectedRoute>} />
                                     <Route path="/reports" element={<Navigate to="/analytics" replace />} />

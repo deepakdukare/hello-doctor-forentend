@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, Eye, EyeOff, Loader2, CheckCircle2, Zap, ShieldCheck, Activity } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, Loader2, Stethoscope, Pill, Activity, Plus } from 'lucide-react';
 import api from '../api';
-import { Stethoscope } from 'lucide-react';
 
 const Login = ({ onLogin }) => {
     const [email, setEmail] = useState('');
@@ -45,116 +44,91 @@ const Login = ({ onLogin }) => {
     };
 
     return (
-        <div className="login-container">
-            <div className="login-split">
-                {/* Left Section: Branding & Visuals */}
-                <div className="login-branding">
-                    <div className="branding-content">
-                        <div className="clinic-portal-label">Clinic Portal</div>
-                        <div className="login-logo">
-                            <img src="/logo.jpg" alt="PediPulse Logo" style={{ width: '75px', height: '75px', borderRadius: '20px', marginBottom: '1.25rem', objectFit: 'cover', border: '3px solid rgba(255, 255, 255, 0.5)', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)' }} />
-                            <h1>PediPulse</h1>
-                        </div>
-                        <div className="branding-highlights">
-                            <div className="highlight-item">
-                                <Activity className="highlight-icon" size={20} />
-                                <p>Specialized Patient Management</p>
-                            </div>
-                            <div className="highlight-item">
-                                <Zap className="highlight-icon" size={20} />
-                                <p>Real-time Appointment Tracking</p>
-                            </div>
-                            <div className="highlight-item">
-                                <ShieldCheck className="highlight-icon" size={20} />
-                                <p>Digital Clinical Records</p>
-                            </div>
-                        </div>
+        <div className="glass-login-wrapper">
+            {/* Animated Medical Icons in Background */}
+            <div className="glass-bg-icons">
+                <Stethoscope className="medical-icon" size={48} style={{ top: '15%', left: '10%', animationDelay: '0s' }} />
+                <Pill className="medical-icon" size={32} style={{ top: '65%', left: '15%', animationDelay: '2s' }} />
+                <Activity className="medical-icon" size={40} style={{ top: '25%', right: '15%', animationDelay: '4s' }} />
+                <Plus className="medical-icon" size={36} style={{ bottom: '20%', right: '10%', animationDelay: '1s' }} />
+                <Stethoscope className="medical-icon" size={32} style={{ bottom: '40%', left: '40%', animationDelay: '3s' }} />
+            </div>
+
+            <div className="glass-login-card">
+                <div className="glass-logo-container">
+                    <div className="glass-logo-box">
+                        <Stethoscope size={32} strokeWidth={2.5} />
                     </div>
-                    <div className="dev-credit">
-                        <p>Designed and developed by <a href="https://deepakdukare.vercel.app/" target="_blank" rel="noopener noreferrer"><span>YashoDeep Technology</span></a></p>
-                    </div>
+                    <span className="glass-logo-text">PediPulse</span>
                 </div>
 
-                {/* Right Section: Login Form */}
-                <div className="login-form-container">
-                    <div className="login-card">
-                        <div className="login-header">
-                            <h1>Welcome Back</h1>
-                            <p>Please enter your details to sign in</p>
+                <h2>Welcome back</h2>
+
+                <form onSubmit={handleSubmit}>
+                    {error && <div className="glass-error">{error}</div>}
+
+                    <div className="glass-form-group">
+                        <div className="glass-input-wrapper">
+                            <Mail className="input-icon" size={20} />
+                            <input
+                                type="email"
+                                className="glass-input"
+                                placeholder="Email Address"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
                         </div>
+                    </div>
 
-                        <form className="login-form" onSubmit={handleSubmit}>
-                            {error && <div className="login-error">{error}</div>}
-
-                            <div className="form-group">
-                                <label htmlFor="email">Email Address</label>
-                                <div className="input-wrapper">
-                                    <Mail className="input-icon" size={24} />
-                                    <input
-                                        id="email"
-                                        type="email"
-                                        autoComplete="username"
-                                        placeholder=""
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="password">Password</label>
-                                <div className="input-wrapper">
-                                    <Lock className="input-icon" size={24} />
-                                    <input
-                                        id="password"
-                                        type={showPassword ? 'text' : 'password'}
-                                        autoComplete="current-password"
-                                        placeholder=""
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        required
-                                    />
-                                    <button
-                                        type="button"
-                                        className="password-toggle"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                    >
-                                        {showPassword ? <EyeOff size={24} /> : <Eye size={18} />}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="login-actions">
-                                <label className="remember-me" htmlFor="remember">
-                                    <input
-                                        type="checkbox"
-                                        id="remember"
-                                        checked={rememberMe}
-                                        onChange={(e) => setRememberMe(e.target.checked)}
-                                    />
-                                    <span>Remember me</span>
-                                </label>
-                                <a href="#" className="forgot-password">Forgot password?</a>
-                            </div>
-
+                    <div className="glass-form-group">
+                        <div className="glass-input-wrapper">
+                            <Lock className="input-icon" size={20} />
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                className="glass-input"
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
                             <button
-                                type="submit"
-                                className="login-submit"
-                                disabled={loading}
+                                type="button"
+                                className="eye-toggle"
+                                onClick={() => setShowPassword(!showPassword)}
                             >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="animate-spin" size={20} />
-                                        Signing in...
-                                    </>
-                                ) : (
-                                    'Sign In'
-                                )}
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
-                        </form>
+                        </div>
                     </div>
-                </div>
+
+                    <div className="glass-actions">
+                        <label className="glass-checkbox">
+                            <input
+                                type="checkbox"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                            />
+                            <span>Remember Me</span>
+                        </label>
+                        <a href="#" className="glass-link">Forgot password?</a>
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="glass-submit-btn"
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                                <Loader2 className="animate-spin" size={20} />
+                                <span>Signing in...</span>
+                            </div>
+                        ) : (
+                            'Sign In'
+                        )}
+                    </button>
+                </form>
             </div>
         </div>
     );

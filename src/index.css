@@ -18553,3 +18553,217 @@ input:checked+.slider:before {
   cursor: pointer;
 }
 
+/* ── Glassmorphic Login Styles ── */
+.glass-login-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  background: radial-gradient(circle at 10% 20%, rgb(0, 163, 114) 0%, rgb(0, 110, 128) 90%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 2rem;
+}
+
+.glass-bg-icons {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.15;
+}
+
+.glass-bg-icons .medical-icon {
+  position: absolute;
+  color: #fff;
+  animation: float-icon 10s infinite ease-in-out;
+}
+
+@keyframes float-icon {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(10deg); }
+}
+
+.glass-login-card {
+  width: 100%;
+  max-width: 460px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 40px;
+  padding: 3.5rem 2.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  z-index: 10;
+  animation: slide-up-glass 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-up-glass {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.glass-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 2rem;
+}
+
+.glass-logo-box {
+  background: #fff;
+  padding: 8px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00a372;
+}
+
+.glass-logo-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.glass-login-card h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2.5rem;
+}
+
+.glass-form-group {
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+
+.glass-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.glass-input-wrapper .input-icon {
+  position: absolute;
+  left: 1.25rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.glass-input-wrapper .eye-toggle {
+  position: absolute;
+  right: 1.25rem;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+}
+
+.glass-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 1.1rem 1.1rem 1.1rem 3.5rem;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.glass-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
+.glass-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.glass-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.glass-checkbox input {
+  accent-color: #00a372;
+  width: 18px;
+  height: 18px;
+}
+
+.glass-link {
+  color: #fff;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.glass-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.glass-submit-btn {
+  width: 100%;
+  background: #00a372;
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  padding: 1.1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.glass-submit-btn:hover:not(:disabled) {
+  background: #008f64;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.glass-submit-btn:active {
+  transform: translateY(0);
+}
+
+.glass-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.glass-error {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+}
+

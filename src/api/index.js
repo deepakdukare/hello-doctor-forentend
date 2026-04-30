@@ -110,6 +110,7 @@ export const bookAppointment = (data) => createAppointment(data); // Alias
 export const updateAppointment = (id, data) => api.patch(`/appointments/${id}`, data);
 export const cancelAppointment = (id, data) => api.patch(`/appointments/${id}/cancel`, data);
 export const completeAppointment = (id) => api.patch(`/appointments/${id}/complete`);
+export const markNoShow = (id, data) => api.patch(`/appointments/${id}/no-show`, data);
 export const lookupAppointments = (query) => api.get(`/appointments/lookup`, { params: { query } });
 export const bookWithToken = (data) => api.post('/appointments/book-with-token', data);
 export const bookAppointmentWithToken = (data) => bookWithToken(data); // Alias
@@ -152,8 +153,6 @@ export const setTodayStartTime = (data) => api.patch('/doctor/today-start', data
 export const notifyPatientsOfTime = (data) => api.post('/doctor/notify-patients', data);
 export const notifyDelay = (data) => api.post('/appointments/notify-delay', data);
 
-
-
 // Token-based Scheduling Config
 export const getTokenConfig = (doctorId) => api.get(`/token-config/${doctorId}`);
 export const updateTokenConfig = (data) => api.post('/token-config', data);
@@ -169,14 +168,6 @@ export const updateTokenStatus = (token, data) => api.patch(`/appointments/token
 export const getTokenStatus = (token) => api.get(`/appointments/token-status/${token}`);
 export const autoReschedule = (data) => api.post('/appointments/auto-reschedule', data);
 
-
-
-
-// Messaging (Moved to n8n Cloud Automation)
-export const queueDoctorLateAlert = (data) => console.warn('Legacy alert skip: handled by n8n');
-export const getPendingMessages = () => Promise.resolve({ data: { data: [] } });
-export const updateMessageStatus = (queueId, data) => Promise.resolve({ success: true });
-
 // MRD
 export const getMRDByPatientId = (patientId) => api.get(`/mrd/${patientId}`);
 export const addMRDEntry = (data) => api.post('/mrd/entry', data);
@@ -186,6 +177,8 @@ export const uploadMRDAttachment = (id, data) => api.post(`/mrd/entry/${id}/atta
 export const getMRDEntryPdfUrl = (id) => `${API_BASE_URL}/mrd/entry/${id}/pdf`;
 
 // Clinical Master Data
+export const getClinicalNoteTemplates = () => api.get('/clinical/note-templates');
+export const getCareAdviceTemplates = () => api.get('/clinical/care-advice-templates');
 export const getClinicalIcd10 = (search) => api.get('/clinical/icd10', { params: { search } });
 export const getClinicalMedicines = (search) => api.get('/clinical/medicines', { params: { search } });
 export const getClinicalInvestigations = (search) => api.get('/clinical/investigations', { params: { search } });
@@ -194,6 +187,9 @@ export const getClinicalComplaints = (search) => api.get('/clinical/complaints',
 export const getClinicalAllergies = (search) => api.get('/clinical/allergies', { params: { search } });
 export const getClinicalDiagramTemplates = () => api.get('/clinical/diagrams');
 export const getReferralTargets = () => api.get('/clinical/referral-targets');
+export const upsertClinicalTemplate = (data) => api.post('/clinical/templates', data);
+export const getTemplates = (params) => api.get('/clinical/templates', { params });
+export const deleteClinicalTemplate = (id) => api.delete(`/clinical/templates/${id}`);
 
 // Patient Clinical Context
 export const getPatientVitalsHistory = (patientId) => api.get(`/mrd/${patientId}/vitals-history`);
@@ -203,9 +199,6 @@ export const getPatientHistory = (patientId) => api.get(`/mrd/${patientId}/histo
 
 // Comprehensive Patient Profile
 export const getComprehensiveProfile = (patientId) => api.get(`/patients/${patientId}/comprehensive`);
-
-
-
 
 // System
 export const getSystemHealth = () => api.get('/system/health');
@@ -235,10 +228,8 @@ export const deleteAdminUser = (id) => api.delete(`/admin/users/${id}`);
 export const getAdminProfile = (params) => api.get('/admin/profile', { params });
 export const updateAdminProfile = (data) => api.patch('/admin/profile', data);
 
-
 // Compatibility aliases
 export const getPatientByMobile = (mobile) => api.get('/patients', { params: { search: mobile } });
 export const resolveEscalation = (id) => markNotificationRead(id);
-
 
 export default api;

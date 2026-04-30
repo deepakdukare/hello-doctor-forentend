@@ -20,7 +20,10 @@ import {
     getClinicalComplaints,
     getClinicalAllergies,
     getClinicalDiagramTemplates,
-    getReferralTargets
+    getReferralTargets,
+    getClinicalNoteTemplates,
+    getCareAdviceTemplates,
+    upsertClinicalTemplate
 } from '../api/index';
 
 const EMPTY_ALLERGY = { category: 'Drug', type: '', reaction: '', intensity: '', duration: '', informed_by: '' };
@@ -41,7 +44,16 @@ const EMPTY_ENTRY = {
     medication_history: [], prescriptions_list: [], other_medication: '', admission_status: 'Not-Required',
     followup_advice: '', referrals_list: [],
     intent_of_treatment: '', refer_to_tumor_board: 'No', nutrition_advice: 'No', psychology_advice: 'No',
-    physiotherapy_advice: 'No', complex_care: 'No', additional_remarks: ''
+    physiotherapy_advice: 'No', complex_care: 'No', additional_remarks: '',
+    visit_tags: [],
+    advice_home_care: '',
+    advice_diet: '',
+    advice_warning_signs: '',
+    consents: [
+        { consent_type: 'Treatment Consent', is_accepted: false, witness_name: '' },
+        { consent_type: 'Vaccination Consent', is_accepted: false, witness_name: '' },
+        { consent_type: 'Data Usage Consent', is_accepted: false, witness_name: '' }
+    ]
 };
 
 const calcBMI = (weight, height) => {
@@ -115,7 +127,9 @@ const ClinicalEntry = () => {
         procedures: [],
         complaints: [],
         allergies: [],
-        diagrams: []
+        diagrams: [],
+        noteTemplates: [],
+        adviceTemplates: []
     });
     const [referralTargets, setReferralTargets] = useState([]);
     const [clinicalContext, setClinicalContext] = useState({ vitals_history: [], allergy_summary: [], current_meds: [], patient_history: [] });
@@ -161,14 +175,16 @@ const ClinicalEntry = () => {
 
     const loadMasterData = useCallback(async () => {
         try {
-            const [icd, meds, inv, proc, complaints, allergies, diagrams] = await Promise.all([
+            const [icd, meds, inv, proc, complaints, allergies, diagrams, noteTmpl, adviceTmpl] = await Promise.all([
                 getClinicalIcd10(''),
                 getClinicalMedicines(''),
                 getClinicalInvestigations(''),
                 getClinicalProcedures(''),
                 getClinicalComplaints(''),
                 getClinicalAllergies(''),
-                getClinicalDiagramTemplates()
+                getClinicalDiagramTemplates(),
+                getClinicalNoteTemplates(),
+                getCareAdviceTemplates()
             ]);
             setMasterData({
                 icd10: icd.data?.data || [],
@@ -177,7 +193,9 @@ const ClinicalEntry = () => {
                 procedures: proc.data?.data || [],
                 complaints: complaints.data?.data || [],
                 allergies: allergies.data?.data || [],
-                diagrams: diagrams.data?.data || []
+                diagrams: diagrams.data?.data || [],
+                noteTemplates: noteTmpl.data?.data || [],
+                adviceTemplates: adviceTmpl.data?.data || []
             });
         } catch (e) {
             console.error('Failed to fetch clinical master data', e);
@@ -583,6 +601,13 @@ const ClinicalEntry = () => {
                     priority: item.priority || 'Routine',
                     notes: item.notes || ''
                 })),
+                advice: form.advice || [
+                    form.advice_home_care ? `HOME CARE: ${form.advice_home_care}` : '',
+                    form.advice_diet ? `DIET: ${form.advice_diet}` : '',
+                    form.advice_warning_signs ? `WARNING SIGNS: ${form.advice_warning_signs}` : ''
+                ].filter(Boolean).join('\n\n'),
+                visit_tags: form.visit_tags || [],
+                consents: form.consents || [],
                 medication_history: (form.medication_history || []).map((item) => ({
                     medicine: item.drug || item.medicine || '',
                     dosage: [item.form, item.dose, item.frequency].filter(Boolean).join(' | '),
@@ -909,16 +934,17 @@ const ClinicalEntry = () => {
                                     >
                                         <MessageCircle size={18} />
                                     </button>
-                                    {/* <button
+                                    <button
                                         className="btn-icon"
-                                        title="Print Record"
+                                        title="Download PDF Summary"
                                         onClick={() => {
                                             if (!selectedRecord?._id) return;
-                                            window.open(getMRDEntryPdfUrl(selectedRecord._id), '_blank', 'noopener,noreferrer');
+                                            window.open(getMRDEntryPdfUrl(selectedRecord._id), '_blank');
                                         }}
+                                        style={{ color: '#ef4444' }}
                                     >
-                                        <Printer size={18} />
-                                    </button> */}
+                                        <Download size={18} />
+                                    </button>
                                     <button
                                         className="btn-icon"
                                         title="Print Record"
@@ -926,9 +952,6 @@ const ClinicalEntry = () => {
                                     >
                                         <Printer size={18} />
                                     </button>
-                                    {/* <button className="btn-icon" onClick={handleExport} disabled={exporting} title="Export Data">
-                                        {exporting ? <RefreshCw size={18} className="spinning" /> : <Download size={18} />}
-                                    </button> */}
                                 </div>
                             </div>
 
@@ -951,7 +974,28 @@ const ClinicalEntry = () => {
 
                             <div className="tab-content-v3">
                                 {tab === 'details' && (
-                                    <div className="clinical-grid-v3">
+                                        <article className="info-block-v3">
+                                            <label>Visit Reason & Consents</label>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                                                {selectedRecord.visit_tags?.length > 0 && (
+                                                    <div className="symptoms-chips">
+                                                        {selectedRecord.visit_tags.map((t, i) => (
+                                                            <span key={i} className="sym-chip" style={{ background: '#f0f9ff', color: '#0369a1', borderColor: '#bae6fd' }}>{t}</span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {selectedRecord.consents?.length > 0 && (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                                        {selectedRecord.consents.filter(c => c.is_accepted).map((c, i) => (
+                                                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: '#059669', fontWeight: 600 }}>
+                                                                <Shield size={12} />
+                                                                <span>{c.consent_type} Accepted</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </article>
                                         {(selectedRecord.weight || selectedRecord.height || selectedRecord.bmi || selectedRecord.temperature || selectedRecord.spo2 || selectedRecord.pulse || selectedRecord.bp || selectedRecord.respiration || selectedRecord.random_sugar || selectedRecord.head_circumference || selectedRecord.pain_score || selectedRecord.fall_risk || selectedRecord.interpreter) && (
                                             <article className="info-block-v3 vitals-display">
                                                 <label>Vitals Check</label>
@@ -2074,9 +2118,34 @@ const ClinicalEntry = () => {
                                     <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
                                         <div className="premium-header-v2">
                                             <div className="title">Clinical Notes / Old Reports</div>
+                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                {masterData.noteTemplates.map(tmpl => (
+                                                    <button
+                                                        key={tmpl.name}
+                                                        type="button"
+                                                        onClick={() => setForm({ ...form, clinical_notes: (form.clinical_notes ? form.clinical_notes + '\n' : '') + tmpl.content })}
+                                                        style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
+                                                    >
+                                                        + {tmpl.name}
+                                                    </button>
+                                                ))}
+                                                <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                        const name = prompt('Enter template name (e.g. Fever Followup):');
+                                                        if (name && form.clinical_notes) {
+                                                            await upsertClinicalTemplate({ name, type: 'note', content: form.clinical_notes });
+                                                            alert('Template saved!');
+                                                            loadMasterData();
+                                                        }
+                                                    }}
+                                                    style={{ background: '#0d9488', color: '#fff', border: 'none', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
+                                                >
+                                                    💾 Save as Template
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="f-group-premium" style={{ margin: 0 }}>
-                                            <label style={{ fontSize: '0.85rem', marginBottom: '0.5rem', display: 'block' }}>Clinical Notes / Old Reports</label>
                                             <textarea
                                                 className="textarea-premium-v4 cc-placeholder-style"
                                                 rows={4}
@@ -2785,14 +2854,119 @@ const ClinicalEntry = () => {
                                         </div>
                                     </div>
 
-                                    {/* ── Advice Section ── */}
+                                    {/* ── Visit Context & Analytics ── */}
                                     <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
                                         <div className="premium-header-v2">
-                                            <div className="title">Advice / Conclusion</div>
+                                            <div className="title">Visit Context & Consents</div>
+                                        </div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem' }}>
+                                            <div style={{ flex: 1, minWidth: '300px' }}>
+                                                <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block' }}>Visit Reason Tags</label>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                                    {['Fever', 'Cough/Cold', 'Vaccination', 'Follow-up', 'Growth check', 'Newborn Screening'].map(tag => (
+                                                        <button
+                                                            key={tag}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const tags = form.visit_tags || [];
+                                                                setForm({ ...form, visit_tags: tags.includes(tag) ? tags.filter(t => t !== tag) : [...tags, tag] });
+                                                            }}
+                                                            style={{
+                                                                padding: '0.4rem 0.8rem',
+                                                                borderRadius: '20px',
+                                                                fontSize: '0.8rem',
+                                                                fontWeight: 600,
+                                                                border: '1px solid #cbd5e1',
+                                                                background: form.visit_tags?.includes(tag) ? '#0ea5e9' : '#fff',
+                                                                color: form.visit_tags?.includes(tag) ? '#fff' : '#64748b',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s'
+                                                            }}
+                                                        >
+                                                            {tag}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div style={{ flex: 1, minWidth: '300px' }}>
+                                                <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block' }}>Consents & Acknowledgements</label>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                                    {(form.consents || []).map((c, idx) => (
+                                                        <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.85rem', color: '#334155', cursor: 'pointer' }}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={c.is_accepted}
+                                                                onChange={e => {
+                                                                    const updated = [...form.consents];
+                                                                    updated[idx].is_accepted = e.target.checked;
+                                                                    setForm({ ...form, consents: updated });
+                                                                }}
+                                                                style={{ width: '16px', height: '16px', accentColor: '#0ea5e9' }}
+                                                            />
+                                                            {c.consent_type}
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* ── Structured Care Advice ── */}
+                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                                        <div className="premium-header-v2">
+                                            <div className="title">Structured Parent Instructions</div>
+                                        </div>
+                                        
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                            {[
+                                                { label: 'Home Care Instructions', key: 'advice_home_care', placeholder: 'e.g. Keep well hydrated, sponge baths...' },
+                                                { label: 'Diet Advice', key: 'advice_diet', placeholder: 'e.g. Small frequent meals, coconut water...' },
+                                                { label: 'Warning Signs (Return if...)', key: 'advice_warning_signs', placeholder: 'e.g. Fever > 2 days, difficulty breathing...' }
+                                            ].map(field => (
+                                                <div key={field.key} className="f-group-premium" style={{ margin: 0 }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                                                        <label style={{ margin: 0, fontWeight: 700, fontSize: '0.85rem' }}>{field.label}</label>
+                                                        <button
+                                                            type="button"
+                                                            onClick={async () => {
+                                                                const name = prompt(`Save as ${field.label} template:`);
+                                                                if (name && form[field.key]) {
+                                                                    await upsertClinicalTemplate({ name, type: 'advice', content: form[field.key] });
+                                                                    alert('Template saved!');
+                                                                    loadMasterData();
+                                                                }
+                                                            }}
+                                                            style={{ background: 'none', border: 'none', color: '#0ea5e9', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
+                                                        >
+                                                            + Save as Template
+                                                        </button>
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                                                        {masterData.adviceTemplates.map(tmpl => (
+                                                            <button
+                                                                key={tmpl.name}
+                                                                type="button"
+                                                                onClick={() => setForm({ ...form, [field.key]: (form[field.key] ? form[field.key] + '\n' : '') + tmpl.content })}
+                                                                style={{ background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '4px', padding: '2px 8px', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer' }}
+                                                            >
+                                                                + {tmpl.name}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <textarea
+                                                        className="textarea-premium-v4 cc-placeholder-style"
+                                                        rows={2}
+                                                        placeholder={field.placeholder}
+                                                        value={form[field.key]}
+                                                        onChange={e => setForm({ ...form, [field.key]: e.target.value })}
+                                                        style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
+                                                    />
+                                                </div>
+                                            ))}
                                         </div>
 
-                                        <div className="f-group-premium" style={{ marginBottom: '1rem' }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'flex', color: '#334155' }}>Admission <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span></label>
+                                        <div className="f-group-premium" style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>
+                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'flex', color: '#334155' }}>Admission Status <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span></label>
                                             <select
                                                 className="input-premium-v4 cc-placeholder-style"
                                                 style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.6rem', width: '100%', outline: 'none', color: '#475569' }}
@@ -2802,23 +2976,6 @@ const ClinicalEntry = () => {
                                                 <option value="Not-Required">Not-Required</option>
                                                 <option value="Required">Required</option>
                                             </select>
-                                        </div>
-
-                                        <div className="f-group-premium" style={{ margin: 0, position: 'relative' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                                <label style={{ fontSize: '0.85rem', fontWeight: 800, color: '#334155' }}>Advice</label>
-
-                                            </div>
-                                            <textarea
-                                                className="textarea-premium-v4 cc-placeholder-style"
-                                                rows={4}
-                                                value={form.advice}
-                                                onChange={e => setForm({ ...form, advice: e.target.value })}
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%', outline: 'none', resize: 'none' }}
-                                            />
-                                            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.2rem' }}>
-                                                {8000 - (form.advice?.length || 0)} characters left
-                                            </div>
                                         </div>
                                     </div>
 
@@ -3045,14 +3202,87 @@ const ClinicalEntry = () => {
 
                                         <div className="f-group-premium" style={{ margin: 0 }}>
                                             <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block', color: '#334155' }}>Additional Remarks (Non-Printable)</label>
-                                            <textarea
-                                                className="textarea-premium-v4 cc-placeholder-style"
-                                                rows={2}
-                                                placeholder="Type Additional Remarks"
-                                                value={form.additional_remarks}
-                                                onChange={e => setForm({ ...form, additional_remarks: e.target.value })}
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '4px', width: '100%', padding: '0.6rem', outline: 'none' }}
-                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* ── Visit Reasons & Consents ── */}
+                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
+                                        <div className="premium-header-v2">
+                                            <div className="title">Visit Context & Consents</div>
+                                        </div>
+                                        
+                                        <div style={{ marginBottom: '1.5rem' }}>
+                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.75rem' }}>Visit Reason Tags (Analytics)</label>
+                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                {['Fever', 'Vaccination', 'Follow-up', 'Growth check', 'Cough/Cold', 'Injury'].map(tag => (
+                                                    <button
+                                                        key={tag}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const tags = form.visit_tags || [];
+                                                            if (tags.includes(tag)) {
+                                                                setForm({ ...form, visit_tags: tags.filter(t => t !== tag) });
+                                                            } else {
+                                                                setForm({ ...form, visit_tags: [...tags, tag] });
+                                                            }
+                                                        }}
+                                                        style={{
+                                                            padding: '0.4rem 1rem',
+                                                            borderRadius: '20px',
+                                                            fontSize: '0.8rem',
+                                                            fontWeight: 600,
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s',
+                                                            background: (form.visit_tags || []).includes(tag) ? '#0284c7' : '#f1f5f9',
+                                                            color: (form.visit_tags || []).includes(tag) ? '#fff' : '#64748b',
+                                                            border: '1px solid',
+                                                            borderColor: (form.visit_tags || []).includes(tag) ? '#0284c7' : '#e2e8f0'
+                                                        }}
+                                                    >
+                                                        {tag}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '1rem' }}>Patient Consents & Acknowledgements</label>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                                {(form.consents || []).map((consent, idx) => (
+                                                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: '#fff', padding: '0.75rem', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={consent.is_accepted}
+                                                            onChange={e => {
+                                                                const updated = [...form.consents];
+                                                                updated[idx].is_accepted = e.target.checked;
+                                                                updated[idx].accepted_at = e.target.checked ? new Date().toISOString() : null;
+                                                                setForm({ ...form, consents: updated });
+                                                            }}
+                                                            style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#0ea5e9' }}
+                                                        />
+                                                        <div style={{ flex: 1 }}>
+                                                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>{consent.consent_type}</div>
+                                                            {consent.is_accepted && (
+                                                                <div style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 600 }}>Accepted on {new Date(consent.accepted_at).toLocaleString()}</div>
+                                                            )}
+                                                        </div>
+                                                        {consent.is_accepted && (
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Witness Name"
+                                                                value={consent.witness_name || ''}
+                                                                onChange={e => {
+                                                                    const updated = [...form.consents];
+                                                                    updated[idx].witness_name = e.target.value;
+                                                                    setForm({ ...form, consents: updated });
+                                                                }}
+                                                                style={{ border: '1px solid #e2e8f0', borderRadius: '4px', padding: '4px 8px', fontSize: '0.75rem', width: '150px' }}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -3114,10 +3344,11 @@ const ClinicalEntry = () => {
                             {formStatus.success && <p className="success-msg" style={{ marginTop: '1rem' }}>{formStatus.success}</p>}
                         </form>
 
-                        <footer className="form-actions-premium">
-                            <button type="button" className="btn-premium-cancel" onClick={() => setShowModal(false)}>Cancel</button>
-                            <button type="button" className="btn-premium-submit" disabled={saving} onClick={handleAddEntry}>
-                                {saving ? 'Processing...' : 'Securely Save Clinical Entry'}
+                        <footer className="modal-footer-v3" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc', padding: '1.25rem 2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem', borderRadius: '0 0 24px 24px' }}>
+                            <button type="button" onClick={() => setShowModal(false)} className="btn-cancel-v3">Discard</button>
+                            <button type="button" onClick={handleAddEntry} className="btn-save-v3" style={{ minWidth: '160px', height: '48px', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                                <RefreshCw size={18} className={saving ? 'spinning' : ''} style={{ display: saving ? 'block' : 'none' }} />
+                                {saving ? 'Finalizing...' : 'Save & Close'}
                             </button>
                         </footer>
 

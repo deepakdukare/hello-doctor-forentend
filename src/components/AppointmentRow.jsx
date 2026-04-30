@@ -42,7 +42,7 @@ const formatCompactDate = (dateStr) => {
     return `${day}-${month}-${year}`;
 };
 
-const AppointmentRow = ({ appt, onEdit, onCancel, showDate }) => {
+const AppointmentRow = ({ appt, onEdit, onCancel, onNoShow, showDate }) => {
     const statusKey = String(appt?.status || 'PENDING').toUpperCase();
     const statusView = STATUS_CONFIG[statusKey] || STATUS_CONFIG.DEFAULT;
 
@@ -140,24 +140,45 @@ const AppointmentRow = ({ appt, onEdit, onCancel, showDate }) => {
                 </span>
             </td>
 
-            {/* 9. Edit */}
+            {/* 9. Actions */}
             <td style={{ padding: '6px 12px', verticalAlign: 'middle', textAlign: 'right' }}>
-                <button
-                    onClick={(e) => { e.stopPropagation(); onEdit(appt); }}
-                    style={{
-                        padding: '6px',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '6px',
-                        background: '#fff',
-                        cursor: 'pointer',
-                        color: '#94a3b8',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
-                >
-                    <Edit2 size={14} />
-                </button>
+                <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                    {statusKey === 'CONFIRMED' && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onNoShow(appt); }}
+                            style={{
+                                padding: '6px',
+                                border: '1px solid #feca57',
+                                borderRadius: '6px',
+                                background: '#fff',
+                                cursor: 'pointer',
+                                color: '#feca57',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            title="Mark as No Show"
+                        >
+                            <XCircle size={14} />
+                        </button>
+                    )}
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onEdit(appt); }}
+                        style={{
+                            padding: '6px',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '6px',
+                            background: '#fff',
+                            cursor: 'pointer',
+                            color: '#94a3b8',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <Edit2 size={14} />
+                    </button>
+                </div>
             </td>
         </tr>
     );

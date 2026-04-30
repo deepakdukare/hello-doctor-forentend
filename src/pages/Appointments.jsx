@@ -41,6 +41,7 @@ import {
     bookAppointmentWithToken,
     getAvailableTokens,
     getTokenConfig,
+    markNoShow,
     toIsoDate
 } from '../api/index';
 import { removeSalutation } from '../utils/formatters';
@@ -255,6 +256,7 @@ const Appointments = () => {
     });
 
     const [cancelModal, setCancelModal] = useState({ show: false, id: null, reason: '' });
+    const [noShowModal, setNoShowModal] = useState({ show: false, id: null, reason: '' });
     const dateInputRef = useRef(null);
     const searchTimeoutRef = useRef(null);
 
@@ -507,6 +509,24 @@ const Appointments = () => {
             fetchQueueData();
         } catch (err) {
             setError(getApiErrorMessage(err, "Cancellation request rejected."));
+        }
+    };
+
+    const handleNoShowSubmit = async () => {
+        if (!noShowModal.reason) {
+            setError('Please provide a reason for the no-show.');
+            return;
+        }
+        setSubmitting(true);
+        try {
+            await markNoShow(noShowModal.id, { no_show_reason: noShowModal.reason });
+            setNoShowModal({ show: false, id: null, reason: '' });
+            setError(null);
+            fetchQueueData();
+        } catch (err) {
+            setError(getApiErrorMessage(err, "Failed to mark as No Show."));
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -789,6 +809,7 @@ const Appointments = () => {
                                                 showDate={filters.showAll}
                                                 onEdit={openBookingModal}
                                                 onCancel={(id) => setCancelModal({ show: true, id, reason: '' })}
+                                                onNoShow={(appt) => setNoShowModal({ show: true, id: appt.appointment_id, reason: '' })}
                                             />
                                         ))}
 
@@ -1198,6 +1219,46 @@ const Appointments = () => {
                     </div>
                 )
             }
+
+            {noShowModal.show && (
+                <div className="modal-overlay-premium">
+                    <div className="modal-alert-card">
+                        <div className="alert-icon-wrap" style={{ backgroundColor: '#fff7ed', color: '#f59e0b', borderRadius: '50%', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}><XCircle size={32} /></div>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b', marginBottom: '0.5rem' }}>Patient No-Show</h2>
+                        <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '1.5rem' }}>Mark appointment <strong>{noShowModal.id}</strong> as a no-show. This indicates the patient did not arrive at the clinic.</p>
+
+                        <div className="cancel-reason-input" style={{ width: '100%', textAlign: 'left' }}>
+                            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#475569', marginBottom: '0.5rem' }}>Reason for No-Show</label>
+                            <select
+                                value={noShowModal.reason}
+                                onChange={e => setNoShowModal({ ...noShowModal, reason: e.target.value })}
+                                className="input-v3"
+                                style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1.5px solid #cbd5e1', fontSize: '0.9rem', outline: 'none' }}
+                            >
+                                <option value="">Select a reason</option>
+                                <option value="Patient unreachable">Patient unreachable</option>
+                                <option value="Child unwell / Sick">Child unwell / Sick</option>
+                                <option value="Forgot appointment">Forgot appointment</option>
+                                <option value="Traveling / Out of station">Traveling / Out of station</option>
+                                <option value="Rescheduled by parent">Rescheduled by parent</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <div className="alert-actions" style={{ marginTop: '2rem', display: 'flex', gap: '1rem', width: '100%' }}>
+                            <button className="btn-cancel" style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#fff', fontWeight: 700, cursor: 'pointer' }} onClick={() => setNoShowModal({ show: false, id: null, reason: '' })}>Close</button>
+                            <button 
+                                className="btn-danger-v3" 
+                                style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: '#f59e0b', color: '#fff', fontWeight: 700, cursor: 'pointer' }} 
+                                onClick={handleNoShowSubmit}
+                                disabled={submitting}
+                            >
+                                {submitting ? 'Updating...' : 'Mark as No-Show'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
 
         </div >
