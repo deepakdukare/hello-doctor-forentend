@@ -208,6 +208,11 @@ export const getAuditLogs = (params) => api.get('/audit/logs', { params });
 export const getNotifications = (params) => api.get('/notifications', { params });
 export const markNotificationRead = (id) => api.patch(`/notifications/${id}/mark-read`);
 export const scheduleReminder = (data) => api.post('/reminders/schedule', data);
+export const getUnregisteredInteractions = () => api.get('/bot/interactions/unregistered');
+export const getPendingMessages = () => api.get('/messages/messages/pending');
+export const getPatientByWa = (wa_id) => api.get(`/patients/by-wa/${wa_id}`);
+export const bookByForm = (data) => api.post('/appointments/form', data);
+export const getAppointmentsByWaId = (wa_id, params) => api.get(`/appointments/by-wa/${wa_id}`, { params });
 
 // Reports
 export const getReportsDashboard = (params) => api.get('/reports/dashboard', { params });

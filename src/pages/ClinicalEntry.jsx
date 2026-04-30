@@ -1001,6 +1001,7 @@ const ClinicalEntry = () => {
 
                             <div className="tab-content-v3">
                                 {tab === 'details' && (
+                                    <>
                                         <article className="info-block-v3">
                                             <label>Visit Reason & Consents</label>
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
@@ -1371,7 +1372,7 @@ const ClinicalEntry = () => {
                                                 )}
                                             </article>
                                         )}
-                                    </div>
+                                    </>
                                 )}
 
                                 {tab === 'attachments' && (
