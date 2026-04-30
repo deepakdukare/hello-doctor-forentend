@@ -81,7 +81,7 @@ const fmt = (ds, opts = { day: '2-digit', month: 'short', year: 'numeric' }) => 
     if (!ds) return ''; try { return new Date(ds).toLocaleDateString('en-IN', opts); } catch { return ds; }
 };
 
-const MRD = () => {
+const ClinicalEntry = () => {
     const [patients, setPatients] = useState([]);
     const [dirLoading, setDirLoading] = useState(true);
     const [selectedPatient, setSelectedPatient] = useState(null);
@@ -3130,4 +3130,4 @@ const MRD = () => {
     );
 };
 
-export default MRD;
+export default ClinicalEntry;
