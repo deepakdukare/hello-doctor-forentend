@@ -188,6 +188,23 @@ export const getEntryByAppointment = (appointmentId) => api.get(`/mrd/appointmen
 export const lockMRDEntry = (id, data) => api.patch(`/mrd/entry/${id}/lock`, data);
 export const uploadMRDAttachment = (id, data) => api.post(`/mrd/entry/${id}/attachment`, data);
 export const sendPrescriptionViaWhatsApp = (id) => api.post(`/mrd/entry/${id}/send-whatsapp`);
+export const getMRDEntryPdfUrl = (id) => `${API_BASE_URL}/mrd/entry/${id}/pdf`;
+
+// Clinical Master Data
+export const getClinicalIcd10 = (search) => api.get('/clinical/icd10', { params: { search } });
+export const getClinicalMedicines = (search) => api.get('/clinical/medicines', { params: { search } });
+export const getClinicalInvestigations = (search) => api.get('/clinical/investigations', { params: { search } });
+export const getClinicalProcedures = (search) => api.get('/clinical/procedures', { params: { search } });
+export const getClinicalComplaints = (search) => api.get('/clinical/complaints', { params: { search } });
+export const getClinicalAllergies = (search) => api.get('/clinical/allergies', { params: { search } });
+export const getClinicalDiagramTemplates = () => api.get('/clinical/diagrams');
+export const getReferralTargets = () => api.get('/clinical/referral-targets');
+
+// Patient Clinical Context
+export const getPatientVitalsHistory = (patientId) => api.get(`/mrd/${patientId}/vitals-history`);
+export const getPatientAllergySummary = (patientId) => api.get(`/mrd/${patientId}/allergy-summary`);
+export const getPatientCurrentMeds = (patientId) => api.get(`/mrd/${patientId}/current-meds`);
+export const getPatientHistory = (patientId) => api.get(`/mrd/${patientId}/history`);
 
 // Comprehensive Patient Profile (appointments + MRD + legacy prescriptions/vaccinations)
 export const getComprehensiveProfile = (patientId) => api.get(`/patients/${patientId}/comprehensive`);
