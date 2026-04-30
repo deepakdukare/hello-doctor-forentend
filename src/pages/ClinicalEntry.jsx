@@ -2,14 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Download, Printer, Lock, Paperclip, Plus, X, FileText, RefreshCw, Activity, User, Calendar, Shield, ArrowRight, Clock, Eye, MessageCircle, Clipboard, Zap, Stethoscope, AlertTriangle, Trash2 } from 'lucide-react';
 import { removeSalutation } from '../utils/formatters';
 import {
-    getMRDByPatientId,
+    getComprehensiveProfile,
     addMRDEntry,
     exportMRD,
     getPatients,
     getDoctors,
     getEntryByAppointment,
     toIsoDate,
-    sendPrescriptionViaWhatsApp,
     getAppointments,
     getPatientById,
     lookupAppointments,
@@ -21,10 +20,6 @@ import {
     getClinicalComplaints,
     getClinicalAllergies,
     getClinicalDiagramTemplates,
-    getPatientVitalsHistory,
-    getPatientAllergySummary,
-    getPatientCurrentMeds,
-    getPatientHistory,
     getReferralTargets
 } from '../api/index';
 
@@ -255,16 +250,16 @@ const ClinicalEntry = () => {
             setFilterType('ALL');
             setRecLoading(true);
             try {
-                const r = await getMRDByPatientId(p.patient_id);
-                // The backend returns a unified timeline and an appointments array
-                const entries = r.data?.data?.entries || [];
-                const appointments = r.data?.data?.appointments || [];
-
-                // We want to show entries, but also "ghost" entries for completed appointments that have no record yet
-                const combined = [...entries];
-
-                appointments.forEach(appt => {
-                    if (appt.status === 'COMPLETED' && !entries.find(e => e.appointment_id === appt.appointment_id)) {
+                const r = await getComprehensiveProfile(p.patient_id);
+                const { patient, appointments, mrd_entries } = r.data?.data || {};
+                
+                setPatientDetails(patient);
+                
+                // Combine entries and "ghost" entries for completed appointments
+                const combined = [...(mrd_entries || [])];
+                
+                (appointments || []).forEach(appt => {
+                    if (appt.status === 'COMPLETED' && !mrd_entries.find(e => e.appointment_id === appt.appointment_id)) {
                         combined.push({
                             is_pending_record: true,
                             appointment_id: appt.appointment_id,
@@ -286,15 +281,23 @@ const ClinicalEntry = () => {
                 combined.sort((a, b) => new Date(b.visit_date || b.createdAt) - new Date(a.visit_date || a.createdAt));
                 setRecords(combined);
                 if (combined.length) setSelectedRecord(combined[0]);
+
+                // Also update clinical context from mrd_entries
+                const vitals = (mrd_entries || []).filter(e => e.weight || e.height || e.temperature).map(e => ({
+                    date: e.visit_date, weight: e.weight, height: e.height, temperature: e.temperature, pulse: e.pulse, spo2: e.spo2
+                }));
+                setClinicalContext({
+                    vitals_history: vitals,
+                    allergy_summary: [], // Could be derived if structured
+                    current_meds: [],    // Could be derived if structured
+                    patient_history: mrd_entries || []
+                });
+
             } catch (e) {
-                if (e.response?.status === 404) {
-                    setRecords([]);
-                    setSelectedRecord(null);
-                } else {
-                    console.error(e);
-                }
+                console.error('Failed to fetch comprehensive profile', e);
+            } finally {
+                setRecLoading(false);
             }
-            finally { setRecLoading(false); }
         }
 
         if (prefFromAppt) {
@@ -315,7 +318,6 @@ const ClinicalEntry = () => {
                 head_circumference: prefFromAppt.head_circumference || '',
                 symptoms: Array.isArray(prefFromAppt.symptoms) ? prefFromAppt.symptoms.join(', ') : (prefFromAppt.symptoms || '')
             });
-            // Fetch patient details for the info display
             setAllergyDraft({ ...EMPTY_ALLERGY });
             setFamilyDiseaseDraft({ disease: '', relationship: '' });
             setDiagnosisDraft({ diagnosis_name: '', icd_10: '', stage: 'Provisional', type: 'Primary', notes: '' });
@@ -325,18 +327,6 @@ const ClinicalEntry = () => {
             setPrescriptionDraft({ type: 'Brand', medicine: '', schedule: '', instruction: '', days: '', route: '' });
             setGlobalDays('');
             setReferralDraft({ location: '', speciality: '', doctor: '' });
-            setPatientDetails(p);
-            setPatientDetailsLoading(true);
-            try {
-                const detailRes = await getPatientById(p.patient_id);
-                setPatientDetails(detailRes.data?.data || p);
-            } catch (e) {
-                console.error('Failed to fetch patient details', e);
-                setPatientDetails(p);
-            } finally {
-                setPatientDetailsLoading(false);
-            }
-            await loadClinicalContext(p.patient_id);
         }
     };
 
@@ -645,18 +635,27 @@ const ClinicalEntry = () => {
         setReferralDraft({ location: '', speciality: '', doctor: '' });
         // Fetch full patient details for the info display
         if (selectedPatient?.patient_id) {
-            setPatientDetails(null);
             setPatientDetailsLoading(true);
             try {
-                const res = await getPatientById(selectedPatient.patient_id);
-                setPatientDetails(res.data?.data || null);
+                const r = await getComprehensiveProfile(selectedPatient.patient_id);
+                const { patient, mrd_entries } = r.data?.data || {};
+                setPatientDetails(patient);
+                
+                // Update clinical context from mrd_entries
+                const vitals = (mrd_entries || []).filter(e => e.weight || e.height || e.temperature).map(e => ({
+                    date: e.visit_date, weight: e.weight, height: e.height, temperature: e.temperature, pulse: e.pulse, spo2: e.spo2
+                }));
+                setClinicalContext({
+                    vitals_history: vitals,
+                    allergy_summary: [],
+                    current_meds: [],
+                    patient_history: mrd_entries || []
+                });
             } catch (e) {
                 console.error('Failed to fetch patient details for modal', e);
-                setPatientDetails(selectedPatient); // fallback to what we have
             } finally {
                 setPatientDetailsLoading(false);
             }
-            await loadClinicalContext(selectedPatient.patient_id);
         }
     };
 

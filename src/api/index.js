@@ -110,9 +110,6 @@ export const bookAppointment = (data) => createAppointment(data); // Alias
 export const updateAppointment = (id, data) => api.patch(`/appointments/${id}`, data);
 export const cancelAppointment = (id, data) => api.patch(`/appointments/${id}/cancel`, data);
 export const completeAppointment = (id) => api.patch(`/appointments/${id}/complete`);
-export const bookByForm = (data) => api.post('/appointments/form', data);
-export const bookByWhatsapp = (data) => api.post('/appointments/whatsapp', data);
-export const getAppointmentsByWaId = (waId, params) => api.get(`/appointments/by-wa/${waId}`, { params });
 export const lookupAppointments = (query) => api.get(`/appointments/lookup`, { params: { query } });
 export const bookWithToken = (data) => api.post('/appointments/book-with-token', data);
 export const bookAppointmentWithToken = (data) => bookWithToken(data); // Alias
@@ -121,7 +118,6 @@ export const bookAppointmentWithToken = (data) => bookWithToken(data); // Alias
 export const getPatients = (params) => api.get('/patients', { params });
 export const searchPatients = (q) => getPatients(typeof q === 'string' ? { search: q } : q); // Alias
 export const getPatientById = (id) => api.get(`/patients/${id}`);
-export const getPatientByWa = (waId) => api.get(`/patients/by-wa/${waId}`);
 export const getPatientByEmail = (email) => api.get(`/patients/by-email/${email}`);
 export const registerPatient = (data) => api.post('/patients', normalizePatientPayload(data));
 export const updatePatient = (id, data) => api.put(`/patients/${id}`, normalizePatientPayload(data));
@@ -187,7 +183,6 @@ export const addMRDEntry = (data) => api.post('/mrd/entry', data);
 export const getEntryByAppointment = (appointmentId) => api.get(`/mrd/appointment/${appointmentId}`);
 export const lockMRDEntry = (id, data) => api.patch(`/mrd/entry/${id}/lock`, data);
 export const uploadMRDAttachment = (id, data) => api.post(`/mrd/entry/${id}/attachment`, data);
-export const sendPrescriptionViaWhatsApp = (id) => api.post(`/mrd/entry/${id}/send-whatsapp`);
 export const getMRDEntryPdfUrl = (id) => `${API_BASE_URL}/mrd/entry/${id}/pdf`;
 
 // Clinical Master Data
@@ -206,7 +201,7 @@ export const getPatientAllergySummary = (patientId) => api.get(`/mrd/${patientId
 export const getPatientCurrentMeds = (patientId) => api.get(`/mrd/${patientId}/current-meds`);
 export const getPatientHistory = (patientId) => api.get(`/mrd/${patientId}/history`);
 
-// Comprehensive Patient Profile (appointments + MRD + legacy prescriptions/vaccinations)
+// Comprehensive Patient Profile
 export const getComprehensiveProfile = (patientId) => api.get(`/patients/${patientId}/comprehensive`);
 
 
@@ -241,28 +236,9 @@ export const getAdminProfile = (params) => api.get('/admin/profile', { params })
 export const updateAdminProfile = (data) => api.patch('/admin/profile', data);
 
 
-// WhatsApp bot
-export const getBotSession = (waId) => api.get(`/bot/session/${waId}`);
-export const createBotSession = (data) => api.post('/bot/session/create', data);
-export const updateBotSession = (data) => api.patch('/bot/session/update', data);
-export const escalateSession = (data) => api.post('/bot/escalate', data);
-export const getUnregisteredInteractions = () => api.get('/bot/interactions/unregistered');
-export const logChat = (data) => api.post('/bot/chat/log', data);
-export const getChatHistory = (params) => api.get('/bot/chat/history', { params });
-
-// Compatibility aliases retained for existing screens
-export const getPatientByMobile = (mobile) => getPatientByWa(mobile);
-export const getAppointmentsByMobile = (mobile, params) => getAppointmentsByWaId(mobile, params);
-export const getPendingReminders = () => Promise.resolve({ data: { data: [] } });
-export const markReminderSent = (id) => api.patch(`/appointments/reminders/${id}/mark-sent`);
-export const exportMRD = (patientId) => getMRDByPatientId(patientId);
-export const updateMRDEntry = (id, data) => api.patch(`/mrd/entry/${id}`, data);
-export const closeBotSession = (data) => escalateSession(data);
-export const getSessionHistory = (waId) => getChatHistory({ wa_id: waId });
-export const logBotMessage = (data) => logChat(data);
-export const getEscalations = (params = {}) => getNotifications({ ...params, severity: 'high', status: 'UNREAD' });
+// Compatibility aliases
+export const getPatientByMobile = (mobile) => api.get('/patients', { params: { search: mobile } });
 export const resolveEscalation = (id) => markNotificationRead(id);
 
 
 export default api;
-
