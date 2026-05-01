@@ -190,6 +190,9 @@ export const getReferralTargets = () => api.get('/clinical/referral-targets');
 export const upsertClinicalTemplate = (data) => api.post('/clinical/templates', data);
 export const getTemplates = (params) => api.get('/clinical/templates', { params });
 export const deleteClinicalTemplate = (id) => api.delete(`/clinical/templates/${id}`);
+export const getMasterData = (params) => api.get('/clinical/master', { params });
+export const upsertMasterData = (data) => api.post('/clinical/master', data);
+export const deleteMasterData = (id) => api.delete(`/clinical/master/${id}`);
 
 // Patient Clinical Context
 export const getPatientVitalsHistory = (patientId) => api.get(`/mrd/${patientId}/vitals-history`);

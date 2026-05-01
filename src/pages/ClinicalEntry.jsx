@@ -13,6 +13,7 @@ import {
     getPatientById,
     lookupAppointments,
     getMRDEntryPdfUrl,
+    getMRDByPatientId,
     getClinicalIcd10,
     getClinicalMedicines,
     getClinicalInvestigations,
@@ -23,7 +24,8 @@ import {
     getReferralTargets,
     getClinicalNoteTemplates,
     getCareAdviceTemplates,
-    upsertClinicalTemplate
+    upsertClinicalTemplate,
+    getMasterData
 } from '../api/index';
 
 const EMPTY_ALLERGY = { category: 'Drug', type: '', reaction: '', intensity: '', duration: '', informed_by: '' };
@@ -175,24 +177,22 @@ const ClinicalEntry = () => {
 
     const loadMasterData = useCallback(async () => {
         try {
-            const [icd, meds, inv, proc, complaints, allergies, diagrams, noteTmpl, adviceTmpl] = await Promise.all([
-                getClinicalIcd10(''),
-                getClinicalMedicines(''),
-                getClinicalInvestigations(''),
-                getClinicalProcedures(''),
-                getClinicalComplaints(''),
-                getClinicalAllergies(''),
+            const [allMaster, diagrams, noteTmpl, adviceTmpl] = await Promise.all([
+                getMasterData(), // Fetch all generic clinical master data
                 getClinicalDiagramTemplates(),
                 getClinicalNoteTemplates(),
                 getCareAdviceTemplates()
             ]);
+            
+            const masterList = allMaster.data?.data || [];
+            
             setMasterData({
-                icd10: icd.data?.data || [],
-                medicines: meds.data?.data || [],
-                investigations: inv.data?.data || [],
-                procedures: proc.data?.data || [],
-                complaints: complaints.data?.data || [],
-                allergies: allergies.data?.data || [],
+                icd10: masterList.filter(i => i.category === 'diagnosis').map(i => ({ name: i.name, code: i.metadata?.code })),
+                medicines: masterList.filter(i => i.category === 'medicine'),
+                investigations: masterList.filter(i => i.category === 'investigation'),
+                procedures: masterList.filter(i => i.category === 'procedure'),
+                complaints: masterList.filter(i => i.category === 'complaint'),
+                allergies: masterList.filter(i => i.category === 'allergy'),
                 diagrams: diagrams.data?.data || [],
                 noteTemplates: noteTmpl.data?.data || [],
                 adviceTemplates: adviceTmpl.data?.data || []

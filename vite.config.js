@@ -17,6 +17,7 @@ export default defineConfig({
                 target: 'https://api-vfbnzo4maa-uc.a.run.app',
                 changeOrigin: true,
                 secure: false,
+                rewrite: (path) => path, // Keep /api prefix — Cloud Run expects it
             },
         },
     },
