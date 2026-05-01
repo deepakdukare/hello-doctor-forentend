@@ -213,6 +213,8 @@ export const getPendingMessages = () => api.get('/messages/messages/pending');
 export const getPatientByWa = (wa_id) => api.get(`/patients/by-wa/${wa_id}`);
 export const bookByForm = (data) => api.post('/appointments/form', data);
 export const getAppointmentsByWaId = (wa_id, params) => api.get(`/appointments/by-wa/${wa_id}`, { params });
+export const getChatHistory = (params) => api.get('/bot/chat-history', { params });
+export const exportMRD = (patientId) => api.get(`/mrd/${patientId}/export`);
 
 // Reports
 export const getReportsDashboard = (params) => api.get('/reports/dashboard', { params });
