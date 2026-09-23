@@ -541,7 +541,7 @@ const Patients = () => {
                                                         <td colSpan={hasPermission('view_patient_mobile') ? 9 : 8}>
                                                             <div className="expansion-content-premium" style={{ paddingTop: '1rem' }}>
                                                                 <div className="expansion-tabs" style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', borderBottom: '1px solid #f1f5f9', padding: '0 1rem', flexWrap: 'wrap' }}>
-                                                                    {[['summary','Profile Summary'],['history','Appointment History'],['documents','Medical Documentation'],['clinical_360','Clinical Command Center (360°)']].map(([tab, label]) => (
+                                                                    {[['summary','Profile Summary'],['history','Appointment History'],['documents','E-prescription'],['clinical_360','Clinical Command Center (360°)']].map(([tab, label]) => (
                                                                         <button key={tab}
                                                                             onClick={async () => {
                                                                                 setPatientTab(tab);

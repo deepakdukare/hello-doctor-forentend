@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Download, Printer, Lock, Paperclip, Plus, X, FileText, RefreshCw, Activity, User, Calendar, Shield, ArrowRight, Clock, Eye, MessageCircle, Clipboard, Zap, Stethoscope, AlertTriangle, Trash2 } from 'lucide-react';
+import { Search, Download, Printer, Lock, Paperclip, Plus, X, FileText, RefreshCw, Activity, User, Calendar, Shield, ArrowRight, Clock, Eye, MessageCircle, Clipboard, Zap, Stethoscope, AlertTriangle, Trash2, ChevronDown, ChevronLeft, ChevronRight, CheckCircle2, Heart, Sparkles, Pill, FileCheck, Check, BookmarkPlus } from 'lucide-react';
 import { removeSalutation } from '../utils/formatters';
 import {
     getComprehensiveProfile,
@@ -25,10 +25,243 @@ import {
     getClinicalNoteTemplates,
     getCareAdviceTemplates,
     upsertClinicalTemplate,
+    getTemplates,
     getMasterData
 } from '../api/index';
 
 const EMPTY_ALLERGY = { category: 'Drug', type: '', reaction: '', intensity: '', duration: '', informed_by: '' };
+
+const EMPTY_PRESCRIPTION_DRAFT = {
+    type: 'Brand',
+    medicine: '',
+    dosage_form: 'Tablet',
+    indication: '',
+    schedule: '',
+    route: 'ORAL',
+    days: '',
+    quantity: '',
+    refills: '0',
+    instruction: '',
+    special_instructions: '',
+    pharmacist_notes: 'Substitute allowed'
+};
+
+const EMPTY_INVESTIGATION_DRAFT = {
+    name: '',
+    priority: 'Routine',
+    timeframe: 'Routine',
+    indication: '',
+    notes: ''
+};
+
+const EMPTY_PROCEDURE_DRAFT = {
+    name: '',
+    procedure_type: 'Therapeutic',
+    location: 'In clinic'
+};
+
+const EMPTY_DIAGNOSIS_DRAFT = {
+    diagnosis_name: '',
+    icd_10: '',
+    stage: 'Provisional',
+    type: 'Primary',
+    severity: 'Mild',
+    comorbidity: '',
+    notes: ''
+};
+
+const QUICK_CLINICAL_TEMPLATES = {
+    bronchiolitis: {
+        name: 'Acute Bronchiolitis',
+        icon: '🫁',
+        badge: 'Infant / Pediatric',
+        complaints: ['Cough', 'Wheezing / Rapid breathing', 'Low-grade fever', 'Decreased oral intake'],
+        hpi: 'Infant/child presents with 3-day history of clear rhinorrhea followed by persistent cough, wheezing, and increased work of breathing. Mild tachypnea noted. Feeding somewhat reduced, hydrated, passing urine normally.',
+        exam: {
+            pe_pallor: 'Absent',
+            pe_cyanosis: 'Absent',
+            physical_examination: 'Active child, mild intercostal retractions. Chest: Bilateral expiratory wheezes and coarse crackles. No grunting, no stridor.',
+            systemic_examination: 'CVS: S1 S2 heard, no murmurs. P/A: Soft, non-tender. CNS: Alert, responsive.'
+        },
+        diagnoses: [
+            { diagnosis_name: 'Acute bronchiolitis', icd_10: 'J21.9', stage: 'Confirmed', type: 'Primary', severity: 'Moderate' }
+        ],
+        investigations: [
+            { name: 'Pulse Oximetry continuous monitoring', priority: 'Stat', timeframe: 'Immediate' },
+            { name: 'Chest X-Ray AP/PA (if deteriorating)', priority: 'Routine', timeframe: 'Within 24h' }
+        ],
+        prescriptions: [
+            { medicine: 'Saline 0.9% Nasal Drops', dosage_form: 'Drops', indication: 'Nasal clearance', schedule: '2 drops in each nostril TID before feeds', route: 'NASAL', days: 5, quantity: '1 bottle', instruction: 'Instill 5 mins before feeds' },
+            { medicine: 'Syrup Paracetamol (120mg/5ml)', dosage_form: 'Syrup', indication: 'Fever / Discomfort', schedule: 'As per weight (15mg/kg) SOS Q6H', route: 'ORAL', days: 3, quantity: '1 bottle', instruction: 'Give only if temperature > 100°F' }
+        ],
+        advice_home_care: 'Frequent small feeds. Humidified air/mist. Keep head end slightly elevated. Saline suctioning of anterior nares before feeding and sleeping.',
+        advice_warning_signs: 'Bring immediately if: severe chest in-drawing, grunting, bluish lips/nails, inability to feed, or extreme lethargy.',
+        next_visit_due: '2 days'
+    },
+    urti: {
+        name: 'Viral Fever / URTI',
+        icon: '🌡️',
+        badge: 'Common / All Ages',
+        complaints: ['Fever', 'Running nose', 'Throat irritation / Cough', 'Body aches'],
+        hpi: 'Acute onset of high/moderate grade fever for 2 days associated with clear rhinorrhea, sneezing, and dry throat. No ear ache, no rash, no dyspnea.',
+        exam: {
+            pe_pallor: 'Absent',
+            physical_examination: 'Pharynx: Mild erythema, no tonsillar exudates. B/L Tympanic membranes normal pearly grey. Chest: Clear b/l, no added sounds.',
+            systemic_examination: 'Abdomen soft, non-tender. Neurologically alert.'
+        },
+        diagnoses: [
+            { diagnosis_name: 'Acute Upper Respiratory Tract Infection (URTI)', icd_10: 'J06.9', stage: 'Provisional', type: 'Primary', severity: 'Mild' }
+        ],
+        investigations: [
+            { name: 'Complete Blood Count (CBC) (if fever > 4 days)', priority: 'Routine', timeframe: 'Routine' }
+        ],
+        prescriptions: [
+            { medicine: 'Syrup / Tab Paracetamol', dosage_form: 'Syrup', indication: 'Antipyretic', schedule: '10-15 mg/kg Q6H SOS', route: 'ORAL', days: 3, quantity: '1 bottle', instruction: 'With or after food. Keep hydrated.' },
+            { medicine: 'Cetirizine Syrup / Tablet', dosage_form: 'Syrup', indication: 'Rhinorrhea / Sneezing', schedule: 'Once daily at bedtime', route: 'ORAL', days: 5, quantity: '1 strip/bottle', instruction: 'Night time dose' }
+        ],
+        advice_home_care: 'Warm fluids, honey for cough (if >1 yr old), steam inhalation, adequate rest and plenty of oral fluids.',
+        advice_warning_signs: 'Red flags: Fever > 102°F persisting beyond 3 days, breathlessness, rash, ear discharge, persistent vomiting.',
+        next_visit_due: '3 days'
+    },
+    gastroenteritis: {
+        name: 'Acute Gastroenteritis',
+        icon: '💧',
+        badge: 'Pediatric / Adult',
+        complaints: ['Watery diarrhea', 'Vomiting', 'Abdominal cramps', 'Mild fever'],
+        hpi: 'Patient developed watery, non-bloody loose stools (4-6 episodes/day) with 2 episodes of vomiting since yesterday. Thirsty, drinking fluids eagerly. Last urine passed 3 hours ago.',
+        exam: {
+            pe_oedema: 'Absent',
+            physical_examination: 'Tongue moist, skin turgor normal, eyes not sunken. No severe dehydration signs. Abdomen: Mild generalized tenderness, hyperactive bowel sounds.',
+            systemic_examination: 'No organomegaly, soft abdomen.'
+        },
+        diagnoses: [
+            { diagnosis_name: 'Acute gastroenteritis without severe dehydration', icd_10: 'A09', stage: 'Confirmed', type: 'Primary', severity: 'Mild' }
+        ],
+        investigations: [
+            { name: 'Stool Routine & Microscopy (if persistent or bloody)', priority: 'Routine', timeframe: 'Routine' },
+            { name: 'Serum Electrolytes (if dehydration signs)', priority: 'Routine', timeframe: 'Routine' }
+        ],
+        prescriptions: [
+            { medicine: 'Oral Rehydration Solution (ORS - WHO formula)', dosage_form: 'Powder', indication: 'Rehydration', schedule: '1 sachet in 1 Litre boiled & cooled water. Sip after every loose stool', route: 'ORAL', days: 3, quantity: '5 sachets', instruction: 'Discard after 24 hours of preparation' },
+            { medicine: 'Zinc Gluconate (20mg/day)', dosage_form: 'Syrup', indication: 'Mucosal recovery', schedule: '10mg/day (<6mo) or 20mg/day (>6mo) once daily', route: 'ORAL', days: 14, quantity: '1 bottle', instruction: 'Continue full 14 days course' },
+            { medicine: 'Syrup Ondansetron (if vomiting)', dosage_form: 'Syrup', indication: 'Antiemetic', schedule: '0.15 mg/kg SOS before feeds', route: 'ORAL', days: 2, quantity: '1 bottle', instruction: 'Give 15 min before oral rehydration' }
+        ],
+        advice_home_care: 'Continue normal feeding (breastfeeding/curd, rice porridge, banana). Avoid concentrated sugary juices or sodas.',
+        advice_warning_signs: 'Red flags: Inability to drink or retain fluids, blood in stool, lethargy/floppiness, sunken eyes, no urine for >6 hours.',
+        next_visit_due: '2 days'
+    },
+    asthma: {
+        name: 'Asthma / Reactive Airway',
+        icon: '💨',
+        badge: 'Pediatric / Adult',
+        complaints: ['Sudden onset wheezing', 'Shortness of breath', 'Dry nocturnal cough', 'Chest tightness'],
+        hpi: 'Known or suspected reactive airway disease presenting with acute onset wheezing and dry cough following weather change/dust exposure. Relieved partially by bronchodilator.',
+        exam: {
+            physical_examination: 'Tachypneic, able to speak full sentences. Chest: Diffuse bilateral polyphonic expiratory wheezing with prolonged expiratory phase. SpO2 maintained.',
+            systemic_examination: 'Cardiovascular: Normal heart sounds, no gallop.'
+        },
+        diagnoses: [
+            { diagnosis_name: 'Acute asthma exacerbation (Mild-Moderate)', icd_10: 'J45.901', stage: 'Confirmed', type: 'Primary', severity: 'Moderate' }
+        ],
+        investigations: [
+            { name: 'Peak Expiratory Flow Rate (PEFR)', priority: 'Stat', timeframe: 'Immediate' },
+            { name: 'SpO2 Monitoring', priority: 'Stat', timeframe: 'Immediate' }
+        ],
+        prescriptions: [
+            { medicine: 'Salbutamol MDI with Spacer (100mcg/puff)', dosage_form: 'Inhaler', indication: 'Bronchodilation', schedule: '2-4 puffs Q4-6H via spacer', route: 'INHALATION', days: 5, quantity: '1 inhaler', instruction: 'Rinse mouth after use' },
+            { medicine: 'Budesonide Respules / Inhaler', dosage_form: 'Inhaler', indication: 'Anti-inflammatory', schedule: '200mcg BID via spacer/nebulizer', route: 'INHALATION', days: 14, quantity: '1 inhaler', instruction: 'Controller medication' }
+        ],
+        advice_home_care: 'Strict allergen/dust avoidance. Avoid sudden cold beverages. Always use spacer device with inhaler.',
+        advice_warning_signs: 'Red flags: Inability to speak, cyanosis, wheeze not improving after 3 bronchodilator cycles, SpO2 < 93%. Go to ER immediately.',
+        next_visit_due: '3 days'
+    },
+    well_baby: {
+        name: 'Well Baby / Vaccination',
+        icon: '👶',
+        badge: 'Infant / Pediatric',
+        complaints: ['Routine growth assessment', 'Scheduled immunizations', 'Feeding guidance'],
+        hpi: 'Healthy child brought for scheduled well-child visit and immunization per national/IAP schedule. Feeding well, attaining milestones on time, no parental concerns.',
+        exam: {
+            physical_examination: 'Well-nourished, active, alert infant. Tone and reflexes normal. Anterior fontanelle flat and soft. Head-to-toe check unremarkable.',
+            systemic_examination: 'Chest: Clear. CVS: S1 S2 normal. Abdomen: Soft, no organomegaly.'
+        },
+        diagnoses: [
+            { diagnosis_name: 'Encounter for routine child health examination & vaccination', icd_10: 'Z00.129', stage: 'Confirmed', type: 'Primary', severity: 'Mild' }
+        ],
+        investigations: [],
+        prescriptions: [
+            { medicine: 'Syrup Paracetamol (120mg/5ml)', dosage_form: 'Syrup', indication: 'Post-vaccine fever/pain', schedule: '10-15 mg/kg SOS after vaccine if irritable/febrile', route: 'ORAL', days: 2, quantity: '1 bottle', instruction: 'Use only if irritable or temp > 100°F' }
+        ],
+        advice_home_care: 'Cold compress at injection site if redness/swelling occurs. Maintain regular feeding schedule.',
+        advice_warning_signs: 'Return if persistent crying > 3 hours, high fever > 103°F, or unusual swelling at injection site.',
+        next_visit_due: '1 month'
+    },
+    otitis_media: {
+        name: 'Acute Otitis Media',
+        icon: '👂',
+        badge: 'Pediatric / ENT',
+        complaints: ['Ear pain (Otalgia)', 'Fever', 'Irritability / Tugging at ear', 'Preceding cold'],
+        hpi: 'Child developed acute severe ear pain and fever following an upper respiratory infection 4 days ago. Restless, pulling at right ear, disrupted sleep.',
+        exam: {
+            physical_examination: 'Otoscopy: Right tympanic membrane erythematous, bulging with decreased mobility. Left TM normal. Mastoid non-tender.',
+            systemic_examination: 'Pharynx mildly congested. Systemic exam unremarkable.'
+        },
+        diagnoses: [
+            { diagnosis_name: 'Acute suppurative otitis media', icd_10: 'H66.00', stage: 'Confirmed', type: 'Primary', severity: 'Moderate' }
+        ],
+        investigations: [],
+        prescriptions: [
+            { medicine: 'Syrup Amoxicillin-Clavulanate (228mg/5ml)', dosage_form: 'Syrup', indication: 'Bacterial otitis media', schedule: '45-90 mg/kg/day divided BID', route: 'ORAL', days: 7, quantity: '1 bottle', instruction: 'Complete full 7-day course. Take after food.' },
+            { medicine: 'Syrup Ibuprofen / Paracetamol', dosage_form: 'Syrup', indication: 'Analgesic / Antipyretic', schedule: '10 mg/kg Q8H for pain relief', route: 'ORAL', days: 3, quantity: '1 bottle', instruction: 'For ear pain' }
+        ],
+        advice_home_care: 'Keep ear dry. Do not insert cotton buds or oil into ear canal.',
+        advice_warning_signs: 'Red flags: Ear discharge/pus, swelling behind ear, facial weakness, persistent fever > 48h on antibiotics.',
+        next_visit_due: '5 days'
+    }
+};
+
+const QUICK_COMPLAINT_CHIPS = [
+    'Fever', 'Cough', 'Cold / Runny nose', 'Vomiting', 'Loose stools',
+    'Wheezing / Breathlessness', 'Abdominal pain', 'Ear pain', 'Skin rash / Itch',
+    'Poor feeding / Appetite loss', 'Headache', 'Sore throat', 'Routine Checkup / Vaccine'
+];
+
+const QUICK_INVESTIGATION_CHIPS = [
+    'Complete Blood Count (CBC)', 'CRP (C-Reactive Protein)', 'Serum Electrolytes',
+    'Urine Routine & Microscopy', 'Chest X-Ray (AP/PA)', 'Stool Routine & Microscopy',
+    'Blood Culture & Sensitivity', 'Rapid Dengue NS1 / IgM', 'Thyroid Profile (TSH)',
+    'Liver Function Test (LFT)', 'Renal Function Test (KFT)'
+];
+
+const QUICK_PROCEDURE_CHIPS = [
+    'Nebulization (Salbutamol/Budecort)', 'Wound Dressing / Cleansing',
+    'Suture Removal', 'IV Cannulation', 'IM Injection Administration',
+    'Ear Canal Suctioning', 'Foreign Body Removal'
+];
+
+const QUICK_ADVICE_CHIPS = {
+    homeCare: [
+        'Plenty of oral fluids & rest',
+        'Frequent small feeds on demand',
+        'Steam inhalation & warm saline gargles',
+        'Keep head end elevated during sleep',
+        'Tepid sponging if temperature > 101°F'
+    ],
+    diet: [
+        'Soft, light home cooked diet (Khichdi, curd rice)',
+        'Fresh fruits, tender coconut water, soup',
+        'Avoid oily, spicy, cold and junk foods',
+        'ORS after every loose stool',
+        'Exclusive breastfeeding on demand'
+    ],
+    warningSigns: [
+        'Fever > 102°F persisting beyond 3 days',
+        'Fast breathing, chest in-drawing or grunting',
+        'Inability to drink or retain fluids / persistent vomiting',
+        'Excessive sleepiness, lethargy or seizures',
+        'Blood in stools or severe abdominal pain'
+    ]
+};
 
 const EMPTY_ENTRY = {
     patient_id: '', appointment_id: '', visit_date: toIsoDate(),
@@ -51,11 +284,234 @@ const EMPTY_ENTRY = {
     advice_home_care: '',
     advice_diet: '',
     advice_warning_signs: '',
+    dietary_plan: '',
+    activity_restrictions: '',
+    home_monitoring: '',
+    school_work_note: '',
+    storage_instructions: '',
+    side_effects_warning: '',
+    pregnancy_lactation_status: '',
+    age_group: '',
+    neonatal_history: {
+        birth_weight: '',
+        gestational_age: '',
+        apgar_1min: '',
+        apgar_5min: '',
+        delivery_type: '',
+        nicu_stay: 'No',
+        feeding_type: 'Exclusive Breastfeeding',
+        anterior_fontanelle: 'Normal/Flat'
+    },
+    pediatric_assessment: {
+        milestones: 'Age-Appropriate',
+        immunization_status: 'Up to Date (IAP)',
+        school_activity: 'Active & Normal',
+        screening_notes: ''
+    },
+    adolescent_assessment: {
+        headsss_risk: 'Low Risk',
+        pubertal_growth: 'Normal for Age',
+        screen_wellness: 'Moderate (<2h screen, normal sleep)'
+    },
+    adult_assessment: {
+        tobacco_use: 'Non-Smoker',
+        alcohol_intake: 'None / Social',
+        physical_activity: 'Moderate',
+        cardiovascular_risk: 'Low Risk'
+    },
+    geriatric_assessment: {
+        cognitive_status: 'Intact',
+        mobility_adl: 'Independent',
+        polypharmacy_alert: 'Reviewed',
+        nutrition_dentition: 'Normal'
+    },
+    structured_family_history: [],
     consents: [
         { consent_type: 'Treatment Consent', is_accepted: false, witness_name: '' },
         { consent_type: 'Vaccination Consent', is_accepted: false, witness_name: '' },
         { consent_type: 'Data Usage Consent', is_accepted: false, witness_name: '' }
     ]
+};
+
+const parseDateSafe = (raw) => {
+    if (!raw) return null;
+    if (raw instanceof Date) return isNaN(raw.getTime()) ? null : raw;
+    if (typeof raw === 'number') {
+        const d = new Date(raw);
+        return isNaN(d.getTime()) ? null : d;
+    }
+    const str = String(raw).trim();
+    // Support DD/MM/YYYY or DD-MM-YYYY
+    const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    if (dmyMatch) {
+        const [, day, month, year] = dmyMatch;
+        const d = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+        if (!isNaN(d.getTime())) return d;
+    }
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
+};
+
+const computeNextVisitDueDate = (raw) => {
+    if (!raw) return null;
+    const str = String(raw).trim();
+    if (!str || str.toLowerCase() === 'invalid date') return null;
+
+    const relMatch = str.match(/^(\d+)\s*(day|days|week|weeks|month|months)$/i);
+    if (relMatch) {
+        const count = parseInt(relMatch[1], 10);
+        const unit = relMatch[2].toLowerCase();
+        const target = new Date();
+        if (unit.startsWith('day')) {
+            target.setDate(target.getDate() + count);
+        } else if (unit.startsWith('week')) {
+            target.setDate(target.getDate() + count * 7);
+        } else if (unit.startsWith('month')) {
+            target.setMonth(target.getMonth() + count);
+        }
+        return toIsoDate(target);
+    }
+
+    const d = parseDateSafe(str);
+    return d ? toIsoDate(d) : null;
+};
+
+const getAgeDetails = (patientOrInput) => {
+    if (!patientOrInput) return { years: null, months: null, days: null, totalDays: null, display: '' };
+
+    let dob = null;
+    let explicitAge = null;
+    let ageYears = null;
+    let ageMonths = null;
+    let ageDays = null;
+
+    if (typeof patientOrInput === 'object' && !(patientOrInput instanceof Date)) {
+        dob = patientOrInput.dob || patientOrInput.date_of_birth || patientOrInput.birth_date;
+        explicitAge = patientOrInput.age ?? patientOrInput.patient_age;
+        ageYears = patientOrInput.age_years;
+        ageMonths = patientOrInput.age_months;
+        ageDays = patientOrInput.age_days;
+    } else {
+        if (typeof patientOrInput === 'number' || (!isNaN(patientOrInput) && !String(patientOrInput).includes('-') && !String(patientOrInput).includes('/'))) {
+            explicitAge = Number(patientOrInput);
+        } else {
+            dob = patientOrInput;
+        }
+    }
+
+    // 1. If valid DOB
+    const parsedDob = parseDateSafe(dob);
+    if (parsedDob) {
+        const now = new Date();
+        const diffMs = now.getTime() - parsedDob.getTime();
+        const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        let years = now.getFullYear() - parsedDob.getFullYear();
+        let months = now.getMonth() - parsedDob.getMonth();
+        let days = now.getDate() - parsedDob.getDate();
+        if (days < 0) {
+            months -= 1;
+            const prevMonthLastDay = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+            days += prevMonthLastDay;
+        }
+        if (months < 0) {
+            years -= 1;
+            months += 12;
+        }
+        if (years < 0) years = 0;
+
+        let display = '';
+        if (years > 0) {
+            display = `${years}y` + (months > 0 ? ` ${months}m` : '');
+        } else if (months > 0) {
+            display = `${months}m` + (days > 0 ? ` ${days}d` : '');
+        } else {
+            display = `${Math.max(0, totalDays)}d`;
+        }
+
+        return { years: totalDays / 365.25, months: totalDays / 30.4375, days: totalDays, totalDays, display, dob: parsedDob };
+    }
+
+    // 2. If structured age_years / age_months / age_days
+    if (ageYears != null || ageMonths != null || ageDays != null) {
+        const y = Number(ageYears || 0);
+        const m = Number(ageMonths || 0);
+        const d = Number(ageDays || 0);
+        const totalDays = Math.round(y * 365.25 + m * 30.4375 + d);
+        const parts = [];
+        if (y > 0) parts.push(`${y}y`);
+        if (m > 0) parts.push(`${m}m`);
+        if (d > 0 || !parts.length) parts.push(`${d}d`);
+        return { years: totalDays / 365.25, months: totalDays / 30.4375, days: totalDays, totalDays, display: parts.join(' ') };
+    }
+
+    // 3. If explicit age string or number e.g. "5", "10 months", "15 days", "70"
+    if (explicitAge != null && explicitAge !== '') {
+        const str = String(explicitAge).trim().toLowerCase();
+
+        const dMatch = str.match(/^(\d+(?:\.\d+)?)\s*(?:d|day|days)/);
+        if (dMatch) {
+            const days = parseFloat(dMatch[1]);
+            return { years: days / 365.25, months: days / 30.4375, days, totalDays: days, display: `${days}d` };
+        }
+
+        const wMatch = str.match(/^(\d+(?:\.\d+)?)\s*(?:w|wk|wks|week|weeks)/);
+        if (wMatch) {
+            const days = parseFloat(wMatch[1]) * 7;
+            return { years: days / 365.25, months: days / 30.4375, days, totalDays: days, display: `${wMatch[1]}w` };
+        }
+
+        const mMatch = str.match(/^(\d+(?:\.\d+)?)\s*(?:m|mo|mon|month|months)/);
+        if (mMatch) {
+            const months = parseFloat(mMatch[1]);
+            const days = Math.round(months * 30.4375);
+            return { years: days / 365.25, months, days, totalDays: days, display: `${months}m` };
+        }
+
+        const yMatch = str.match(/^(\d+(?:\.\d+)?)\s*(?:y|yr|yrs|year|years)?$/);
+        if (yMatch) {
+            const years = parseFloat(yMatch[1]);
+            const days = Math.round(years * 365.25);
+            return { years, months: years * 12, days, totalDays: days, display: `${years}y` };
+        }
+    }
+
+    return { years: null, months: null, days: null, totalDays: null, display: '' };
+};
+
+const deriveAgeGroup = (patientOrInput) => {
+    const { totalDays, years } = getAgeDetails(patientOrInput);
+    if (totalDays == null && years == null) return 'Adult';
+
+    if (totalDays != null) {
+        if (totalDays <= 28) return 'Neonatal';
+        if (totalDays <= 365) return 'Infant';
+        const y = totalDays / 365.25;
+        if (y < 13) return 'Pediatric';
+        if (y < 19) return 'Adolescent';
+        if (y < 65) return 'Adult';
+        return 'Geriatric';
+    }
+
+    if (years != null) {
+        if (years <= (28 / 365.25)) return 'Neonatal';
+        if (years <= 1) return 'Infant';
+        if (years < 13) return 'Pediatric';
+        if (years < 19) return 'Adolescent';
+        if (years < 65) return 'Adult';
+        return 'Geriatric';
+    }
+
+    return 'Adult';
+};
+
+const AGE_GROUP_CONFIG = {
+    Neonatal: { label: 'Neonatal (0-28d)', bg: '#fdf2f8', color: '#db2777', border: '#fbcfe8', icon: '🍼' },
+    Infant: { label: 'Infant (29d-1y)', bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe', icon: '👶' },
+    Pediatric: { label: 'Pediatric (1-12y)', bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0', icon: '🧒' },
+    Adolescent: { label: 'Adolescent (13-18y)', bg: '#faf5ff', color: '#9333ea', border: '#e9d5ff', icon: '🧑' },
+    Adult: { label: 'Adult (19-64y)', bg: '#f8fafc', color: '#475569', border: '#cbd5e1', icon: '👤' },
+    Geriatric: { label: 'Geriatric (65+y)', bg: '#fffbeb', color: '#d97706', border: '#fde68a', icon: '🧓' },
 };
 
 const calcBMI = (weight, height) => {
@@ -72,13 +528,8 @@ const initials = (p) => {
     const name = p.first_name || p.child_name || p.name || '?';
     return (name[0] + (p.last_name || '')[0]).toUpperCase();
 };
-const age = (dob) => {
-    if (!dob) return '';
-    const d = new Date(dob);
-    if (isNaN(d)) return '';
-    const totalM = (new Date().getFullYear() - d.getFullYear()) * 12 + (new Date().getMonth() - d.getMonth());
-    const y = Math.floor(totalM / 12), m = totalM % 12;
-    return [y > 0 && `${y}y`, m > 0 && `${m}m`].filter(Boolean).join(' ');
+const age = (patientOrInput) => {
+    return getAgeDetails(patientOrInput).display || '';
 };
 
 const pname = (p) => {
@@ -114,12 +565,12 @@ const ClinicalEntry = () => {
     const [patientDetails, setPatientDetails] = useState(null);
     const [patientDetailsLoading, setPatientDetailsLoading] = useState(false);
     const [allergyDraft, setAllergyDraft] = useState({ ...EMPTY_ALLERGY });
-    const [familyDiseaseDraft, setFamilyDiseaseDraft] = useState({ disease: '', relationship: '' });
-    const [diagnosisDraft, setDiagnosisDraft] = useState({ diagnosis_name: '', icd_10: '', stage: 'Provisional', type: 'Primary', notes: '' });
-    const [investigationDraft, setInvestigationDraft] = useState({ name: '', priority: 'Routine' });
-    const [procedureDraft, setProcedureDraft] = useState({ name: '' });
+    const [familyDiseaseDraft, setFamilyDiseaseDraft] = useState({ disease: '', relationship: '', age_at_onset: '', current_status: 'Managed' });
+    const [diagnosisDraft, setDiagnosisDraft] = useState({ ...EMPTY_DIAGNOSIS_DRAFT });
+    const [investigationDraft, setInvestigationDraft] = useState({ ...EMPTY_INVESTIGATION_DRAFT });
+    const [procedureDraft, setProcedureDraft] = useState({ ...EMPTY_PROCEDURE_DRAFT });
     const [medicationHistoryDraft, setMedicationHistoryDraft] = useState({ drug: '', form: '', dose: '', route: '', frequency: '', to_be_continued: 'Yes' });
-    const [prescriptionDraft, setPrescriptionDraft] = useState({ type: 'Brand', medicine: '', schedule: '', instruction: '', days: '', route: '' });
+    const [prescriptionDraft, setPrescriptionDraft] = useState({ ...EMPTY_PRESCRIPTION_DRAFT });
     const [globalDays, setGlobalDays] = useState('');
     const [referralDraft, setReferralDraft] = useState({ location: '', speciality: '', doctor: '' });
     const [masterData, setMasterData] = useState({
@@ -135,6 +586,315 @@ const ClinicalEntry = () => {
     });
     const [referralTargets, setReferralTargets] = useState([]);
     const [clinicalContext, setClinicalContext] = useState({ vitals_history: [], allergy_summary: [], current_meds: [], patient_history: [] });
+
+    const [activeStep, setActiveStep] = useState(1);
+    const [clinicalTemplates, setClinicalTemplates] = useState([]);
+    const [templatesLoading, setTemplatesLoading] = useState(false);
+
+    const loadClinicalTemplates = useCallback(async () => {
+        setTemplatesLoading(true);
+        try {
+            const res = await getTemplates();
+            if (res.data?.success && Array.isArray(res.data.data)) {
+                setClinicalTemplates(res.data.data);
+            }
+        } catch (err) {
+            console.error('Failed to load clinical templates:', err);
+        } finally {
+            setTemplatesLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        loadClinicalTemplates();
+    }, [loadClinicalTemplates]);
+
+    const applyQuickTemplate = (templateOrKey) => {
+        let tmpl = null;
+        if (typeof templateOrKey === 'string') {
+            tmpl = QUICK_CLINICAL_TEMPLATES[templateOrKey] || clinicalTemplates.find(t => t.id === templateOrKey || t._id === templateOrKey || t.title === templateOrKey || t.name === templateOrKey);
+        } else if (typeof templateOrKey === 'object' && templateOrKey !== null) {
+            tmpl = templateOrKey;
+        }
+
+        if (!tmpl) return;
+
+        const meta = tmpl.metadata || {};
+        const name = tmpl.title || tmpl.name || 'Template';
+        const complaints = meta.complaints || tmpl.complaints || [];
+        const hpi = meta.hpi || tmpl.hpi || (tmpl.type === 'note' ? tmpl.content : '');
+        const exam = meta.exam || tmpl.exam || {};
+        const diagnoses = meta.diagnoses || tmpl.diagnoses || [];
+        const investigations = meta.investigations || tmpl.investigations || [];
+        const prescriptions = meta.prescriptions || tmpl.prescriptions || [];
+        const advice_home_care = meta.advice_home_care || tmpl.advice_home_care || (tmpl.type === 'advice' ? tmpl.content : '');
+        const advice_warning_signs = meta.advice_warning_signs || tmpl.advice_warning_signs || '';
+        const next_visit_due = meta.next_visit_due || tmpl.next_visit_due;
+
+        setForm(prev => {
+            const existingComplaints = Array.isArray(prev.chief_complaints_list) ? prev.chief_complaints_list : [];
+            const mergedComplaints = complaints.length ? Array.from(new Set([...existingComplaints, ...complaints])) : existingComplaints;
+
+            const existingDiagnoses = Array.isArray(prev.provisional_diagnoses) ? prev.provisional_diagnoses : [];
+            const mergedDiagnoses = diagnoses.length ? [...existingDiagnoses, ...diagnoses] : existingDiagnoses;
+
+            const existingInvs = Array.isArray(prev.investigations_list) ? prev.investigations_list : [];
+            const mergedInvs = investigations.length ? [...existingInvs, ...investigations] : existingInvs;
+
+            const existingPrescriptions = Array.isArray(prev.prescriptions_list) ? prev.prescriptions_list : [];
+            const mergedPrescriptions = prescriptions.length ? [...existingPrescriptions, ...prescriptions] : existingPrescriptions;
+
+            return {
+                ...prev,
+                chief_complaints_list: mergedComplaints,
+                chief_complaint: complaints.length ? (prev.chief_complaint ? `${prev.chief_complaint}, ${complaints.join(', ')}` : complaints.join(', ')) : prev.chief_complaint,
+                history_of_present_illness: hpi ? (prev.history_of_present_illness ? `${prev.history_of_present_illness}\n\n${hpi}` : hpi) : prev.history_of_present_illness,
+                pe_pallor: exam.pe_pallor || prev.pe_pallor || 'Absent',
+                pe_cyanosis: exam.pe_cyanosis || prev.pe_cyanosis || 'Absent',
+                pe_icterus: prev.pe_icterus || 'Absent',
+                pe_oedema: exam.pe_oedema || prev.pe_oedema || 'Absent',
+                pe_clubbing: prev.pe_clubbing || 'Absent',
+                pe_lymphadenopathy: prev.pe_lymphadenopathy || 'Absent',
+                physical_examination: exam.physical_examination ? (prev.physical_examination ? `${prev.physical_examination}\n${exam.physical_examination}` : exam.physical_examination) : prev.physical_examination,
+                systemic_examination: exam.systemic_examination ? (prev.systemic_examination ? `${prev.systemic_examination}\n${exam.systemic_examination}` : exam.systemic_examination) : prev.systemic_examination,
+                provisional_diagnoses: mergedDiagnoses,
+                diagnosis: mergedDiagnoses.length ? mergedDiagnoses.map(d => d.diagnosis_name || d.diagnosis).join(', ') : prev.diagnosis,
+                investigations_list: mergedInvs,
+                prescriptions_list: mergedPrescriptions,
+                advice_home_care: advice_home_care ? (prev.advice_home_care ? `${prev.advice_home_care}\n${advice_home_care}` : advice_home_care) : prev.advice_home_care,
+                advice_warning_signs: advice_warning_signs ? (prev.advice_warning_signs ? `${prev.advice_warning_signs}\n${advice_warning_signs}` : advice_warning_signs) : prev.advice_warning_signs,
+                next_visit_due: next_visit_due || prev.next_visit_due
+            };
+        });
+        setFormStatus({ error: null, success: `✨ Applied "${name}" from Clinical Templates library!` });
+        setTimeout(() => setFormStatus(prev => ({ ...prev, success: null })), 4000);
+    };
+
+    const handleSaveAsTemplate = async () => {
+        const defaultName = form.diagnosis || form.chief_complaint || 'Custom Clinical Template';
+        const name = window.prompt('Enter a title for this Clinical Template:', defaultName);
+        if (!name || !name.trim()) return;
+
+        try {
+            const templatePayload = {
+                name: name.trim(),
+                title: name.trim(),
+                type: 'condition',
+                content: form.history_of_present_illness || form.clinical_notes || `Consultation template for ${name.trim()}`,
+                metadata: {
+                    icon: '⚡',
+                    badge: form.age_group || 'Clinical Template',
+                    allergies: form.allergies || [],
+                    complaints: form.chief_complaints_list || (form.chief_complaint ? [form.chief_complaint] : []),
+                    hpi: form.history_of_present_illness || '',
+                    exam: {
+                        pe_pallor: form.pe_pallor || 'Absent',
+                        pe_cyanosis: form.pe_cyanosis || 'Absent',
+                        pe_icterus: form.pe_icterus || 'Absent',
+                        pe_oedema: form.pe_oedema || 'Absent',
+                        physical_examination: form.physical_examination || '',
+                        systemic_examination: form.systemic_examination || ''
+                    },
+                    diagnoses: (form.provisional_diagnoses || []).map(d => ({
+                        diagnosis_name: d.diagnosis_name || d.diagnosis,
+                        icd_10: d.icd_10 || d.code || '',
+                        severity: d.severity || 'Moderate',
+                        stage: d.stage || 'Provisional'
+                    })),
+                    investigations: (form.investigations_list || []).map(i => ({
+                        name: i.name || i.test_name,
+                        priority: i.priority || 'Routine',
+                        timeframe: i.timeframe || 'Routine'
+                    })),
+                    procedures: (form.procedures_list || []).map(p => ({
+                        name: p.name,
+                        procedure_type: p.procedure_type || 'Therapeutic'
+                    })),
+                    prescriptions: (form.prescriptions_list || []).map(p => ({
+                        medicine: p.medicine,
+                        dosage_form: p.dosage_form || 'Tablet',
+                        schedule: p.schedule || '',
+                        days: p.days || 3,
+                        quantity: p.quantity || '1 bottle',
+                        instruction: p.instruction || ''
+                    })),
+                    advice_home_care: form.advice_home_care || '',
+                    advice_diet: form.advice_diet || form.dietary_plan || '',
+                    advice_warning_signs: form.advice_warning_signs || '',
+                    next_visit_due: form.next_visit_due || '3 days'
+                }
+            };
+            await upsertClinicalTemplate(templatePayload);
+            setFormStatus({ error: null, success: `✅ Successfully saved "${name.trim()}" to Clinical Templates!` });
+            loadClinicalTemplates();
+            setTimeout(() => setFormStatus(prev => ({ ...prev, success: null })), 4000);
+        } catch (err) {
+            setFormStatus({ error: 'Failed to save clinical template: ' + (err.response?.data?.message || err.message), success: null });
+        }
+    };
+
+    const handleToggleComplaintChip = (chip) => {
+        setForm(prev => {
+            const list = Array.isArray(prev.chief_complaints_list) ? [...prev.chief_complaints_list] : [];
+            const idx = list.indexOf(chip);
+            let updatedList;
+            if (idx >= 0) {
+                updatedList = list.filter(c => c !== chip);
+            } else {
+                updatedList = [...list, chip];
+            }
+            return {
+                ...prev,
+                chief_complaints_list: updatedList,
+                chief_complaint: updatedList.join(', ')
+            };
+        });
+    };
+
+    const handleAddDiagnosisItem = () => {
+        if (!diagnosisDraft.diagnosis_name.trim()) return;
+        setForm(prev => ({
+            ...prev,
+            provisional_diagnoses: [...(prev.provisional_diagnoses || []), { ...diagnosisDraft }]
+        }));
+        setDiagnosisDraft({ ...EMPTY_DIAGNOSIS_DRAFT });
+    };
+
+    const handleRemoveDiagnosisItem = (index) => {
+        setForm(prev => {
+            const updated = [...(prev.provisional_diagnoses || [])];
+            updated.splice(index, 1);
+            return { ...prev, provisional_diagnoses: updated };
+        });
+    };
+
+    const handleAddInvestigationItem = (nameOverride = null) => {
+        const testName = nameOverride || investigationDraft.name;
+        if (!testName.trim()) return;
+        setForm(prev => ({
+            ...prev,
+            investigations_list: [...(prev.investigations_list || []), {
+                ...investigationDraft,
+                name: testName,
+                test_name: testName
+            }]
+        }));
+        setInvestigationDraft({ ...EMPTY_INVESTIGATION_DRAFT });
+    };
+
+    const handleRemoveInvestigationItem = (index) => {
+        setForm(prev => {
+            const updated = [...(prev.investigations_list || [])];
+            updated.splice(index, 1);
+            return { ...prev, investigations_list: updated };
+        });
+    };
+
+    const handleAddProcedureItem = (nameOverride = null) => {
+        const procName = nameOverride || procedureDraft.name;
+        if (!procName.trim()) return;
+        setForm(prev => ({
+            ...prev,
+            procedures_list: [...(prev.procedures_list || []), {
+                ...procedureDraft,
+                name: procName
+            }]
+        }));
+        setProcedureDraft({ ...EMPTY_PROCEDURE_DRAFT });
+    };
+
+    const handleRemoveProcedureItem = (index) => {
+        setForm(prev => {
+            const updated = [...(prev.procedures_list || [])];
+            updated.splice(index, 1);
+            return { ...prev, procedures_list: updated };
+        });
+    };
+
+    const handleAddPrescriptionItem = (medOverride = null) => {
+        const med = medOverride ? { ...EMPTY_PRESCRIPTION_DRAFT, ...medOverride } : prescriptionDraft;
+        if (!med.medicine.trim()) return;
+        setForm(prev => ({
+            ...prev,
+            prescriptions_list: [...(prev.prescriptions_list || []), { ...med }]
+        }));
+        setPrescriptionDraft({ ...EMPTY_PRESCRIPTION_DRAFT });
+    };
+
+    const handleRemovePrescriptionItem = (index) => {
+        setForm(prev => {
+            const updated = [...(prev.prescriptions_list || [])];
+            updated.splice(index, 1);
+            return { ...prev, prescriptions_list: updated };
+        });
+    };
+
+    const handleAddAllergyItem = () => {
+        if (!allergyDraft.type.trim()) return;
+        setForm(prev => ({
+            ...prev,
+            allergies: [...(prev.allergies || []), { ...allergyDraft }]
+        }));
+        setAllergyDraft({ ...EMPTY_ALLERGY });
+    };
+
+    const handleRemoveAllergyItem = (index) => {
+        setForm(prev => {
+            const updated = [...(prev.allergies || [])];
+            updated.splice(index, 1);
+            return { ...prev, allergies: updated };
+        });
+    };
+
+    const handleAddPriorMedItem = () => {
+        if (!medicationHistoryDraft.drug.trim()) return;
+        setForm(prev => ({
+            ...prev,
+            medication_history: [...(prev.medication_history || []), { ...medicationHistoryDraft }]
+        }));
+        setMedicationHistoryDraft({ drug: '', form: '', dose: '', route: '', frequency: '', to_be_continued: 'Yes' });
+    };
+
+    const handleRemovePriorMedItem = (index) => {
+        setForm(prev => {
+            const updated = [...(prev.medication_history || [])];
+            updated.splice(index, 1);
+            return { ...prev, medication_history: updated };
+        });
+    };
+
+    const handleAddFamilyDiseaseItem = () => {
+        if (!familyDiseaseDraft.disease.trim()) return;
+        setForm(prev => ({
+            ...prev,
+            family_diseases: [...(prev.family_diseases || []), { ...familyDiseaseDraft }]
+        }));
+        setFamilyDiseaseDraft({ disease: '', relationship: '', age_at_onset: '', current_status: 'Managed' });
+    };
+
+    const handleRemoveFamilyDiseaseItem = (index) => {
+        setForm(prev => {
+            const updated = [...(prev.family_diseases || [])];
+            updated.splice(index, 1);
+            return { ...prev, family_diseases: updated };
+        });
+    };
+
+    const handleSetNormalExam = () => {
+        setForm(prev => ({
+            ...prev,
+            pe_pallor: 'Absent',
+            pe_icterus: 'Absent',
+            pe_oedema: 'Absent',
+            pe_cyanosis: 'Absent',
+            pe_clubbing: 'Absent',
+            pe_lymphadenopathy: 'Absent',
+            physical_examination: 'Active, alert, well-hydrated. Tone and reflexes normal. Throat clear, no stridor, no distress.',
+            systemic_examination: 'Chest: Bilateral air entry equal, clear, no wheeze or crackles. CVS: S1 S2 heard normal, no murmurs. Abdomen: Soft, non-tender, no organomegaly. CNS: Alert, oriented.'
+        }));
+        setFormStatus({ error: null, success: '✓ Set all general & systemic physical examinations to Normal.' });
+        setTimeout(() => setFormStatus(prev => ({ ...prev, success: null })), 3000);
+    };
 
     const loadDirectory = useCallback(async (q = '') => {
         setDirLoading(true);
@@ -259,6 +1019,18 @@ const ClinicalEntry = () => {
         }, 500);
         return () => clearTimeout(timer);
     }, [patientSearch, loadDirectory]);
+
+    // Auto-sync demographic age_group with patient's DOB
+    useEffect(() => {
+        const dob = patientDetails?.dob || selectedPatient?.dob;
+        if (dob) {
+            const derivedAg = deriveAgeGroup(dob);
+            if (form.age_group !== derivedAg) {
+                setForm(prev => ({ ...prev, age_group: derivedAg }));
+            }
+        }
+    }, [patientDetails?.dob, selectedPatient?.dob, form.age_group]);
+
     const selectPatientRecord = async (p, prefFromAppt = null) => {
         if (selectedPatient?.patient_id !== p.patient_id) {
             setSelectedPatient(p);
@@ -272,6 +1044,7 @@ const ClinicalEntry = () => {
                 const { patient, appointments, mrd_entries } = r.data?.data || {};
                 
                 setPatientDetails(patient);
+                setForm(prev => ({ ...prev, patient_id: p.patient_id, age_group: deriveAgeGroup(patient || p) }));
                 
                 // Combine entries and "ghost" entries for completed appointments
                 const combined = [...(mrd_entries || [])];
@@ -298,7 +1071,13 @@ const ClinicalEntry = () => {
 
                 combined.sort((a, b) => new Date(b.visit_date || b.createdAt) - new Date(a.visit_date || a.createdAt));
                 setRecords(combined);
-                if (combined.length) setSelectedRecord(combined[0]);
+                if (combined.length) {
+                    setSelectedRecord(combined[0]);
+                    setShowModal(false);
+                } else {
+                    setSelectedRecord(null);
+                    setShowModal(true);
+                }
 
                 // Also update clinical context from mrd_entries
                 const vitals = (mrd_entries || []).filter(e => e.weight || e.height || e.temperature).map(e => ({
@@ -338,11 +1117,11 @@ const ClinicalEntry = () => {
             });
             setAllergyDraft({ ...EMPTY_ALLERGY });
             setFamilyDiseaseDraft({ disease: '', relationship: '' });
-            setDiagnosisDraft({ diagnosis_name: '', icd_10: '', stage: 'Provisional', type: 'Primary', notes: '' });
-            setInvestigationDraft({ name: '', priority: 'Routine' });
-            setProcedureDraft({ name: '' });
+            setDiagnosisDraft({ ...EMPTY_DIAGNOSIS_DRAFT });
+            setInvestigationDraft({ ...EMPTY_INVESTIGATION_DRAFT });
+            setProcedureDraft({ ...EMPTY_PROCEDURE_DRAFT });
             setMedicationHistoryDraft({ drug: '', form: '', dose: '', route: '', frequency: '', to_be_continued: 'Yes' });
-            setPrescriptionDraft({ type: 'Brand', medicine: '', schedule: '', instruction: '', days: '', route: '' });
+            setPrescriptionDraft({ ...EMPTY_PRESCRIPTION_DRAFT });
             setGlobalDays('');
             setReferralDraft({ location: '', speciality: '', doctor: '' });
         }
@@ -415,8 +1194,10 @@ const ClinicalEntry = () => {
     };
 
     const generatePrescriptionHTML = (record, patient) => {
-        const medicines = (record.prescription || "")
+        const hasStructuredMeds = Array.isArray(record.prescriptions_list) && record.prescriptions_list.length > 0;
+        const legacyMedicines = (record.prescription || "")
             .split("\n")
+            .filter(Boolean)
             .map(line => {
                 const parts = line.split(" - ");
                 return {
@@ -429,147 +1210,334 @@ const ClinicalEntry = () => {
         return `
         <html>
         <head>
-            <title>Prescription</title>
+            <title>Prescription - ${patient?.first_name || patient?.name || 'Patient'}</title>
             <base href="${window.location.origin}/">
             <style>
+                @page { size: A4; margin: 16mm; }
                 body {
-                    font-family: Arial, sans-serif;
-                    padding: 20px;
-                    color: #000;
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    color: #1e293b;
+                    line-height: 1.45;
+                    font-size: 13px;
+                    margin: 0;
+                    padding: 10px;
                 }
                 .header {
                     display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    border-bottom: 2px solid #000;
-                    margin-bottom: 20px;
-                    padding-bottom: 15px;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-bottom: 2px solid #0f766e;
+                    margin-bottom: 16px;
+                    padding-bottom: 12px;
                 }
-                .header-top {
+                .header-brand {
                     display: flex;
                     align-items: center;
-                    gap: 20px;
-                    margin-bottom: 15px;
-                }
-                .header-text {
-                    text-align: left;
+                    gap: 14px;
                 }
                 .header-logo {
-                    height: 80px;
+                    height: 64px;
                     width: auto;
+                    border-radius: 6px;
                 }
-                .patient-header-info {
-                    text-align: left;
-                    font-size: 0.85rem;
-                    line-height: 1.5;
+                .clinic-title {
+                    font-size: 20px;
+                    font-weight: 800;
+                    color: #0f766e;
+                    margin: 0;
                 }
+                .clinic-sub {
+                    font-size: 11px;
+                    color: #64748b;
+                    margin: 2px 0 0 0;
+                }
+                .patient-card {
+                    background: #f8fafc;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 6px;
+                    padding: 10px 14px;
+                    margin-bottom: 16px;
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 8px;
+                    font-size: 12px;
+                }
+                .patient-card strong { color: #334155; }
                 .section {
-                    margin-bottom: 15px;
+                    margin-bottom: 14px;
                 }
-                .title {
-                    font-weight: bold;
-                    margin-bottom: 5px;
+                .section-title {
+                    font-size: 12px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    color: #0f766e;
+                    letter-spacing: 0.5px;
+                    border-bottom: 1px solid #cbd5e1;
+                    padding-bottom: 3px;
+                    margin-bottom: 6px;
+                }
+                .vitals-bar {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 12px;
+                    background: #f0fdfa;
+                    border: 1px solid #ccfbf1;
+                    padding: 6px 12px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    color: #115e59;
                 }
                 table {
                     width: 100%;
                     border-collapse: collapse;
+                    margin-top: 4px;
                 }
-                table, th, td {
-                    border: 1px solid #000;
-                }
-                th, td {
-                    padding: 8px;
+                th {
+                    background: #f1f5f9;
+                    color: #334155;
+                    font-size: 11px;
+                    text-transform: uppercase;
+                    font-weight: 700;
+                    padding: 6px 8px;
+                    border: 1px solid #cbd5e1;
                     text-align: left;
                 }
-                .footer {
-                    margin-top: 40px;
-                    text-align: right;
+                td {
+                    padding: 6px 8px;
+                    border: 1px solid #e2e8f0;
+                    font-size: 12px;
+                    vertical-align: top;
                 }
+                .med-name { font-weight: 700; color: #0f172a; }
+                .med-badge {
+                    display: inline-block;
+                    font-size: 10px;
+                    font-weight: 700;
+                    padding: 1px 5px;
+                    border-radius: 3px;
+                    background: #e0f2fe;
+                    color: #0369a1;
+                    margin-left: 4px;
+                }
+                .med-indication {
+                    font-size: 11px;
+                    color: #0284c7;
+                    font-style: italic;
+                }
+                .med-instruction {
+                    font-size: 11px;
+                    color: #475569;
+                }
+                .caution-box {
+                    background: #fffbeb;
+                    border-left: 3px solid #f59e0b;
+                    padding: 6px 10px;
+                    border-radius: 0 4px 4px 0;
+                    font-size: 12px;
+                    color: #92400e;
+                    margin-top: 4px;
+                }
+                .footer {
+                    margin-top: 30px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-end;
+                    border-top: 1px solid #cbd5e1;
+                    padding-top: 12px;
+                    font-size: 12px;
+                }
+                .signature-box { text-align: right; }
             </style>
         </head>
-
         <body>
-
             <div class="header">
-                <div class="header-top">
-                    <img src="logo.jpg" class="header-logo" alt="Clinic Logo" />
-                    <div class="header-text">
-                        <h2 style="margin: 0;">Hello Doctor Childcare Center</h2>
+                <div class="header-brand">
+                    <img src="logo.jpg" class="header-logo" alt="Logo" onerror="this.style.display='none'"/>
+                    <div>
+                        <h1 class="clinic-title">Hello Doctor Childcare Center</h1>
+                        <p class="clinic-sub">Pediatric & Clinical Consultation Record</p>
                     </div>
                 </div>
-                <div class="patient-header-info">
-                    <strong>Patient Name:</strong> ${[patient?.first_name || patient?.name, patient?.last_name].filter(Boolean).join(' ') || '-'}<br/>
-                    <strong>Patient ID:</strong> ${patient?.patient_id || '-'}<br/>
-                    <strong>Date:</strong> ${new Date(record.visit_date).toLocaleDateString('en-IN')}<br/>
-                    <strong>Doctor:</strong> ${record.attending_doctor}<br/>
-                    <strong>Visit Type:</strong> ${record.visit_type}
+                <div style="text-align: right; font-size: 11px; color: #64748b;">
+                    <strong>Prescription Date:</strong> ${new Date(record.visit_date).toLocaleDateString('en-IN')}<br/>
+                    <strong>Ref/Visit:</strong> ${record.visit_type || 'Consultation'}
                 </div>
             </div>
 
-            <div class="section">
-                <div class="title">Chief Complaint</div>
-                <div>${record.chief_complaint || '-'}</div>
+            <div class="patient-card">
+                <div><strong>Patient:</strong> ${[patient?.first_name || patient?.name, patient?.last_name].filter(Boolean).join(' ') || '-'}</div>
+                <div><strong>Patient ID:</strong> ${patient?.patient_id || '-'}</div>
+                <div><strong>Age / Gender:</strong> ${age(patient?.dob) || '-'} / ${patient?.gender || '-'} (${record.age_group || deriveAgeGroup(patient?.dob)})</div>
+                <div><strong>Doctor:</strong> ${record.attending_doctor || 'Dr. Deepak'}</div>
             </div>
 
+            ${(record.temperature || record.pulse || record.spo2 || record.weight || record.height || record.pain_score || record.fall_risk) ? `
             <div class="section">
-                <div class="title">Vitals</div>
+                <div class="vitals-bar">
+                    ${record.temperature ? `<span><strong>Temp:</strong> ${record.temperature} °F</span>` : ''}
+                    ${record.pulse ? `<span><strong>Pulse:</strong> ${record.pulse} bpm</span>` : ''}
+                    ${record.spo2 ? `<span><strong>SpO2:</strong> ${record.spo2}%</span>` : ''}
+                    ${record.weight ? `<span><strong>Weight:</strong> ${record.weight} kg</span>` : ''}
+                    ${record.height ? `<span><strong>Height:</strong> ${record.height} cm</span>` : ''}
+                    ${record.bmi ? `<span><strong>BMI:</strong> ${record.bmi}</span>` : ''}
+                    ${record.pain_score ? `<span><strong>Pain Score:</strong> ${record.pain_score}/10</span>` : ''}
+                    ${record.fall_risk ? `<span><strong>Fall Risk:</strong> ${record.fall_risk}</span>` : ''}
+                    ${record.neonatal_history?.birth_weight ? `<span><strong>Birth Wt:</strong> ${record.neonatal_history.birth_weight} kg</span>` : ''}
+                </div>
+            </div>` : ''}
+
+            ${(record.chief_complaint || record.clinical_notes || record.diagnosis) ? `
+            <div class="section" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div>
-                    Temp: ${record.temperature || '-'} °F |
-                    Pulse: ${record.pulse || '-'} bpm |
-                    SPO2: ${record.spo2 || '-'}% <br/>
-                    Weight: ${record.weight || '-'} kg |
-                    Height: ${record.height || '-'} cm
+                    ${record.chief_complaint ? `<strong>Chief Complaint:</strong> ${record.chief_complaint}<br/>` : ''}
+                    ${record.diagnosis ? `<strong>Diagnosis:</strong> <span style="color:#0f766e; font-weight:700;">${record.diagnosis}</span>` : ''}
                 </div>
-            </div>
+                <div>
+                    ${record.clinical_notes ? `<strong>Clinical Notes:</strong> ${record.clinical_notes}` : ''}
+                </div>
+            </div>` : ''}
 
+            <!-- ── Medication Advice (Rx) ── -->
             <div class="section">
-                <div class="title">Clinical Notes</div>
-                <div>${record.clinical_notes || '-'}</div>
-            </div>
-
-            <div class="section">
-                <div class="title">Diagnosis</div>
-                <div>${record.diagnosis || '-'}</div>
-            </div>
-
-            <div class="section">
-                <div class="title">Prescription</div>
+                <div class="section-title">Rx - Medication Advice</div>
+                ${hasStructuredMeds ? `
                 <table>
-                    <tr>
-                        <th>Medicine</th>
-                        <th>Dose</th>
-                        <th>Duration</th>
-                    </tr>
-                    ${medicines.map(m => `
+                    <thead>
                         <tr>
-                            <td>${m.name}</td>
-                            <td>${m.dose}</td>
-                            <td>${m.duration}</td>
+                            <th style="width: 25px;">#</th>
+                            <th>Medicine & Formulation</th>
+                            <th>Indication</th>
+                            <th>Schedule & Route</th>
+                            <th style="width: 70px;">Duration</th>
+                            <th style="width: 70px;">Qty/Refills</th>
+                            <th>Instructions & Precautions</th>
                         </tr>
-                    `).join("")}
+                    </thead>
+                    <tbody>
+                        ${record.prescriptions_list.map((m, idx) => `
+                            <tr>
+                                <td>${idx + 1}</td>
+                                <td>
+                                    <span class="med-name">${m.medicine}</span>
+                                    ${m.dosage_form ? `<span class="med-badge">${m.dosage_form}</span>` : ''}
+                                    ${m.type === 'Generic' ? `<span style="font-size:10px; color:#64748b; display:block;">(Generic)</span>` : ''}
+                                </td>
+                                <td><span class="med-indication">${m.indication || '-'}</span></td>
+                                <td><strong>${m.schedule || '-'}</strong><br/><span style="font-size: 10px; color:#64748b;">${m.route || 'ORAL'}</span></td>
+                                <td>${m.days ? `${m.days} days` : '-'}</td>
+                                <td>${m.quantity || '-'}${m.refills && m.refills !== '0' ? `<br/><small>Refill: ${m.refills}</small>` : ''}</td>
+                                <td>
+                                    <div class="med-instruction">${m.instruction || ''}</div>
+                                    ${m.special_instructions ? `<div style="font-size:11px; color:#b45309; font-weight:600;">⚠ ${m.special_instructions}</div>` : ''}
+                                    ${m.pharmacist_notes ? `<div style="font-size:10px; color:#0d9488;">ℹ ${m.pharmacist_notes}</div>` : ''}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
                 </table>
+                ` : (legacyMedicines.length > 0 ? `
+                <table>
+                    <thead>
+                        <tr><th>#</th><th>Medicine</th><th>Dose</th><th>Duration</th></tr>
+                    </thead>
+                    <tbody>
+                        ${legacyMedicines.map((m, idx) => `
+                            <tr><td>${idx + 1}</td><td><strong>${m.name}</strong></td><td>${m.dose}</td><td>${m.duration}</td></tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                ` : `<div>${record.prescription || 'No active prescription recorded.'}</div>`)}
             </div>
 
+            <!-- ── Other Medications (OTC / Supplements) ── -->
+            ${record.other_medication ? `
             <div class="section">
-                <div class="title">Symptoms</div>
-                <div>${(record.symptoms || []).join(", ")}</div>
-            </div>
+                <div class="section-title">Other Medications (OTC & Supplements)</div>
+                <div style="background: #f8fafc; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 12px; white-space: pre-line;">
+                    ${record.other_medication}
+                </div>
+            </div>` : ''}
 
+            <!-- ── Non-Medication Prescriptions ── -->
+            ${(record.dietary_plan || record.advice_diet || record.activity_restrictions || record.home_monitoring || record.school_work_note) ? `
             <div class="section">
-                <div class="title">Advice</div>
-                <div>${record.advice || '-'}</div>
-            </div>
+                <div class="section-title">Non-Medication Prescriptions & Care Plan</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+                    ${(record.dietary_plan || record.advice_diet) ? `
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px 8px;">
+                        <strong>🥗 Dietary & Nutrition Plan:</strong><br/>
+                        ${record.dietary_plan || record.advice_diet}
+                    </div>` : ''}
+                    ${record.activity_restrictions ? `
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px 8px;">
+                        <strong>🏃 Activity Restrictions:</strong><br/>
+                        ${record.activity_restrictions}
+                    </div>` : ''}
+                    ${record.home_monitoring ? `
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px 8px;">
+                        <strong>🩺 Home Monitoring:</strong><br/>
+                        ${record.home_monitoring}
+                    </div>` : ''}
+                    ${record.school_work_note ? `
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px 8px;">
+                        <strong>📝 School / Work Excuse:</strong><br/>
+                        ${record.school_work_note}
+                    </div>` : ''}
+                </div>
+            </div>` : ''}
 
+            <!-- ── Investigations & Procedures ── -->
+            ${((record.investigations_list?.length > 0) || record.investigations || (record.procedures_list?.length > 0)) ? `
+            <div class="section" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                ${(record.investigations_list?.length > 0 || record.investigations) ? `
+                <div>
+                    <div class="section-title">Investigations Advised</div>
+                    ${record.investigations_list?.length > 0 ? `
+                        <ul style="margin: 0; padding-left: 18px; font-size: 12px;">
+                            ${record.investigations_list.map(i => `
+                                <li><strong>${i.test_name || i.name}</strong> ${i.timeframe ? `<span style="color:#0284c7;">(${i.timeframe})</span>` : ''} ${i.indication ? `- <em>${i.indication}</em>` : ''}</li>
+                            `).join('')}
+                        </ul>
+                    ` : `<div>${record.investigations}</div>`}
+                </div>` : ''}
+                ${(record.procedures_list?.length > 0) ? `
+                <div>
+                    <div class="section-title">Procedures Advised</div>
+                    <ul style="margin: 0; padding-left: 18px; font-size: 12px;">
+                        ${record.procedures_list.map(p => `
+                            <li><strong>${p.name}</strong> ${p.procedure_type ? `<span style="color:#0f766e;">[${p.procedure_type}]</span>` : ''} ${p.location ? `(Location: ${p.location})` : ''}</li>
+                        `).join('')}
+                    </ul>
+                </div>` : ''}
+            </div>` : ''}
+
+            <!-- ── Patient Safety & Storage ── -->
+            ${(record.storage_instructions || record.side_effects_warning || record.advice_warning_signs) ? `
             <div class="section">
-                <div class="title">Next Visit</div>
-                <div>${record.next_visit_due ? new Date(record.next_visit_due).toLocaleDateString() : '-'}</div>
-            </div>
+                <div class="section-title">Patient Safety, Storage & Warnings</div>
+                <div class="caution-box">
+                    ${record.storage_instructions ? `<div><strong>Storage:</strong> ${record.storage_instructions}</div>` : ''}
+                    ${record.side_effects_warning ? `<div><strong>Side Effects Watch:</strong> ${record.side_effects_warning}</div>` : ''}
+                    ${record.advice_warning_signs ? `<div><strong>Urgent Return Signs:</strong> ${record.advice_warning_signs}</div>` : ''}
+                </div>
+            </div>` : ''}
+
+            ${record.advice ? `
+            <div class="section">
+                <div class="section-title">General Advice</div>
+                <div style="font-size: 12px; white-space: pre-line;">${record.advice}</div>
+            </div>` : ''}
 
             <div class="footer">
-                <p>Doctor Signature</p>
-                <p>${record.attending_doctor}</p>
+                <div>
+                    ${record.next_visit_due ? `<strong>Next Follow-up Due:</strong> ${new Date(record.next_visit_due).toLocaleDateString('en-IN')}` : 'Follow up as needed or if symptoms persist.'}
+                </div>
+                <div class="signature-box">
+                    <div style="height: 35px;"></div>
+                    <strong>${record.attending_doctor || 'Dr. Deepak'}</strong><br/>
+                    <span style="font-size: 10px; color:#64748b;">Authorized Medical Practitioner</span>
+                </div>
             </div>
-
         </body>
         </html>
         `;
@@ -610,28 +1578,38 @@ const ClinicalEntry = () => {
                 patient_id: form.patient_id || selectedPatient?.patient_id,
                 symptoms: sym,
                 chief_complaint: form.chief_complaint || (form.chief_complaints_list || []).join(', '),
-                diagnosis: form.diagnosis || finalDiagnoses.map(d => d.diagnosis_name || d.diagnosis).filter(Boolean).join(', '),
-                prescription: form.prescription || finalPrescriptions.map(p => `${p.medicine} - ${p.dosage} - ${p.days} days`).filter(Boolean).join('\n'),
+                diagnosis: form.diagnosis || finalDiagnoses.map(d => `${d.diagnosis_name || d.diagnosis}${d.severity ? ` (${d.severity})` : ''}`).filter(Boolean).join(', '),
+                prescription: form.prescription || finalPrescriptions.map(p => `${p.medicine} [${p.dosage_form || 'Form'}] - ${p.schedule} - ${p.days || '0'} days${p.indication ? ` (For: ${p.indication})` : ''}${p.quantity ? ` [Qty: ${p.quantity}]` : ''}${p.special_instructions ? ` - Note: ${p.special_instructions}` : ''}`).filter(Boolean).join('\n'),
                 provisional_diagnoses: finalDiagnoses.map((diag) => ({
                     diagnosis: diag.diagnosis_name || diag.diagnosis || '',
                     code: diag.icd_10 || diag.code || '',
                     stage: diag.stage || '',
                     type: diag.type || '',
+                    severity: diag.severity || '',
+                    comorbidity: diag.comorbidity || '',
                     notes: diag.notes || ''
                 })),
                 investigations_list: finalInvestigations.map((item) => ({
                     test_name: item.name || item.test_name || '',
                     priority: item.priority || 'Routine',
+                    timeframe: item.timeframe || item.priority || 'Routine',
+                    indication: item.indication || '',
                     notes: item.notes || ''
                 })),
-                investigations: form.investigations || finalInvestigations.map(i => i.name || i.test_name).filter(Boolean).join(', '),
+                investigations: form.investigations || finalInvestigations.map(i => `${i.name || i.test_name}${i.timeframe ? ` (${i.timeframe})` : ''}`).filter(Boolean).join(', '),
                 procedures_list: finalProcedures.map((item) => ({
-                    name: item.name || ''
+                    name: item.name || '',
+                    procedure_type: item.procedure_type || 'Therapeutic',
+                    location: item.location || 'In clinic'
                 })),
                 advice: form.advice || [
                     form.advice_home_care ? `HOME CARE:\n${form.advice_home_care}` : '',
-                    form.advice_diet ? `DIET:\n${form.advice_diet}` : '',
-                    form.advice_warning_signs ? `WARNING SIGNS:\n${form.advice_warning_signs}` : ''
+                    (form.advice_diet || form.dietary_plan) ? `DIET:\n${form.dietary_plan || form.advice_diet}` : '',
+                    form.activity_restrictions ? `ACTIVITY:\n${form.activity_restrictions}` : '',
+                    form.home_monitoring ? `MONITORING:\n${form.home_monitoring}` : '',
+                    form.storage_instructions ? `STORAGE:\n${form.storage_instructions}` : '',
+                    (form.advice_warning_signs || form.side_effects_warning) ? `WARNING SIGNS & SAFETY:\n${[form.advice_warning_signs, form.side_effects_warning].filter(Boolean).join('\n')}` : '',
+                    form.school_work_note ? `SCHOOL/WORK:\n${form.school_work_note}` : ''
                 ].filter(Boolean).join('\n\n'),
                 visit_tags: form.visit_tags || [],
                 consents: form.consents || [],
@@ -643,13 +1621,29 @@ const ClinicalEntry = () => {
                 })),
                 prescriptions_list: finalPrescriptions.map((item) => ({
                     medicine: item.medicine || '',
-                    generic_name: item.type === 'Generic' ? item.medicine : '',
+                    generic_name: item.type === 'Generic' ? item.medicine : (item.generic_name || ''),
+                    dosage_form: item.dosage_form || 'Tablet',
+                    indication: item.indication || '',
                     dosage: item.dosage || '',
                     schedule: item.schedule || '',
-                    route: item.route || '',
+                    route: item.route || 'ORAL',
                     instruction: item.instruction || '',
+                    special_instructions: item.special_instructions || '',
+                    pharmacist_notes: item.pharmacist_notes || 'Substitute allowed',
+                    quantity: item.quantity || '',
+                    refills: item.refills || '0',
                     days: item.days ? Number(item.days) : null
-                }))
+                })),
+                age_group: form.age_group || deriveAgeGroup(patientDetails?.dob || selectedPatient?.dob),
+                pain_score: form.pain_score || '',
+                fall_risk: form.fall_risk || '',
+                neonatal_history: form.neonatal_history || {},
+                pediatric_assessment: form.pediatric_assessment || {},
+                adolescent_assessment: form.adolescent_assessment || {},
+                adult_assessment: form.adult_assessment || {},
+                geriatric_assessment: form.geriatric_assessment || {},
+                structured_family_history: (form.structured_family_history?.length > 0 ? form.structured_family_history : form.family_diseases) || [],
+                next_visit_due: computeNextVisitDueDate(form.next_visit_due)
             };
 
             await addMRDEntry(payload);
@@ -664,7 +1658,7 @@ const ClinicalEntry = () => {
         } catch (e) {
             const errorMsg = e.response?.data?.message || e.message;
             if (errorMsg.includes("E11000") && errorMsg.includes("patient_id")) {
-                setFormStatus({ error: "Conflict: This Patient ID already has an existing Medical Documentation record. Multiple records for the same ID are not allowed.", success: null });
+                setFormStatus({ error: "Conflict: This Patient ID already has an existing E-prescription record. Multiple records for the same ID are not allowed.", success: null });
             } else {
                 setFormStatus({ error: errorMsg, success: null });
             }
@@ -675,14 +1669,15 @@ const ClinicalEntry = () => {
     const openEntryModal = async () => {
         setShowModal(true);
         setFormStatus({ error: null, success: null });
-        setForm({ ...EMPTY_ENTRY, patient_id: selectedPatient?.patient_id || '', attachments: [] });
+        const initAgeGroup = deriveAgeGroup(selectedPatient?.dob);
+        setForm({ ...EMPTY_ENTRY, patient_id: selectedPatient?.patient_id || '', age_group: initAgeGroup, attachments: [] });
         setAllergyDraft({ ...EMPTY_ALLERGY });
         setFamilyDiseaseDraft({ disease: '', relationship: '' });
-        setDiagnosisDraft({ diagnosis_name: '', icd_10: '', stage: 'Provisional', type: 'Primary', notes: '' });
-        setInvestigationDraft({ name: '', priority: 'Routine' });
-        setProcedureDraft({ name: '' });
+        setDiagnosisDraft({ ...EMPTY_DIAGNOSIS_DRAFT });
+        setInvestigationDraft({ ...EMPTY_INVESTIGATION_DRAFT });
+        setProcedureDraft({ ...EMPTY_PROCEDURE_DRAFT });
         setMedicationHistoryDraft({ drug: '', form: '', dose: '', route: '', frequency: '', to_be_continued: 'Yes' });
-        setPrescriptionDraft({ type: 'Brand', medicine: '', schedule: '', instruction: '', days: '', route: '' });
+        setPrescriptionDraft({ ...EMPTY_PRESCRIPTION_DRAFT });
         setGlobalDays('');
         setReferralDraft({ location: '', speciality: '', doctor: '' });
         // Fetch full patient details for the info display
@@ -692,6 +1687,9 @@ const ClinicalEntry = () => {
                 const r = await getComprehensiveProfile(selectedPatient.patient_id);
                 const { patient, mrd_entries } = r.data?.data || {};
                 setPatientDetails(patient);
+                if (patient?.dob) {
+                    setForm(prev => ({ ...prev, age_group: deriveAgeGroup(patient.dob) }));
+                }
                 
                 // Update clinical context from mrd_entries
                 const vitals = (mrd_entries || []).filter(e => e.weight || e.height || e.temperature).map(e => ({
@@ -751,20 +1749,16 @@ const ClinicalEntry = () => {
     const prescriptionLines = selectedRecord?.prescription?.split('\n').filter(Boolean) || [];
 
     return (
-        <div className="appointments-page-v4" style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="appointments-page-v4" style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '0.4rem 0.85rem 0.75rem 0.5rem' }}>
             <div className="header-v4">
                 <div className="header-left-v4">
-                    <h1>Medical Documentation</h1>
-                    <p>Longitudinal health records and clinical history</p>
+                    <h1>E-prescription</h1>
+                    <p>Doctor consultation workspace, clinical documentation & e-prescribing</p>
                 </div>
                 <div className="header-right-v4">
                     <button className="btn-header-v4" onClick={() => loadDirectory()}>
                         <RefreshCw size={16} className={dirLoading ? 'spinning' : ''} />
                         <span>Sync Directory</span>
-                    </button>
-                    <button className="btn-header-v4 btn-primary-v4" onClick={openEntryModal}>
-                        <Plus size={16} />
-                        <span>New Entry</span>
                     </button>
                 </div>
             </div>
@@ -824,115 +1818,1423 @@ const ClinicalEntry = () => {
                             return (
                                 <div
                                     key={p.patient_id}
-                                    className={`patient-item-v3 ${isSelected ? 'selected' : ''}`}
-                                    onClick={() => selectPatientRecord(p)}
+                                    className={`patient-card-group-v3 ${isSelected ? 'selected-group' : ''}`}
                                 >
-                                    <div className="avatar" style={{ background: isSelected ? avatarColor(ini) : '#f1f5f9', color: isSelected ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <User size={14} />
+                                    <div
+                                        className={`patient-item-v3 ${isSelected ? 'selected' : ''}`}
+                                        onClick={() => selectPatientRecord(p)}
+                                    >
+                                        <div className="avatar" style={{ background: isSelected ? avatarColor(ini) : '#f1f5f9', color: isSelected ? '#fff' : '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            <User size={14} />
+                                        </div>
+                                        <div className="info">
+                                            <div className="p-name">{pname(p)}</div>
+                                            <div className="p-meta">{p.patient_id} • {age(p.dob) || 'No Age'}</div>
+                                        </div>
+                                        <div className="patient-actions-pill" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            {isSelected && (
+                                                <button
+                                                    type="button"
+                                                    className="btn-add-mini-inline"
+                                                    title="Add Clinical Entry"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openEntryModal();
+                                                    }}
+                                                >
+                                                    <Plus size={13} />
+                                                </button>
+                                            )}
+                                            <ChevronDown size={14} className={`chevron-indicator ${isSelected ? 'rotated' : ''}`} />
+                                        </div>
                                     </div>
-                                    <div className="info">
-                                        <div className="p-name">{pname(p)}</div>
-                                        <div className="p-meta">{p.patient_id} • {age(p.dob) || 'No Age'}</div>
-                                    </div>
-                                    {isSelected && <ArrowRight size={14} className="selected-indicator" />}
+
+                                    {isSelected && (
+                                        <div className="patient-timeline-embedded">
+                                            <div className="timeline-filters-mini">
+                                                <div className="type-pills-mini">
+                                                    {['ALL', 'CONSULTATION', 'VACCINATION'].map(type => (
+                                                        <button
+                                                            key={type}
+                                                            type="button"
+                                                            className={filterType === type ? 'active' : ''}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setFilterType(type);
+                                                            }}
+                                                        >
+                                                            {type === 'ALL' ? `Total (${records.length})` : type === 'CONSULTATION' ? 'Clinic' : 'Immune'}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                {records.length > 2 && (
+                                                    <div className="keyword-search-mini">
+                                                        <Search size={12} />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Filter records..."
+                                                            value={keywordSearch}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            onChange={(e) => setKeywordSearch(e.target.value)}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="records-timeline-embedded">
+                                                {recLoading ? (
+                                                    <div className="loading-state-mini">
+                                                        <RefreshCw size={18} className="spinning" />
+                                                        <span>Loading history...</span>
+                                                    </div>
+                                                ) : filteredRecords.length === 0 ? (
+                                                    <div className="no-records-proper">
+                                                        <div className="no-records-icon-box">
+                                                            <FileText size={22} />
+                                                        </div>
+                                                        <div className="no-records-title">No records identified</div>
+                                                        <p className="no-records-subtitle">No previous clinical records found for {pname(p)}</p>
+                                                        <button
+                                                            type="button"
+                                                            className="btn-proper-start-entry"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                openEntryModal();
+                                                            }}
+                                                        >
+                                                            <Plus size={14} /> Start New Entry
+                                                        </button>
+                                                    </div>
+                                                ) : filteredRecords.map((rec, i) => (
+                                                    <div
+                                                        key={rec._id || rec.appointment_id || i}
+                                                        className={`record-card-v3 ${selectedRecord === rec && !showModal ? 'selected' : ''} ${rec.is_pending_record ? 'pending-state' : ''}`}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedRecord(rec);
+                                                            setShowModal(false);
+                                                            setTab('details');
+                                                        }}
+                                                    >
+                                                        <div className="record-header">
+                                                            <span className="record-date">{fmt(rec.visit_date || rec.createdAt)}</span>
+                                                            <span className={`type-tag ${rec.visit_type?.toLowerCase()}`}>{rec.visit_type}</span>
+                                                        </div>
+                                                        <div className="record-diagnosis">
+                                                            {rec.is_pending_record && <Clock size={13} className="pending-icon" />}
+                                                            <span>{rec.diagnosis || rec.vaccine_given || rec.chief_complaint || 'General Checkup'}</span>
+                                                        </div>
+                                                        <div className="record-footer">
+                                                            <div className="doctor-pill"><Activity size={10} /> {rec.attending_doctor || 'Dr. Deepak'}</div>
+                                                            {rec.prescription && <div className="attachment-pill"><Paperclip size={10} /> Rx</div>}
+                                                            {rec.attachments?.length > 0 && <div className="attachment-pill" style={{ background: '#ecfdf5', color: '#059669' }}><Paperclip size={10} /> {rec.attachments.length} Img</div>}
+                                                            {rec.is_pending_record && (
+                                                                <button className="btn-record-now" onClick={(e) => { e.stopPropagation(); selectPatientRecord(selectedPatient, rec); }}>
+                                                                    Complete <Plus size={10} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}
                     </div>
                 </aside>
 
-                {/* 2. Timeline Panel */}
-                <aside className="mrd-panel-v3 timeline-panel">
-                    {!selectedPatient ? (
-                        <div className="empty-selection">
-                            <FileText size={48} />
-                            <h3>Choose a Patient</h3>
-                            <p>Select a profile from the directory to view their health journey.</p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="panel-header-v3">
-                                <div className="selected-patient-meta">
-                                    <h3>{pname(selectedPatient)}</h3>
-                                    <p>{selectedPatient.patient_id}</p>
-                                </div>
-                                <button className="btn-add-mini" onClick={openEntryModal}>
-                                    <Plus size={16} />
-                                </button>
-                            </div>
-
-                            <div className="timeline-filters">
-                                <div className="keyword-search">
-                                    <Search size={14} />
-                                    <input
-                                        type="text"
-                                        placeholder="Filter records..."
-                                        value={keywordSearch}
-                                        onChange={(e) => setKeywordSearch(e.target.value)}
-                                    />
-                                </div>
-                                <div className="type-pills">
-                                    {['ALL', 'CONSULTATION', 'VACCINATION'].map(type => (
-                                        <button
-                                            key={type}
-                                            className={filterType === type ? 'active' : ''}
-                                            onClick={() => setFilterType(type)}
-                                        >
-                                            {type === 'ALL' ? 'Total' : type === 'CONSULTATION' ? 'Clinic' : 'Immune'}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="records-timeline-v3">
-                                {recLoading ? (
-                                    <div className="loading-state">
-                                        <RefreshCw size={24} className="spinning" />
-                                    </div>
-                                ) : filteredRecords.length === 0 ? (
-                                    <div className="no-records">
-                                        <FileText size={40} style={{ opacity: 0.2 }} />
-                                        <p>No records identified.</p>
-                                    </div>
-                                ) : filteredRecords.map((rec, i) => (
-                                    <div
-                                        key={rec._id || rec.appointment_id || i}
-                                        className={`record-card-v3 ${selectedRecord === rec ? 'selected' : ''} ${rec.is_pending_record ? 'pending-state' : ''}`}
-                                        onClick={() => { setSelectedRecord(rec); setTab('details'); }}
-                                    >
-                                        <div className="record-header">
-                                            <span className="record-date">{fmt(rec.visit_date || rec.createdAt)}</span>
-                                            <span className={`type-tag ${rec.visit_type?.toLowerCase()}`}>{rec.visit_type}</span>
-                                        </div>
-                                        <div className="record-diagnosis">
-                                            {rec.is_pending_record && <Clock size={14} className="pending-icon" />}
-                                            {rec.diagnosis || rec.vaccine_given || rec.chief_complaint || 'General Checkup'}
-                                        </div>
-                                        <div className="record-footer">
-                                            <div className="doctor-pill"><Activity size={10} /> {rec.attending_doctor}</div>
-                                            {rec.prescription && <div className="attachment-pill"><Paperclip size={10} /> Rx</div>}
-                                            {rec.attachments?.length > 0 && <div className="attachment-pill" style={{ background: '#ecfdf5', color: '#059669' }}><Paperclip size={10} /> {rec.attachments.length} Img</div>}
-                                            {rec.is_pending_record && (
-                                                <button className="btn-record-now" onClick={(e) => { e.stopPropagation(); selectPatientRecord(selectedPatient, rec); }}>
-                                                    Complete Now <Plus size={10} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </>
-                    )}
-                </aside>
-
                 {/* 3. Detailed View Panel */}
                 <main className="mrd-main-v3">
-                    {!selectedRecord ? (
-                        <div className="empty-selection">
-                            <Shield size={64} style={{ opacity: 0.1 }} />
-                            <h3>Clinical Intelligence</h3>
-                            <p>Detailed longitudinal analysis will appear here.</p>
+                    {showModal ? (
+                        <div className="inline-entry-v3">
+                            <header className="modal-header-v3" style={{ borderBottom: '1px solid #e2e8f0', background: '#fff', padding: '1.25rem 2rem', borderRadius: '20px 20px 0 0', position: 'sticky', top: 0, zIndex: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                    <div style={{ background: '#eef2ff', color: '#6366f1', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Clipboard size={22} />
+                                    </div>
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 850, color: '#1e293b' }}>New Clinical Entry</h3>
+                                        <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>Document patient visit and clinical observations</p>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                    <button
+                                        type="button"
+                                        className="btn-header-v4"
+                                        style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                        onClick={() => setForm({
+                                            ...EMPTY_ENTRY,
+                                            patient_id: '26-HA6',
+                                            visit_date: '2026-04-08',
+                                            visit_type: 'CONSULTATION',
+                                            attending_doctor: 'Dr. Deepak',
+                                            diagnosis: 'Acute Upper Respiratory Infection',
+                                            chief_complaint: 'Fever and Cough since 2 days',
+                                            symptoms: 'Fever, Dry Cough, Nasal Congestion',
+                                            weight: '12.5',
+                                            temperature: '101',
+                                            spo2: '98',
+                                            pulse: '110',
+                                            head_circumference: '48',
+                                            prescription: 'Syp. Paracetamol 5ml - TDS - 3 days\nSyp. Ascoril LS 2.5ml - BD - 5 days',
+                                            advice: 'Warm fluids, No cold water, Saline nasal drops PRN',
+                                            clinical_notes: 'Throat congested, Chest clear on auscultation. No distress.'
+                                        })}
+                                    >
+                                        <Zap size={14} />
+                                        <span>Load Sample (Hafsa)</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveAsTemplate}
+                                        className="btn-header-v4"
+                                        style={{ padding: '6px 12px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#0f766e', color: '#fff', border: '1px solid #0f766e' }}
+                                        title="Save current consultation entries as a reusable Clinical Template"
+                                    >
+                                        <BookmarkPlus size={14} />
+                                        <span>Save as Template</span>
+                                    </button>
+                                    {selectedRecord && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowModal(false)}
+                                            className="btn-header-v4"
+                                            style={{ padding: '6px 12px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                            title="View Selected Record Details"
+                                        >
+                                            <Eye size={14} />
+                                            <span>View Record</span>
+                                        </button>
+                                    )}
+                                    <button onClick={() => setShowModal(false)} className="close-btn" title="Close Entry Workspace"><X size={20} /></button>
+                                </div>
+                            </header>
+
+                            <form onSubmit={handleAddEntry} className="entry-form-v3 custom-scrollbar" style={{ padding: 0 }}>
+                                <div className="clinical-wizard-container">
+                                    {/* ── Top Wizard Stepper Navigation ── */}
+                                    <div className="wizard-nav-tabs">
+                                        {[
+                                            { step: 1, title: 'Patient Context', icon: <User size={15} />, desc: 'ID, Age & Safety' },
+                                            { step: 2, title: 'Complaints & Vitals', icon: <Activity size={15} />, desc: 'Symptoms & Metrics' },
+                                            { step: 3, title: 'Assessment & Exam', icon: <Stethoscope size={15} />, desc: 'Targeted Exam' },
+                                            { step: 4, title: 'Diagnosis & Plan', icon: <FileText size={15} />, desc: 'ICD-10 & Tests' },
+                                            { step: 5, title: 'Prescription & Advice', icon: <Pill size={15} />, desc: 'Rx & Care Plan' },
+                                            { step: 6, title: 'Summary & Sign-Off', icon: <FileCheck size={15} />, desc: 'Review & Finalize' }
+                                        ].map(tab => (
+                                            <div
+                                                key={tab.step}
+                                                className={`wizard-tab-item ${activeStep === tab.step ? 'active' : activeStep > tab.step ? 'completed' : ''}`}
+                                                onClick={() => setActiveStep(tab.step)}
+                                            >
+                                                <div className="wizard-tab-num">
+                                                    {activeStep > tab.step ? <Check size={12} strokeWidth={3} /> : tab.step}
+                                                </div>
+                                                <div className="wizard-tab-text">
+                                                    <div className="wizard-tab-title">{tab.title}</div>
+                                                    <div className="wizard-tab-desc">{tab.desc}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* ── 1-Click Clinical Templates Bar (from Clinical Templates) ── */}
+                                    <div className="quick-template-bar">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 800, color: '#0f766e', minWidth: '155px' }}>
+                                            <Sparkles size={14} /> 1-Click Templates:
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', flex: 1, paddingBottom: '2px', alignItems: 'center' }}>
+                                            {templatesLoading ? (
+                                                <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                    <RefreshCw size={12} className="spinning" /> Loading templates...
+                                                </span>
+                                            ) : (clinicalTemplates.length > 0 ? clinicalTemplates : Object.entries(QUICK_CLINICAL_TEMPLATES).map(([k, v]) => ({ ...v, _id: k }))).map(tmpl => {
+                                                const icon = tmpl.metadata?.icon || tmpl.icon || (tmpl.type === 'advice' ? '💡' : tmpl.type === 'note' ? '📝' : '⚡');
+                                                const badge = tmpl.metadata?.badge || tmpl.badge || (tmpl.type === 'condition' ? 'Condition' : tmpl.type === 'note' ? 'Note' : 'Care Advice');
+                                                const title = tmpl.title || tmpl.name;
+                                                return (
+                                                    <button
+                                                        key={tmpl._id || tmpl.id || title}
+                                                        type="button"
+                                                        className="quick-template-chip"
+                                                        onClick={() => applyQuickTemplate(tmpl)}
+                                                        title={`Click to auto-apply "${title}" from Clinical Templates`}
+                                                    >
+                                                        <span>{icon}</span>
+                                                        <span>{title}</span>
+                                                        <span style={{ fontSize: '0.62rem', background: '#e0f2fe', color: '#0369a1', padding: '1px 5px', borderRadius: '8px', fontWeight: 700 }}>{badge}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleSaveAsTemplate}
+                                            style={{ fontSize: '0.74rem', color: '#0369a1', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', padding: '4px 9px', borderRadius: '8px', background: '#f0f9ff', border: '1px solid #bae6fd', cursor: 'pointer' }}
+                                            title="Save current consultation data as a reusable Clinical Template"
+                                        >
+                                            <BookmarkPlus size={13} />
+                                            <span>Save as Template</span>
+                                        </button>
+                                        <a
+                                            href="#/templates"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{ fontSize: '0.74rem', color: '#0f766e', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', padding: '4px 9px', borderRadius: '8px', background: '#f0fdfa', border: '1px solid #ccfbf1' }}
+                                            title="Open Clinical Templates page to add or customize templates"
+                                        >
+                                            <span>⚙️ Manage Templates</span>
+                                        </a>
+                                    </div>
+
+                                    {/* ── STEP 1: PATIENT CONTEXT & SAFETY ── */}
+                                    {activeStep === 1 && (
+                                        <div className="wizard-step-content" style={{ padding: '1.25rem' }}>
+                                            {/* Patient Summary Row with uneditable Age Group */}
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.1fr 0.8fr 1fr', gap: '1rem', marginBottom: '1.25rem', padding: '1.25rem', background: '#fcfdfe', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                                                <div className="f-group-premium" style={{ margin: 0 }}>
+                                                    <label style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Full Name</label>
+                                                    {patientDetailsLoading ? (
+                                                        <div style={{ height: '24px', display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1' }}><RefreshCw size={12} className="spinning" /></div>
+                                                    ) : (
+                                                        <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '0.95rem', marginTop: '2px' }}>
+                                                            {patientDetails ? pname(patientDetails) || (patientDetails.full_name) || '—' : (selectedPatient ? pname(selectedPatient) : '—')}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="f-group-premium" style={{ margin: 0 }}>
+                                                    <label style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Age & DOB</label>
+                                                    {patientDetailsLoading ? (
+                                                        <div style={{ height: '24px', color: '#cbd5e1' }}><RefreshCw size={12} className="spinning" /></div>
+                                                    ) : (
+                                                        <div style={{ fontWeight: 700, color: '#334155', fontSize: '0.88rem', marginTop: '2px' }}>
+                                                            {age(patientDetails?.dob || selectedPatient?.dob) || '—'}
+                                                            <span style={{ color: '#94a3b8', fontWeight: 500, marginLeft: '4px', fontSize: '0.75rem' }}>({fmt(patientDetails?.dob || selectedPatient?.dob)})</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="f-group-premium" style={{ margin: 0 }}>
+                                                    <label style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Age Group / Demographic</label>
+                                                    {(() => {
+                                                        const ag = form.age_group || deriveAgeGroup(patientDetails?.dob || selectedPatient?.dob);
+                                                        const cfg = AGE_GROUP_CONFIG[ag] || AGE_GROUP_CONFIG.Adult;
+                                                        return (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
+                                                                <div
+                                                                    style={{
+                                                                        display: 'inline-flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '6px',
+                                                                        background: cfg.bg,
+                                                                        color: cfg.color,
+                                                                        border: `1px solid ${cfg.border}`,
+                                                                        borderRadius: '20px',
+                                                                        padding: '3px 10px',
+                                                                        fontSize: '0.75rem',
+                                                                        fontWeight: 800,
+                                                                        letterSpacing: '0.01em',
+                                                                        userSelect: 'none',
+                                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+                                                                    }}
+                                                                    title="Demographic classification auto-derived from Patient DOB (Locked)"
+                                                                >
+                                                                    <span style={{ fontSize: '0.85rem' }}>{cfg.icon}</span>
+                                                                    <span>{cfg.label}</span>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </div>
+                                                <div className="f-group-premium" style={{ margin: 0 }}>
+                                                    <label style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Gender</label>
+                                                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '0.88rem', marginTop: '2px', textTransform: 'capitalize' }}>
+                                                        {(patientDetails?.gender || selectedPatient?.gender) || '—'}
+                                                    </div>
+                                                </div>
+                                                <div className="f-group-premium" style={{ margin: 0 }}>
+                                                    <label style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Contact</label>
+                                                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '0.88rem', marginTop: '2px' }}>
+                                                        {(patientDetails?.wa_id || patientDetails?.parent_mobile || selectedPatient?.wa_id || selectedPatient?.parent_mobile) || '—'}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Visit Info & Doctor */}
+                                            <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem' }}>
+                                                <div className="premium-header-v2">
+                                                    <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <Calendar size={16} /> Consultation Details
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr', gap: '1rem' }}>
+                                                    <div className="f-group-premium">
+                                                        <label>Patient ID</label>
+                                                        <input className="input-premium-v4" disabled value={form.patient_id} />
+                                                    </div>
+                                                    <div className="f-group-premium">
+                                                        <label>Visit Date</label>
+                                                        <input className="input-premium-v4" type="date" value={form.visit_date} onChange={e => setForm({ ...form, visit_date: e.target.value })} required />
+                                                    </div>
+                                                    <div className="f-group-premium">
+                                                        <label>Visit Type</label>
+                                                        <select className="input-premium-v4" value={form.visit_type} onChange={e => setForm({ ...form, visit_type: e.target.value })}>
+                                                            <option value="CONSULTATION">Consultation</option>
+                                                            <option value="VACCINATION">Vaccination</option>
+                                                            <option value="FOLLOW_UP">Follow-up</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="f-group-premium">
+                                                        <label>Attending Doctor</label>
+                                                        <select className="input-premium-v4" value={form.attending_doctor} onChange={e => setForm({ ...form, attending_doctor: e.target.value })} required>
+                                                            <option value="">Select Doctor</option>
+                                                            {doctorsList.map(doc => <option key={doc._id} value={doc.name}>{doc.name}</option>)}
+                                                            {form.attending_doctor && !doctorsList.find(d => d.name === form.attending_doctor) && (
+                                                                <option value={form.attending_doctor}>{form.attending_doctor}</option>
+                                                            )}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Patient Safety & Allergies Card */}
+                                            <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem' }}>
+                                                <div className="premium-header-v2">
+                                                    <div className="title" style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <AlertTriangle size={16} /> Patient Allergies & Drug Safety
+                                                    </div>
+                                                    <label style={{ display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontWeight: 700, fontSize: '0.83rem', color: form.no_known_allergy ? '#0ea5e9' : '#64748b', userSelect: 'none' }}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={!!form.no_known_allergy}
+                                                            onChange={e => setForm({ ...form, no_known_allergy: e.target.checked, allergies: e.target.checked ? [] : form.allergies })}
+                                                            style={{ accentColor: '#0ea5e9', width: '16px', height: '16px' }}
+                                                        />
+                                                        No Known Allergies (NKDA)
+                                                    </label>
+                                                </div>
+
+                                                {!form.no_known_allergy && (
+                                                    <div>
+                                                        {(form.allergies || []).length > 0 && (
+                                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                                                                {form.allergies.map((al, idx) => (
+                                                                    <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '4px 8px', fontSize: '0.8rem' }}>
+                                                                        <span style={{ fontWeight: 800, color: '#991b1b', fontSize: '0.65rem', textTransform: 'uppercase', background: '#fee2e2', padding: '1px 5px', borderRadius: '4px' }}>{al.category}</span>
+                                                                        <span style={{ fontWeight: 700, color: '#1e293b' }}>{al.type}</span>
+                                                                        {al.reaction && <span style={{ color: '#64748b' }}>({al.reaction})</span>}
+                                                                        <button type="button" onClick={() => handleRemoveAllergyItem(idx)} style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><X size={13} /></button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        <div style={{ display: 'grid', gridTemplateColumns: '120px 1.5fr 1fr 100px auto', gap: '0.6rem', alignItems: 'center', background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                                            <select className="input-premium-v4" value={allergyDraft.category} onChange={e => setAllergyDraft({ ...allergyDraft, category: e.target.value })}>
+                                                                <option value="Drug">Drug</option>
+                                                                <option value="Food">Food</option>
+                                                                <option value="Other">Other</option>
+                                                            </select>
+                                                            <input className="input-premium-v4" placeholder="Allergen name (e.g. Penicillin, Peanuts)" value={allergyDraft.type} list="allergy-options" onChange={e => setAllergyDraft({ ...allergyDraft, type: e.target.value })} />
+                                                            <input className="input-premium-v4" placeholder="Reaction (e.g. Urticaria, Wheeze)" value={allergyDraft.reaction} onChange={e => setAllergyDraft({ ...allergyDraft, reaction: e.target.value })} />
+                                                            <select className="input-premium-v4" value={allergyDraft.intensity} onChange={e => setAllergyDraft({ ...allergyDraft, intensity: e.target.value })}>
+                                                                <option value="">Severity</option>
+                                                                <option value="Mild">Mild</option>
+                                                                <option value="Moderate">Moderate</option>
+                                                                <option value="High">Severe</option>
+                                                            </select>
+                                                            <button type="button" onClick={handleAddAllergyItem} className="btn-save-v3" style={{ padding: '6px 14px', fontSize: '0.8rem', height: '36px' }}>+ Add</button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Age-Specific Baseline Assessment Toolkits */}
+                                            {(() => {
+                                                const ag = form.age_group || deriveAgeGroup(patientDetails?.dob || selectedPatient?.dob);
+                                                if (['Neonatal', 'Infant'].includes(ag)) {
+                                                    return (
+                                                        <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem', background: '#fdf2f8', border: '1px solid #fbcfe8' }}>
+                                                            <div className="premium-header-v2">
+                                                                <div className="title" style={{ color: '#db2777', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <span>🍼 Neonatal & Infant Baseline Checklist</span>
+                                                                </div>
+                                                            </div>
+                                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
+                                                                <div className="f-group-premium">
+                                                                    <label>Birth Weight (kg)</label>
+                                                                    <input className="input-premium-v4" placeholder="e.g. 3.1" value={form.neonatal_history?.birth_weight || ''} onChange={e => setForm({ ...form, neonatal_history: { ...(form.neonatal_history || {}), birth_weight: e.target.value } })} />
+                                                                </div>
+                                                                <div className="f-group-premium">
+                                                                    <label>Gestational Age (wks)</label>
+                                                                    <input className="input-premium-v4" placeholder="e.g. 38" value={form.neonatal_history?.gestational_age || ''} onChange={e => setForm({ ...form, neonatal_history: { ...(form.neonatal_history || {}), gestational_age: e.target.value } })} />
+                                                                </div>
+                                                                <div className="f-group-premium">
+                                                                    <label>Feeding Type</label>
+                                                                    <select className="input-premium-v4" value={form.neonatal_history?.feeding_type || 'Exclusive Breastfeeding'} onChange={e => setForm({ ...form, neonatal_history: { ...(form.neonatal_history || {}), feeding_type: e.target.value } })}>
+                                                                        <option value="Exclusive Breastfeeding">Exclusive Breastfeeding</option>
+                                                                        <option value="Formula Feeding">Formula Feeding</option>
+                                                                        <option value="Mixed Feeding">Mixed Feeding</option>
+                                                                        <option value="Weaning / Solids">Weaning / Solids</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div className="f-group-premium">
+                                                                    <label>Anterior Fontanelle</label>
+                                                                    <select className="input-premium-v4" value={form.neonatal_history?.anterior_fontanelle || 'Normal/Flat'} onChange={e => setForm({ ...form, neonatal_history: { ...(form.neonatal_history || {}), anterior_fontanelle: e.target.value } })}>
+                                                                        <option value="Normal/Flat">Normal / Flat</option>
+                                                                        <option value="Bulging (Raised ICP)">Bulging (Raised ICP)</option>
+                                                                        <option value="Depressed (Dehydration)">Depressed (Dehydration)</option>
+                                                                        <option value="Closed">Closed</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                if (ag === 'Pediatric') {
+                                                    return (
+                                                        <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem', background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                                                            <div className="premium-header-v2">
+                                                                <div className="title" style={{ color: '#16a34a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                    <span>🧒 Pediatric Growth & Milestones Check</span>
+                                                                </div>
+                                                            </div>
+                                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                                                                <div className="f-group-premium">
+                                                                    <label>Developmental Milestones</label>
+                                                                    <select className="input-premium-v4" value={form.pediatric_assessment?.milestones || 'Age-Appropriate'} onChange={e => setForm({ ...form, pediatric_assessment: { ...(form.pediatric_assessment || {}), milestones: e.target.value } })}>
+                                                                        <option value="Age-Appropriate">Age-Appropriate / Normal</option>
+                                                                        <option value="Gross Motor Delay">Gross Motor Delay</option>
+                                                                        <option value="Speech/Language Delay">Speech / Language Delay</option>
+                                                                        <option value="Global Delay">Global Developmental Delay</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div className="f-group-premium">
+                                                                    <label>Immunization Status</label>
+                                                                    <select className="input-premium-v4" value={form.pediatric_assessment?.immunization_status || 'Up to Date (IAP)'} onChange={e => setForm({ ...form, pediatric_assessment: { ...(form.pediatric_assessment || {}), immunization_status: e.target.value } })}>
+                                                                        <option value="Up to Date (IAP)">Up to Date (National / IAP)</option>
+                                                                        <option value="Partially Vaccinated">Partially Vaccinated</option>
+                                                                        <option value="Unvaccinated">Unvaccinated / Refused</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div className="f-group-premium">
+                                                                    <label>School & Play Activity</label>
+                                                                    <select className="input-premium-v4" value={form.pediatric_assessment?.school_activity || 'Active & Normal'} onChange={e => setForm({ ...form, pediatric_assessment: { ...(form.pediatric_assessment || {}), school_activity: e.target.value } })}>
+                                                                        <option value="Active & Normal">Active & Attending School</option>
+                                                                        <option value="Frequent Absenteeism">Frequent Absenteeism / Illness</option>
+                                                                        <option value="Fatigue / Decreased Play">Fatigue / Decreased Play</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
+                                        </div>
+                                    )}
+
+                                    {/* ── STEP 2: CHIEF COMPLAINTS & VITALS ── */}
+                                    {activeStep === 2 && (
+                                        <div className="wizard-step-content" style={{ padding: '1.25rem' }}>
+                                            {/* Chief Complaints Card */}
+                                            <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem' }}>
+                                                <div className="premium-header-v2">
+                                                    <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <MessageCircle size={16} /> Chief Complaints (Patient / Caregiver Words)
+                                                    </div>
+                                                </div>
+
+                                                {/* 1-Click Quick Complaints Chips */}
+                                                <div style={{ marginBottom: '1rem' }}>
+                                                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                                                        1-Click Quick Symptoms:
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
+                                                        {QUICK_COMPLAINT_CHIPS.map(chip => {
+                                                            const isSelected = (form.chief_complaints_list || []).includes(chip);
+                                                            return (
+                                                                <button
+                                                                    key={chip}
+                                                                    type="button"
+                                                                    className={`quick-action-chip ${isSelected ? 'active' : ''}`}
+                                                                    onClick={() => handleToggleComplaintChip(chip)}
+                                                                >
+                                                                    {isSelected && <Check size={12} strokeWidth={3} />}
+                                                                    {chip}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1rem' }}>
+                                                    <div className="f-group-premium" style={{ margin: 0 }}>
+                                                        <label>Primary Complaint & Duration</label>
+                                                        <input
+                                                            className="input-premium-v4"
+                                                            placeholder="e.g. High grade fever x 3 days, cough with phlegm"
+                                                            value={form.chief_complaint}
+                                                            onChange={e => setForm({ ...form, chief_complaint: e.target.value })}
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="f-group-premium" style={{ margin: 0 }}>
+                                                        <label>Associated Symptoms (comma-separated)</label>
+                                                        <input
+                                                            className="input-premium-v4"
+                                                            placeholder="e.g. Vomiting, Rhinorrhea, Reduced appetite"
+                                                            value={form.symptoms}
+                                                            onChange={e => setForm({ ...form, symptoms: e.target.value })}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Dense Vitals Grid */}
+                                            <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem' }}>
+                                                <div className="premium-header-v2">
+                                                    <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <Activity size={16} /> Objective Vitals & Anthropometrics
+                                                    </div>
+                                                    {clinicalContext.vitals_history.length > 0 && (
+                                                        <div style={{ fontSize: '0.75rem', color: '#0f766e', fontWeight: 700 }}>
+                                                            Last Visit: Wt {clinicalContext.vitals_history[0].weight || '-'} kg • Ht {clinicalContext.vitals_history[0].height || '-'} cm • Temp {clinicalContext.vitals_history[0].temperature || '-'} °F
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.85rem' }}>
+                                                    {/* Weight */}
+                                                    <div className="vital-input-v4">
+                                                        <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                            <span>Weight (kg)</span>
+                                                            <span style={{ color: '#16a34a', fontSize: '0.6rem', fontWeight: 800 }}>Rx DOSING</span>
+                                                        </label>
+                                                        <input placeholder="0.0" value={form.weight} onChange={e => { const w = e.target.value; setForm({ ...form, weight: w, bmi: calcBMI(w, form.height) }); }} />
+                                                    </div>
+
+                                                    {/* Height */}
+                                                    <div className="vital-input-v4">
+                                                        <label>Height / Length (cm)</label>
+                                                        <input placeholder="0" value={form.height} onChange={e => { const h = e.target.value; setForm({ ...form, height: h, bmi: calcBMI(form.weight, h) }); }} />
+                                                    </div>
+
+                                                    {/* BMI Auto */}
+                                                    <div className="vital-input-v4" style={{ background: '#f8faff', borderStyle: 'dashed' }}>
+                                                        <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                            <span>BMI</span>
+                                                            <span style={{ color: '#6366f1', fontSize: '0.6rem', fontWeight: 800 }}>AUTO</span>
+                                                        </label>
+                                                        <input placeholder="—" value={form.bmi} readOnly style={{ color: '#6366f1', fontWeight: 800 }} />
+                                                    </div>
+
+                                                    {/* Head Circumference */}
+                                                    <div className="vital-input-v4">
+                                                        <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                            <span>Head Cir. (cm)</span>
+                                                            <span style={{ color: '#0ea5e9', fontSize: '0.6rem', fontWeight: 700 }}>PEDS</span>
+                                                        </label>
+                                                        <input placeholder="0" value={form.head_circumference} onChange={e => setForm({ ...form, head_circumference: e.target.value })} />
+                                                    </div>
+
+                                                    {/* Temperature */}
+                                                    <div className="vital-input-v4" style={{ borderLeft: (parseFloat(form.temperature) >= 100.4) ? '3px solid #ef4444' : '3px solid #cbd5e1' }}>
+                                                        <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                            <span>Temp (°F)</span>
+                                                            <span style={{ fontSize: '0.58rem', color: '#64748b' }}>Normal: 98.6</span>
+                                                        </label>
+                                                        <input placeholder="98.6" value={form.temperature} onChange={e => setForm({ ...form, temperature: e.target.value })} />
+                                                    </div>
+
+                                                    {/* Pulse */}
+                                                    <div className="vital-input-v4" style={{ borderLeft: '3px solid #ef4444' }}>
+                                                        <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                            <span>Pulse (bpm)</span>
+                                                            <span style={{ fontSize: '0.58rem', color: '#64748b' }}>70-110</span>
+                                                        </label>
+                                                        <input placeholder="80" value={form.pulse} onChange={e => setForm({ ...form, pulse: e.target.value })} />
+                                                    </div>
+
+                                                    {/* SpO2 */}
+                                                    <div className="vital-input-v4" style={{ borderLeft: (parseFloat(form.spo2) && parseFloat(form.spo2) < 95) ? '3px solid #dc2626' : '3px solid #3b82f6' }}>
+                                                        <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                            <span>SpO2 (%)</span>
+                                                            <span style={{ fontSize: '0.58rem', color: '#64748b' }}>≥95%</span>
+                                                        </label>
+                                                        <input placeholder="98" value={form.spo2} onChange={e => setForm({ ...form, spo2: e.target.value })} />
+                                                    </div>
+
+                                                    {/* Blood Pressure */}
+                                                    <div className="vital-input-v4">
+                                                        <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                            <span>Blood Pressure</span>
+                                                            <span style={{ fontSize: '0.58rem', color: '#64748b' }}>mm/Hg</span>
+                                                        </label>
+                                                        <input placeholder="110/70" value={form.bp} onChange={e => setForm({ ...form, bp: e.target.value })} />
+                                                    </div>
+
+                                                    {/* Respiration */}
+                                                    <div className="vital-input-v4">
+                                                        <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                                            <span>Respiration</span>
+                                                            <span style={{ fontSize: '0.58rem', color: '#64748b' }}>b/min</span>
+                                                        </label>
+                                                        <input placeholder="20" value={form.respiration} onChange={e => setForm({ ...form, respiration: e.target.value })} />
+                                                    </div>
+
+                                                    {/* Random Sugar */}
+                                                    <div className="vital-input-v4">
+                                                        <label>Random Sugar (mg/dL)</label>
+                                                        <input placeholder="e.g. 95" value={form.random_sugar} onChange={e => setForm({ ...form, random_sugar: e.target.value })} />
+                                                    </div>
+
+                                                    {/* Pain Score */}
+                                                    <div className="vital-input-v4">
+                                                        <label>Pain Score (0-10)</label>
+                                                        <select className="input-premium-v4" style={{ border: 'none', padding: '2px 0' }} value={form.pain_score} onChange={e => setForm({ ...form, pain_score: e.target.value })}>
+                                                            <option value="">No Pain (0)</option>
+                                                            <option value="1">1 - Very Mild</option>
+                                                            <option value="2">2 - Discomfort</option>
+                                                            <option value="4">4 - Distressing</option>
+                                                            <option value="6">6 - Severe</option>
+                                                            <option value="8">8 - Intense</option>
+                                                            <option value="10">10 - Worst</option>
+                                                        </select>
+                                                    </div>
+
+                                                    {/* Fall Risk */}
+                                                    <div className="vital-input-v4">
+                                                        <label>Fall Risk</label>
+                                                        <select className="input-premium-v4" style={{ border: 'none', padding: '2px 0' }} value={form.fall_risk} onChange={e => setForm({ ...form, fall_risk: e.target.value })}>
+                                                            <option value="Low">Low Risk</option>
+                                                            <option value="Moderate">Moderate Risk</option>
+                                                            <option value="High">High Risk</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── STEP 3: ASSESSMENT & TARGETED EXAM ── */}
+                                    {activeStep === 3 && (
+                                        <div className="wizard-step-content" style={{ padding: '1.25rem' }}>
+                                            {/* Structured HPI */}
+                                            <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem' }}>
+                                                <div className="premium-header-v2">
+                                                    <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <Clipboard size={16} /> History of Present Illness (HPI)
+                                                    </div>
+                                                </div>
+                                                <textarea
+                                                    className="input-premium-v4"
+                                                    rows={3}
+                                                    placeholder="Chronological narrative of onset, duration, nature of symptoms, aggravating/relieving factors, previous medications taken, hydration and sleep status..."
+                                                    value={form.history_of_present_illness}
+                                                    onChange={e => setForm({ ...form, history_of_present_illness: e.target.value })}
+                                                />
+                                            </div>
+
+                                            {/* Targeted Physical Examination (Normal = Skip) */}
+                                            <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem' }}>
+                                                <div className="premium-header-v2">
+                                                    <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <Stethoscope size={16} /> Targeted Physical Examination
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleSetNormalExam}
+                                                        className="btn-header-v4"
+                                                        style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', fontSize: '0.78rem', fontWeight: 800, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                                                    >
+                                                        <CheckCircle2 size={14} /> 1-Click: Mark All Exam as Normal
+                                                    </button>
+                                                </div>
+
+                                                {/* General Examination Checklist Buttons */}
+                                                <div style={{ marginBottom: '1.25rem' }}>
+                                                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
+                                                        General Signs (Click to toggle abnormal findings):
+                                                    </div>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.5rem' }}>
+                                                        {[
+                                                            { key: 'pe_pallor', label: 'Pallor', val: form.pe_pallor },
+                                                            { key: 'pe_icterus', label: 'Icterus', val: form.pe_icterus },
+                                                            { key: 'pe_oedema', label: 'Oedema', val: form.pe_oedema },
+                                                            { key: 'pe_cyanosis', label: 'Cyanosis', val: form.pe_cyanosis },
+                                                            { key: 'pe_clubbing', label: 'Clubbing', val: form.pe_clubbing },
+                                                            { key: 'pe_lymphadenopathy', label: 'Lymph Nodes', val: form.pe_lymphadenopathy }
+                                                        ].map(item => {
+                                                            const isAbnormal = item.val && item.val !== 'Absent';
+                                                            return (
+                                                                <button
+                                                                    key={item.key}
+                                                                    type="button"
+                                                                    className={`exam-finding-btn ${isAbnormal ? 'abnormal' : item.val === 'Absent' ? 'normal' : ''}`}
+                                                                    onClick={() => setForm({ ...form, [item.key]: isAbnormal ? 'Absent' : 'Present' })}
+                                                                >
+                                                                    <div>{item.label}</div>
+                                                                    <div style={{ fontSize: '0.7rem', fontWeight: 800 }}>
+                                                                        {item.val || 'Normal'}
+                                                                    </div>
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+
+                                                {/* Targeted Systemic Exam Text */}
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                                    <div className="f-group-premium" style={{ margin: 0 }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                                            <label style={{ margin: 0 }}>General Physical Findings</label>
+                                                            <button
+                                                                type="button"
+                                                                style={{ border: 'none', background: 'none', color: '#0ea5e9', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 700 }}
+                                                                onClick={() => setForm({ ...form, physical_examination: 'Active, alert, hydrated. Throat clear, tonsils normal. No stridor.' })}
+                                                            >
+                                                                + Quick Normal
+                                                            </button>
+                                                        </div>
+                                                        <textarea
+                                                            className="input-premium-v4"
+                                                            rows={3}
+                                                            placeholder="Throat, tonsils, ear drums, skin rash, lymph nodes..."
+                                                            value={form.physical_examination}
+                                                            onChange={e => setForm({ ...form, physical_examination: e.target.value })}
+                                                        />
+                                                    </div>
+
+                                                    <div className="f-group-premium" style={{ margin: 0 }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                                            <label style={{ margin: 0 }}>Systemic Examination (Chest, CVS, P/A, CNS)</label>
+                                                            <button
+                                                                type="button"
+                                                                style={{ border: 'none', background: 'none', color: '#0ea5e9', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 700 }}
+                                                                onClick={() => setForm({ ...form, systemic_examination: 'Chest: Clear b/l, no wheeze. CVS: S1 S2 normal. P/A: Soft, non-tender. CNS: Conscious, alert.' })}
+                                                            >
+                                                                + Quick Normal
+                                                            </button>
+                                                        </div>
+                                                        <textarea
+                                                            className="input-premium-v4"
+                                                            rows={3}
+                                                            placeholder="Chest: Air entry, wheeze, crackles. CVS: S1 S2, murmur. Abdomen: Tenderness, organomegaly. CNS: Tone, reflexes..."
+                                                            value={form.systemic_examination}
+                                                            onChange={e => setForm({ ...form, systemic_examination: e.target.value })}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── STEP 4: DIAGNOSIS & PLAN ── */}
+                                    {activeStep === 4 && (
+                                        <div className="wizard-step-content" style={{ padding: '1.25rem' }}>
+                                            {/* Diagnoses Card */}
+                                            <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem' }}>
+                                                <div className="premium-header-v2">
+                                                    <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <FileText size={16} /> Provisional & Confirmed Diagnoses
+                                                    </div>
+                                                </div>
+
+                                                {(form.provisional_diagnoses || []).length > 0 && (
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                                                        {form.provisional_diagnoses.map((diag, idx) => (
+                                                            <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '6px 12px', fontSize: '0.85rem' }}>
+                                                                <span style={{ fontWeight: 800, color: '#0f766e' }}>{diag.diagnosis_name || diag.diagnosis}</span>
+                                                                {diag.icd_10 && <span style={{ background: '#e0f2fe', color: '#0369a1', fontSize: '0.7rem', fontWeight: 800, padding: '1px 6px', borderRadius: '4px' }}>{diag.icd_10}</span>}
+                                                                {diag.severity && <span style={{ fontSize: '0.7rem', color: '#64748b' }}>({diag.severity})</span>}
+                                                                <button type="button" onClick={() => handleRemoveDiagnosisItem(idx)} style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><X size={14} /></button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Add Diagnosis Row */}
+                                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 100px 120px 100px auto', gap: '0.6rem', alignItems: 'center', background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                                    <input className="input-premium-v4" placeholder="Search or type diagnosis (e.g. Acute Bronchiolitis)" value={diagnosisDraft.diagnosis_name} list="icd10-options" onChange={e => {
+                                                        const val = e.target.value;
+                                                        const matched = masterData.icd10.find(i => i.name.toLowerCase() === val.toLowerCase());
+                                                        setDiagnosisDraft({ ...diagnosisDraft, diagnosis_name: val, icd_10: matched ? (matched.code || '') : diagnosisDraft.icd_10 });
+                                                    }} />
+                                                    <input className="input-premium-v4" placeholder="ICD-10" value={diagnosisDraft.icd_10} onChange={e => setDiagnosisDraft({ ...diagnosisDraft, icd_10: e.target.value })} />
+                                                    <select className="input-premium-v4" value={diagnosisDraft.stage} onChange={e => setDiagnosisDraft({ ...diagnosisDraft, stage: e.target.value })}>
+                                                        <option value="Provisional">Provisional</option>
+                                                        <option value="Confirmed">Confirmed</option>
+                                                        <option value="Differential">Differential</option>
+                                                    </select>
+                                                    <select className="input-premium-v4" value={diagnosisDraft.severity} onChange={e => setDiagnosisDraft({ ...diagnosisDraft, severity: e.target.value })}>
+                                                        <option value="Mild">Mild</option>
+                                                        <option value="Moderate">Moderate</option>
+                                                        <option value="Severe">Severe</option>
+                                                    </select>
+                                                    <button type="button" onClick={handleAddDiagnosisItem} className="btn-save-v3" style={{ padding: '6px 14px', fontSize: '0.8rem', height: '36px' }}>+ Add</button>
+                                                </div>
+                                            </div>
+
+                                            {/* Investigations Advised */}
+                                            <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem' }}>
+                                                <div className="premium-header-v2">
+                                                    <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <Activity size={16} /> Investigations & Lab Orders
+                                                    </div>
+                                                </div>
+
+                                                {/* 1-Click Investigation Chips */}
+                                                <div style={{ marginBottom: '1rem' }}>
+                                                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                                                        1-Click Lab Test Presets:
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
+                                                        {QUICK_INVESTIGATION_CHIPS.map(chip => (
+                                                            <button
+                                                                key={chip}
+                                                                type="button"
+                                                                className="quick-action-chip"
+                                                                onClick={() => handleAddInvestigationItem(chip)}
+                                                            >
+                                                                + {chip}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {(form.investigations_list || []).length > 0 && (
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                                                        {form.investigations_list.map((inv, idx) => (
+                                                            <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '5px 10px', fontSize: '0.8rem' }}>
+                                                                <span style={{ fontWeight: 700, color: '#1d4ed8' }}>{inv.name || inv.test_name}</span>
+                                                                <span style={{ fontSize: '0.68rem', color: '#2563eb', background: '#dbeafe', padding: '1px 5px', borderRadius: '4px' }}>{inv.timeframe || inv.priority}</span>
+                                                                <button type="button" onClick={() => handleRemoveInvestigationItem(idx)} style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><X size={13} /></button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Add Custom Test */}
+                                                <div style={{ display: 'grid', gridTemplateColumns: '2fr 120px 1.5fr auto', gap: '0.6rem', alignItems: 'center', background: '#f8fafc', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                                    <input className="input-premium-v4" placeholder="Type custom investigation name..." value={investigationDraft.name} list="investigation-options" onChange={e => setInvestigationDraft({ ...investigationDraft, name: e.target.value })} />
+                                                    <select className="input-premium-v4" value={investigationDraft.priority} onChange={e => setInvestigationDraft({ ...investigationDraft, priority: e.target.value })}>
+                                                        <option value="Routine">Routine</option>
+                                                        <option value="Urgent">Urgent</option>
+                                                        <option value="Stat">Stat / Immediate</option>
+                                                    </select>
+                                                    <input className="input-premium-v4" placeholder="Clinical indication..." value={investigationDraft.indication} onChange={e => setInvestigationDraft({ ...investigationDraft, indication: e.target.value })} />
+                                                    <button type="button" onClick={() => handleAddInvestigationItem()} className="btn-save-v3" style={{ padding: '6px 14px', fontSize: '0.8rem', height: '36px' }}>+ Add</button>
+                                                </div>
+                                            </div>
+
+                                            {/* Procedures Advised */}
+                                            <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem' }}>
+                                                <div className="premium-header-v2">
+                                                    <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <Zap size={16} /> Clinical Procedures Advised
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', marginBottom: '0.75rem' }}>
+                                                    {QUICK_PROCEDURE_CHIPS.map(chip => (
+                                                        <button
+                                                            key={chip}
+                                                            type="button"
+                                                            className="quick-action-chip"
+                                                            onClick={() => handleAddProcedureItem(chip)}
+                                                        >
+                                                            + {chip}
+                                                        </button>
+                                                    ))}
+                                                </div>
+
+                                                {(form.procedures_list || []).length > 0 && (
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                                        {form.procedures_list.map((proc, idx) => (
+                                                            <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '8px', padding: '5px 10px', fontSize: '0.8rem' }}>
+                                                                <span style={{ fontWeight: 700, color: '#6d28d9' }}>{proc.name}</span>
+                                                                <button type="button" onClick={() => handleRemoveProcedureItem(idx)} style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><X size={13} /></button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── STEP 5: PRESCRIPTION & STRUCTURED ADVICE ── */}
+                                    {activeStep === 5 && (
+                                        <div className="wizard-step-content" style={{ padding: '1.25rem' }}>
+                                            {/* Structured Prescription Builder */}
+                                            <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem' }}>
+                                                <div className="premium-header-v2">
+                                                    <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <Pill size={16} /> Rx - Medication Prescriptions
+                                                    </div>
+                                                    {form.weight && (
+                                                        <div style={{ fontSize: '0.75rem', background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>
+                                                            Weight: {form.weight} kg (Paracetamol 15mg/kg = {(parseFloat(form.weight) * 15).toFixed(0)} mg)
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Prescriptions Table */}
+                                                {(form.prescriptions_list || []).length > 0 && (
+                                                    <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
+                                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                                                            <thead>
+                                                                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left', color: '#475569' }}>
+                                                                    <th style={{ padding: '8px' }}>Medicine & Form</th>
+                                                                    <th style={{ padding: '8px' }}>Schedule & Route</th>
+                                                                    <th style={{ padding: '8px' }}>Days</th>
+                                                                    <th style={{ padding: '8px' }}>Instructions</th>
+                                                                    <th style={{ padding: '8px', width: '40px' }}></th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {form.prescriptions_list.map((rx, idx) => (
+                                                                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                                        <td style={{ padding: '8px' }}>
+                                                                            <strong style={{ color: '#0f766e' }}>{rx.medicine}</strong>
+                                                                            <span style={{ marginLeft: '6px', fontSize: '0.7rem', background: '#e0f2fe', color: '#0369a1', padding: '1px 5px', borderRadius: '4px' }}>{rx.dosage_form}</span>
+                                                                        </td>
+                                                                        <td style={{ padding: '8px' }}>
+                                                                            <strong>{rx.schedule || '—'}</strong>
+                                                                            <span style={{ marginLeft: '4px', fontSize: '0.72rem', color: '#64748b' }}>({rx.route || 'ORAL'})</span>
+                                                                        </td>
+                                                                        <td style={{ padding: '8px' }}>{rx.days ? `${rx.days} d` : '—'}</td>
+                                                                        <td style={{ padding: '8px', color: '#475569' }}>{rx.instruction || rx.special_instructions || '—'}</td>
+                                                                        <td style={{ padding: '8px', textAlign: 'center' }}>
+                                                                            <button type="button" onClick={() => handleRemovePrescriptionItem(idx)} style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={14} /></button>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )}
+
+                                                {/* Add Prescription Row */}
+                                                <div style={{ background: '#f8fafc', padding: '0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 120px 1.5fr 90px 70px', gap: '0.6rem', marginBottom: '0.6rem' }}>
+                                                        <input className="input-premium-v4" placeholder="Medicine name (e.g. Syrup Paracetamol)" value={prescriptionDraft.medicine} list="medicine-options" onChange={e => setPrescriptionDraft({ ...prescriptionDraft, medicine: e.target.value })} />
+                                                        <select className="input-premium-v4" value={prescriptionDraft.dosage_form} onChange={e => setPrescriptionDraft({ ...prescriptionDraft, dosage_form: e.target.value })}>
+                                                            <option value="Syrup">Syrup</option>
+                                                            <option value="Drops">Drops</option>
+                                                            <option value="Tablet">Tablet</option>
+                                                            <option value="Capsule">Capsule</option>
+                                                            <option value="Inhaler">Inhaler</option>
+                                                            <option value="Suspension">Suspension</option>
+                                                            <option value="Ointment">Ointment</option>
+                                                            <option value="Injection">Injection</option>
+                                                        </select>
+                                                        <select className="input-premium-v4" value={prescriptionDraft.schedule} onChange={e => setPrescriptionDraft({ ...prescriptionDraft, schedule: e.target.value })}>
+                                                            <option value="">Schedule</option>
+                                                            <option value="OD (Once daily)">OD (Once daily)</option>
+                                                            <option value="BD (Twice daily)">BD (Twice daily)</option>
+                                                            <option value="TID (Thrice daily)">TID (Thrice daily)</option>
+                                                            <option value="QID (Four times daily)">QID (Four times daily)</option>
+                                                            <option value="SOS (As needed)">SOS (As needed)</option>
+                                                            <option value="Stat (Immediate)">Stat (Immediate)</option>
+                                                        </select>
+                                                        <select className="input-premium-v4" value={prescriptionDraft.route} onChange={e => setPrescriptionDraft({ ...prescriptionDraft, route: e.target.value })}>
+                                                            <option value="ORAL">Oral</option>
+                                                            <option value="NASAL">Nasal</option>
+                                                            <option value="INHALATION">Inhalation</option>
+                                                            <option value="TOPICAL">Topical</option>
+                                                            <option value="IV">IV</option>
+                                                            <option value="IM">IM</option>
+                                                        </select>
+                                                        <input className="input-premium-v4" placeholder="Days" value={prescriptionDraft.days} onChange={e => setPrescriptionDraft({ ...prescriptionDraft, days: e.target.value })} />
+                                                    </div>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr auto', gap: '0.6rem', alignItems: 'center' }}>
+                                                        <input className="input-premium-v4" placeholder="Timing (e.g. After food, At bedtime)" value={prescriptionDraft.instruction} onChange={e => setPrescriptionDraft({ ...prescriptionDraft, instruction: e.target.value })} />
+                                                        <input className="input-premium-v4" placeholder="Special note / dose (e.g. 5ml each dose, shake well)" value={prescriptionDraft.special_instructions} onChange={e => setPrescriptionDraft({ ...prescriptionDraft, special_instructions: e.target.value })} />
+                                                        <button type="button" onClick={() => handleAddPrescriptionItem()} className="btn-save-v3" style={{ padding: '6px 16px', fontSize: '0.82rem', height: '36px' }}>+ Add Rx</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Structured Patient Advice */}
+                                            <div className="form-card-premium" style={{ marginBottom: '1.25rem', padding: '1.25rem' }}>
+                                                <div className="premium-header-v2">
+                                                    <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <Shield size={16} /> Patient Advice & Care Plan
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                                                    {/* Home Care */}
+                                                    <div className="f-group-premium" style={{ margin: 0 }}>
+                                                        <label>Home Care & Symptom Management</label>
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.45rem' }}>
+                                                            {QUICK_ADVICE_CHIPS.homeCare.map((c, i) => (
+                                                                <button key={i} type="button" className="quick-action-chip" style={{ fontSize: '0.68rem', padding: '2px 7px' }} onClick={() => setForm(prev => ({ ...prev, advice_home_care: prev.advice_home_care ? `${prev.advice_home_care}, ${c}` : c }))}>
+                                                                    + {c.slice(0, 24)}...
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        <textarea className="input-premium-v4" rows={3} placeholder="Rest, hydration, steam inhalation, comfort measures..." value={form.advice_home_care} onChange={e => setForm({ ...form, advice_home_care: e.target.value })} />
+                                                    </div>
+
+                                                    {/* Diet Advice */}
+                                                    <div className="f-group-premium" style={{ margin: 0 }}>
+                                                        <label>Dietary & Feeding Plan</label>
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.45rem' }}>
+                                                            {QUICK_ADVICE_CHIPS.diet.map((c, i) => (
+                                                                <button key={i} type="button" className="quick-action-chip" style={{ fontSize: '0.68rem', padding: '2px 7px' }} onClick={() => setForm(prev => ({ ...prev, advice_diet: prev.advice_diet ? `${prev.advice_diet}, ${c}` : c }))}>
+                                                                    + {c.slice(0, 24)}...
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        <textarea className="input-premium-v4" rows={3} placeholder="Khichdi, curd, ORS, avoid oily/spicy foods, breastfeed on demand..." value={form.advice_diet} onChange={e => setForm({ ...form, advice_diet: e.target.value })} />
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1rem' }}>
+                                                    {/* Warning Signs */}
+                                                    <div className="f-group-premium" style={{ margin: 0 }}>
+                                                        <label style={{ color: '#dc2626', fontWeight: 800 }}>Urgent Warning Signs & Red Flags</label>
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.45rem' }}>
+                                                            {QUICK_ADVICE_CHIPS.warningSigns.map((c, i) => (
+                                                                <button key={i} type="button" className="quick-action-chip" style={{ fontSize: '0.68rem', padding: '2px 7px', color: '#b91c1c' }} onClick={() => setForm(prev => ({ ...prev, advice_warning_signs: prev.advice_warning_signs ? `${prev.advice_warning_signs}, ${c}` : c }))}>
+                                                                    + {c.slice(0, 24)}...
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        <textarea className="input-premium-v4" rows={2} placeholder="High fever persisting, breathing difficulty, lethargy, persistent vomiting..." value={form.advice_warning_signs} onChange={e => setForm({ ...form, advice_warning_signs: e.target.value })} />
+                                                    </div>
+
+                                                    {/* Follow-up / Next Visit */}
+                                                    <div className="f-group-premium" style={{ margin: 0 }}>
+                                                        <label>Next Visit / Follow-up Due</label>
+                                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.45rem' }}>
+                                                            {['2 Days', '3 Days', '5 Days', '1 Week', '2 Weeks', '1 Month'].map(dur => (
+                                                                <button key={dur} type="button" className={`quick-action-chip ${form.next_visit_due === dur ? 'active' : ''}`} style={{ fontSize: '0.7rem' }} onClick={() => setForm({ ...form, next_visit_due: dur })}>
+                                                                    {dur}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        <input className="input-premium-v4" placeholder="e.g. 3 days or YYYY-MM-DD" value={form.next_visit_due} onChange={e => setForm({ ...form, next_visit_due: e.target.value })} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── STEP 6: SUMMARY & SIGN-OFF ── */}
+                                    {activeStep === 6 && (
+                                        <div className="wizard-step-content" style={{ padding: '1.25rem' }}>
+                                            {/* Completeness Bar */}
+                                            {(() => {
+                                                const checks = [
+                                                    { name: 'Patient & Visit Details', ok: Boolean(form.patient_id && form.visit_date) },
+                                                    { name: 'Complaints or Vitals', ok: Boolean(form.chief_complaint || form.temperature || form.weight) },
+                                                    { name: 'Assessment & Exam', ok: Boolean(form.history_of_present_illness || form.physical_examination || form.pe_pallor) },
+                                                    { name: 'Provisional Diagnosis', ok: Boolean((form.provisional_diagnoses && form.provisional_diagnoses.length > 0) || diagnosisDraft.diagnosis_name) },
+                                                    { name: 'Prescription or Advice', ok: Boolean((form.prescriptions_list && form.prescriptions_list.length > 0) || prescriptionDraft.medicine || form.advice_home_care || form.advice_diet) },
+                                                    { name: 'Follow-up Set', ok: Boolean(form.next_visit_due) }
+                                                ];
+                                                const passed = checks.filter(c => c.ok).length;
+                                                const pct = Math.round((passed / checks.length) * 100);
+
+                                                return (
+                                                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1rem', marginBottom: '1.25rem' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                                            <div style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b' }}>
+                                                                Consultation Documentation Completeness: {pct}%
+                                                            </div>
+                                                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: pct >= 80 ? '#16a34a' : '#ea580c' }}>
+                                                                {passed} of {checks.length} Sections Completed
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                                                            <div style={{ width: `${pct}%`, height: '100%', background: pct >= 80 ? '#10b981' : '#f59e0b', transition: 'width 0.3s ease' }}></div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
+
+                                            {/* Consultation Summary Card */}
+                                            <div className="consultation-summary-card">
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #0f766e', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
+                                                    <div>
+                                                        <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#0f766e', fontWeight: 800 }}>
+                                                            Consultation Summary: {patientDetails ? pname(patientDetails) || (patientDetails.full_name) : (selectedPatient ? pname(selectedPatient) : 'Patient')}
+                                                        </h4>
+                                                        <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                                                            {age(patientDetails?.dob || selectedPatient?.dob)} • {patientDetails?.gender || selectedPatient?.gender} • ID: {form.patient_id} • Dr: {form.attending_doctor}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ textAlign: 'right' }}>
+                                                        <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 800 }}>
+                                                            {form.visit_type} ({form.visit_date})
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Vitals Ribbon */}
+                                                {(form.weight || form.temperature || form.pulse || form.spo2 || form.bp) && (
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', background: '#f8fafc', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '1rem', fontSize: '0.8rem' }}>
+                                                        {form.weight && <span><strong>Weight:</strong> {form.weight} kg</span>}
+                                                        {form.height && <span><strong>Height:</strong> {form.height} cm</span>}
+                                                        {form.bmi && <span><strong>BMI:</strong> {form.bmi}</span>}
+                                                        {form.temperature && <span><strong>Temp:</strong> {form.temperature} °F</span>}
+                                                        {form.pulse && <span><strong>Pulse:</strong> {form.pulse} bpm</span>}
+                                                        {form.spo2 && <span><strong>SpO2:</strong> {form.spo2}%</span>}
+                                                        {form.bp && <span><strong>BP:</strong> {form.bp}</span>}
+                                                    </div>
+                                                )}
+
+                                                {/* Complaints & HPI */}
+                                                <div style={{ marginBottom: '1rem' }}>
+                                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f766e', textTransform: 'uppercase' }}>Chief Complaints & HPI:</div>
+                                                    <div style={{ fontSize: '0.85rem', color: '#1e293b', marginTop: '2px' }}>
+                                                        <strong>{form.chief_complaint || 'No complaint specified'}</strong>
+                                                        {form.history_of_present_illness && <p style={{ margin: '4px 0 0 0', color: '#475569', fontSize: '0.82rem' }}>{form.history_of_present_illness}</p>}
+                                                    </div>
+                                                </div>
+
+                                                {/* Diagnoses */}
+                                                <div style={{ marginBottom: '1rem' }}>
+                                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f766e', textTransform: 'uppercase' }}>Diagnoses:</div>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                                                        {(form.provisional_diagnoses || []).length > 0 ? (
+                                                            form.provisional_diagnoses.map((d, i) => (
+                                                                <span key={i} style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '3px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 700 }}>
+                                                                    {d.diagnosis_name || d.diagnosis} {d.icd_10 && `(${d.icd_10})`}
+                                                                </span>
+                                                            ))
+                                                        ) : (
+                                                            <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>No structured diagnosis added.</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Prescriptions List */}
+                                                <div style={{ marginBottom: '1rem' }}>
+                                                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f766e', textTransform: 'uppercase' }}>Prescription (Rx):</div>
+                                                    {(form.prescriptions_list || []).length > 0 ? (
+                                                        <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px', fontSize: '0.82rem', color: '#1e293b' }}>
+                                                            {form.prescriptions_list.map((rx, i) => (
+                                                                <li key={i} style={{ marginBottom: '3px' }}>
+                                                                    <strong>{rx.medicine}</strong> ({rx.dosage_form}) - {rx.schedule} x {rx.days || '—'} days {rx.instruction && `[${rx.instruction}]`}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    ) : (
+                                                        <span style={{ color: '#94a3b8', fontSize: '0.82rem' }}>No medications prescribed.</span>
+                                                    )}
+                                                </div>
+
+                                                {/* Advice & Warning Signs */}
+                                                {(form.advice_home_care || form.advice_diet || form.advice_warning_signs || form.next_visit_due) && (
+                                                    <div style={{ background: '#fcfdfe', border: '1px solid #e2e8f0', padding: '0.75rem', borderRadius: '8px', fontSize: '0.8rem' }}>
+                                                        {form.advice_home_care && <div><strong>Care Advice:</strong> {form.advice_home_care}</div>}
+                                                        {form.advice_diet && <div style={{ marginTop: '3px' }}><strong>Diet:</strong> {form.advice_diet}</div>}
+                                                        {form.advice_warning_signs && <div style={{ marginTop: '3px', color: '#dc2626' }}><strong>Warning Signs:</strong> {form.advice_warning_signs}</div>}
+                                                        {form.next_visit_due && <div style={{ marginTop: '3px', color: '#0f766e', fontWeight: 700 }}><strong>Follow-up:</strong> {form.next_visit_due}</div>}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* File Attachments */}
+                                            <div className="form-card-premium" style={{ marginBottom: '1rem', padding: '1rem' }}>
+                                                <div className="premium-header-v2" style={{ marginBottom: '0.5rem' }}>
+                                                    <div className="title" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <Paperclip size={14} /> Clinical Attachments & Lab Reports
+                                                    </div>
+                                                </div>
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                                                    {(form.attachments || []).map((att, idx) => (
+                                                        <div key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f8fafc', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '6px', fontSize: '0.78rem' }}>
+                                                            <span>📄 {att.name || `Attachment ${idx + 1}`}</span>
+                                                            <button type="button" onClick={() => removeAttachment(idx)} style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer' }}><X size={12} /></button>
+                                                        </div>
+                                                    ))}
+                                                    <label className="att-upload-btn-premium" style={{ height: '34px', padding: '0 12px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                                                        <Plus size={14} /> Attach Report / Photo
+                                                        <input type="file" multiple accept="image/*,.pdf,application/pdf" onChange={handleFileChange} style={{ display: 'none' }} />
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <datalist id="chief-complaints-options">
+                                    {masterData.complaints.map((item, idx) => <option key={`cc-${idx}`} value={item.name} />)}
+                                </datalist>
+                                <datalist id="allergy-options">
+                                    {masterData.allergies.map((item, idx) => <option key={`allergy-${idx}`} value={item.name} />)}
+                                </datalist>
+                                <datalist id="icd10-options">
+                                    {masterData.icd10.map((item, idx) => <option key={`icd-${idx}`} value={item.name}>{item.code}</option>)}
+                                </datalist>
+                                <datalist id="investigation-options">
+                                    {masterData.investigations.map((item, idx) => <option key={`inv-${idx}`} value={item.name} />)}
+                                </datalist>
+                                <datalist id="procedure-options">
+                                    {masterData.procedures.map((item, idx) => <option key={`proc-${idx}`} value={item.name} />)}
+                                </datalist>
+                                <datalist id="medicine-options">
+                                    {masterData.medicines.map((item, idx) => <option key={`med-${idx}`} value={item.name} />)}
+                                </datalist>
+                                {formStatus.error && <p className="error-msg" style={{ margin: '1rem' }}>{formStatus.error}</p>}
+                                {formStatus.success && <p className="success-msg" style={{ margin: '1rem' }}>{formStatus.success}</p>}
+                            </form>
+
+                            <footer className="modal-footer-v3" style={{ borderTop: '1px solid #e2e8f0', background: '#ffffff', padding: '0.85rem 1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '0 0 20px 20px', position: 'sticky', bottom: 0, zIndex: 20, boxShadow: '0 -2px 10px rgba(0,0,0,0.02)' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowModal(false)}
+                                    className="btn-wizard-discard"
+                                    title="Discard and close consultation"
+                                >
+                                    <X size={15} />
+                                    <span>Discard</span>
+                                </button>
+                                
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.82rem', color: '#64748b', fontWeight: 700, background: '#f8fafc', padding: '6px 14px', borderRadius: '20px', border: '1px solid #f1f5f9' }}>
+                                    <span>Step {activeStep} of 6</span>
+                                    <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                                        {[1, 2, 3, 4, 5, 6].map(s => (
+                                            <div
+                                                key={s}
+                                                style={{
+                                                    width: activeStep === s ? '18px' : '7px',
+                                                    height: '7px',
+                                                    borderRadius: '4px',
+                                                    background: activeStep === s ? '#0f766e' : activeStep > s ? '#10b981' : '#cbd5e1',
+                                                    transition: 'all 0.25s ease',
+                                                    cursor: 'pointer'
+                                                }}
+                                                title={`Go to Step ${s}`}
+                                                onClick={() => setActiveStep(s)}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                    {activeStep > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveStep(s => Math.max(1, s - 1))}
+                                            className="btn-wizard-prev"
+                                        >
+                                            <ChevronLeft size={16} />
+                                            <span>Previous</span>
+                                        </button>
+                                    )}
+                                    {activeStep < 6 ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveStep(s => Math.min(6, s + 1))}
+                                            className="btn-wizard-next"
+                                        >
+                                            <span>Next Step</span>
+                                            <ChevronRight size={16} />
+                                        </button>
+                                    ) : (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={handleSaveAsTemplate}
+                                                className="btn-wizard-prev"
+                                                style={{ borderColor: '#0f766e', color: '#0f766e', background: '#f0fdfa' }}
+                                                title="Save current consultation data as reusable Clinical Template"
+                                            >
+                                                <BookmarkPlus size={15} />
+                                                <span>Save as Template</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleAddEntry}
+                                                className="btn-wizard-finalize"
+                                                disabled={saving}
+                                            >
+                                            {saving ? (
+                                                <>
+                                                    <RefreshCw size={16} className="spinning" />
+                                                    <span>Finalizing...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <CheckCircle2 size={18} />
+                                                    <span>Sign & Finalize Entry</span>
+                                                </>
+                                            )}
+                                        </button>
+                                        </>
+                                    )}
+                                </div>
+                            </footer>
                         </div>
+                    ) : !selectedRecord ? (
+                        selectedPatient ? (
+                            <div className="patient-workspace-overview">
+                                <div className="overview-header-card">
+                                    <div className="patient-hero-info">
+                                        <div className="avatar-lg" style={{ background: avatarColor(initials(selectedPatient)), color: '#fff' }}>
+                                            <User size={24} />
+                                        </div>
+                                        <div>
+                                            <div className="hero-name-row">
+                                                <h2>{pname(selectedPatient)}</h2>
+                                                <span className="hero-id-badge">{selectedPatient.patient_id}</span>
+                                            </div>
+                                            <div className="hero-meta-row">
+                                                <span>{age(selectedPatient.dob) || 'No Age'}</span>
+                                                <span>•</span>
+                                                <span style={{ textTransform: 'capitalize' }}>{selectedPatient.gender || 'Not specified'}</span>
+                                                {(selectedPatient.parent_mobile || selectedPatient.wa_id) && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span>📞 {selectedPatient.parent_mobile || selectedPatient.wa_id}</span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="btn-header-v4 btn-primary-v4"
+                                        style={{ height: '40px', padding: '0 18px', fontSize: '0.88rem' }}
+                                        onClick={openEntryModal}
+                                    >
+                                        <Plus size={16} />
+                                        <span>New Clinical Entry</span>
+                                    </button>
+                                </div>
+
+                                <div className="overview-body-grid">
+                                    <div className="overview-card-notice">
+                                        <div className="notice-icon-circle">
+                                            <Clipboard size={26} />
+                                        </div>
+                                        <h3>Ready for Clinical Consultation</h3>
+                                        <p>No previous consultation or immunization records have been recorded for {pname(selectedPatient)}. Start documenting the visit, vitals, diagnosis, and prescription plan.</p>
+                                        <button
+                                            type="button"
+                                            className="btn-start-consultation-main"
+                                            onClick={openEntryModal}
+                                        >
+                                            <Plus size={16} /> Start Consultation
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="empty-selection">
+                                <div className="empty-selection-icon-wrap">
+                                    <Shield size={32} />
+                                </div>
+                                <h3>Clinical Intelligence</h3>
+                                <p>Select a patient from the side panel to view clinical history or document a new consultation.</p>
+                            </div>
+                        )
                     ) : (
                         <div className="record-detail-v3">
                             <div className="detail-header-v3">
@@ -978,6 +3280,15 @@ const ClinicalEntry = () => {
                                         onClick={handlePrint}
                                     >
                                         <Printer size={18} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn-save-v3"
+                                        style={{ height: '36px', padding: '0 14px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                        onClick={openEntryModal}
+                                        title="Document New Visit"
+                                    >
+                                        <Plus size={15} /> New Entry
                                     </button>
                                 </div>
                             </div>
@@ -1261,30 +3572,46 @@ const ClinicalEntry = () => {
                                         )}
                                         {(selectedRecord.prescriptions_list?.length > 0 || selectedRecord.prescription) && (
                                             <article className="info-block-v3">
-                                                <label>Medication Advice</label>
-                                                {selectedRecord.prescription && <p style={{ marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid #e2e8f0' }}>{selectedRecord.prescription}</p>}
+                                                <label>Medication Advice (Prescription)</label>
+                                                {selectedRecord.prescription && <p style={{ marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid #e2e8f0', whiteSpace: 'pre-line' }}>{selectedRecord.prescription}</p>}
                                                 {selectedRecord.prescriptions_list?.length > 0 && (
                                                     <div style={{ overflowX: 'auto', marginTop: '0.5rem' }}>
                                                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                                                             <thead>
                                                                 <tr style={{ background: '#f1f5f9', color: '#475569', textAlign: 'left' }}>
                                                                     <th style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>S.No</th>
-                                                                    <th style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>Medicine</th>
-                                                                    <th style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>Schedule</th>
-                                                                    <th style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>Instruction</th>
-                                                                    <th style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>Days</th>
-                                                                    <th style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>Route</th>
+                                                                    <th style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>Medicine & Form</th>
+                                                                    <th style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>Indication</th>
+                                                                    <th style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>Schedule & Route</th>
+                                                                    <th style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>Duration</th>
+                                                                    <th style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>Qty / Refills</th>
+                                                                    <th style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>Instructions & Precautions</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
                                                                 {selectedRecord.prescriptions_list.map((med, idx) => (
                                                                     <tr key={idx}>
                                                                         <td style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>{idx + 1}</td>
-                                                                        <td style={{ padding: '0.5rem', border: '1px solid #e2e8f0', fontWeight: 600 }}>{med.medicine}</td>
-                                                                        <td style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>{med.schedule}</td>
-                                                                        <td style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>{med.instruction}</td>
-                                                                        <td style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>{med.days}</td>
-                                                                        <td style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>{med.route}</td>
+                                                                        <td style={{ padding: '0.5rem', border: '1px solid #e2e8f0', fontWeight: 600 }}>
+                                                                            {med.medicine}
+                                                                            {med.dosage_form && <span style={{ marginLeft: '6px', fontSize: '0.75rem', background: '#e0f2fe', color: '#0369a1', padding: '1px 5px', borderRadius: '3px' }}>{med.dosage_form}</span>}
+                                                                            {med.type === 'Generic' && <span style={{ marginLeft: '4px', fontSize: '0.7rem', color: '#64748b' }}>(Generic)</span>}
+                                                                        </td>
+                                                                        <td style={{ padding: '0.5rem', border: '1px solid #e2e8f0', color: '#0284c7' }}>{med.indication || '-'}</td>
+                                                                        <td style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>
+                                                                            <strong>{med.schedule}</strong>
+                                                                            {med.route && <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748b' }}>{med.route}</span>}
+                                                                        </td>
+                                                                        <td style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>{med.days ? `${med.days} days` : '-'}</td>
+                                                                        <td style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>
+                                                                            {med.quantity || '-'}
+                                                                            {med.refills && med.refills !== '0' && <span style={{ display: 'block', fontSize: '0.7rem', color: '#64748b' }}>Refills: {med.refills}</span>}
+                                                                        </td>
+                                                                        <td style={{ padding: '0.5rem', border: '1px solid #e2e8f0' }}>
+                                                                            {med.instruction && <div>{med.instruction}</div>}
+                                                                            {med.special_instructions && <div style={{ fontSize: '0.78rem', color: '#b45309', fontWeight: 600 }}>⚠ {med.special_instructions}</div>}
+                                                                            {med.pharmacist_notes && <div style={{ fontSize: '0.75rem', color: '#0d9488' }}>ℹ {med.pharmacist_notes}</div>}
+                                                                        </td>
                                                                     </tr>
                                                                 ))}
                                                             </tbody>
@@ -1295,21 +3622,70 @@ const ClinicalEntry = () => {
                                         )}
                                         {selectedRecord.other_medication && (
                                             <article className="info-block-v3">
-                                                <label>Other Medication</label>
-                                                <p style={{ marginTop: '0.5rem' }}>{selectedRecord.other_medication}</p>
+                                                <label>Other Medication (OTC & Supplements)</label>
+                                                <p style={{ marginTop: '0.5rem', whiteSpace: 'pre-line' }}>{selectedRecord.other_medication}</p>
+                                            </article>
+                                        )}
+                                        {(selectedRecord.dietary_plan || selectedRecord.activity_restrictions || selectedRecord.home_monitoring || selectedRecord.school_work_note || selectedRecord.storage_instructions || selectedRecord.side_effects_warning || selectedRecord.pregnancy_lactation_status) && (
+                                            <article className="info-block-v3">
+                                                <label>Non-Medication Prescriptions & Patient Safety</label>
+                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem', marginTop: '0.5rem' }}>
+                                                    {selectedRecord.dietary_plan && (
+                                                        <div style={{ background: '#f8fafc', padding: '0.6rem 0.8rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>
+                                                            <strong style={{ color: '#0f766e', display: 'block', marginBottom: '2px' }}>🥗 Dietary & Nutrition Plan</strong>
+                                                            {selectedRecord.dietary_plan}
+                                                        </div>
+                                                    )}
+                                                    {selectedRecord.activity_restrictions && (
+                                                        <div style={{ background: '#f8fafc', padding: '0.6rem 0.8rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>
+                                                            <strong style={{ color: '#0f766e', display: 'block', marginBottom: '2px' }}>🏃 Activity Restrictions</strong>
+                                                            {selectedRecord.activity_restrictions}
+                                                        </div>
+                                                    )}
+                                                    {selectedRecord.home_monitoring && (
+                                                        <div style={{ background: '#f8fafc', padding: '0.6rem 0.8rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>
+                                                            <strong style={{ color: '#0f766e', display: 'block', marginBottom: '2px' }}>🩺 Home Monitoring Plan</strong>
+                                                            {selectedRecord.home_monitoring}
+                                                        </div>
+                                                    )}
+                                                    {selectedRecord.school_work_note && (
+                                                        <div style={{ background: '#f8fafc', padding: '0.6rem 0.8rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>
+                                                            <strong style={{ color: '#0f766e', display: 'block', marginBottom: '2px' }}>📝 School / Work Excuse</strong>
+                                                            {selectedRecord.school_work_note}
+                                                        </div>
+                                                    )}
+                                                    {selectedRecord.storage_instructions && (
+                                                        <div style={{ background: '#fffbeb', padding: '0.6rem 0.8rem', borderRadius: '6px', border: '1px solid #fde68a', fontSize: '0.85rem', color: '#92400e' }}>
+                                                            <strong style={{ display: 'block', marginBottom: '2px' }}>❄ Medication Storage</strong>
+                                                            {selectedRecord.storage_instructions}
+                                                        </div>
+                                                    )}
+                                                    {selectedRecord.side_effects_warning && (
+                                                        <div style={{ background: '#fef2f2', padding: '0.6rem 0.8rem', borderRadius: '6px', border: '1px solid #fecaca', fontSize: '0.85rem', color: '#991b1b' }}>
+                                                            <strong style={{ display: 'block', marginBottom: '2px' }}>⚠ Side Effects & Precautions</strong>
+                                                            {selectedRecord.side_effects_warning}
+                                                        </div>
+                                                    )}
+                                                    {selectedRecord.pregnancy_lactation_status && (
+                                                        <div style={{ background: '#fdf2f8', padding: '0.6rem 0.8rem', borderRadius: '6px', border: '1px solid #fbcfe8', fontSize: '0.85rem', color: '#9d174d' }}>
+                                                            <strong style={{ display: 'block', marginBottom: '2px' }}>🤱 Pregnancy / Lactation Status</strong>
+                                                            {selectedRecord.pregnancy_lactation_status}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </article>
                                         )}
                                         {(selectedRecord.advice || selectedRecord.admission_status) && (
                                             <article className="info-block-v3">
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <label>Advice & Instructions</label>
+                                                    <label>General Advice & Instructions</label>
                                                     {selectedRecord.admission_status === 'Required' && (
                                                         <span style={{ background: '#fee2e2', color: '#ef4444', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700 }}>
                                                             Admission Required
                                                         </span>
                                                     )}
                                                 </div>
-                                                {selectedRecord.advice && <p className="advice-text" style={{ marginTop: '0.5rem' }}>{selectedRecord.advice}</p>}
+                                                {selectedRecord.advice && <p className="advice-text" style={{ marginTop: '0.5rem', whiteSpace: 'pre-line' }}>{selectedRecord.advice}</p>}
                                             </article>
                                         )}
                                         {selectedRecord.next_visit_due && (
@@ -1445,1944 +3821,6 @@ const ClinicalEntry = () => {
                 </main>
             </div>
 
-            {/* Modal */}
-            {showModal && (
-                <div className="modal-overlay-v3">
-                    <div className="modal-content-v3">
-                        <header className="modal-header-v3" style={{ borderBottom: '1px solid #e2e8f0', background: '#fff', padding: '1.25rem 2rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <div style={{ background: '#eef2ff', color: '#6366f1', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Clipboard size={22} />
-                                </div>
-                                <div>
-                                    <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 850, color: '#1e293b' }}>New Clinical Entry</h3>
-                                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>Document patient visit and clinical observations</p>
-                                </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                <button
-                                    type="button"
-                                    className="btn-header-v4"
-                                    style={{ padding: '6px 12px', fontSize: '0.75rem' }}
-                                    onClick={() => setForm({
-                                        ...EMPTY_ENTRY,
-                                        patient_id: '26-HA6',
-                                        visit_date: '2026-04-08',
-                                        visit_type: 'CONSULTATION',
-                                        attending_doctor: 'Dr. Deepak',
-                                        diagnosis: 'Acute Upper Respiratory Infection',
-                                        chief_complaint: 'Fever and Cough since 2 days',
-                                        symptoms: 'Fever, Dry Cough, Nasal Congestion',
-                                        weight: '12.5',
-                                        temperature: '101',
-                                        spo2: '98',
-                                        pulse: '110',
-                                        head_circumference: '48',
-                                        prescription: 'Syp. Paracetamol 5ml - TDS - 3 days\nSyp. Ascoril LS 2.5ml - BD - 5 days',
-                                        advice: 'Warm fluids, No cold water, Saline nasal drops PRN',
-                                        clinical_notes: 'Throat congested, Chest clear on auscultation. No distress.'
-                                    })}
-                                >
-                                    <Zap size={14} />
-                                    <span>Load Sample (Hafsa)</span>
-                                </button>
-                                <button onClick={() => setShowModal(false)} className="close-btn"><X size={20} /></button>
-                            </div>
-                        </header>
-
-                        <form onSubmit={handleAddEntry} className="entry-form-v3 custom-scrollbar">
-                            <div className="form-grid-premium">
-                                {/* Left Column: Meta & Observation */}
-                                <div className="col-span-12">
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title">Patient Summary</div>
-                                        </div>
-
-                                        {/* Patient Info Row — refined style */}
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '1.5rem', padding: '1.25rem', background: '#fcfdfe', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
-                                            <div className="f-group-premium" style={{ margin: 0 }}>
-                                                <label style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Full Name</label>
-                                                {patientDetailsLoading ? (
-                                                    <div style={{ height: '24px', display: 'flex', alignItems: 'center', gap: '6px', color: '#cbd5e1', fontSize: '0.85rem' }}>
-                                                        <RefreshCw size={12} className="spinning" />
-                                                    </div>
-                                                ) : (
-                                                    <div style={{ fontWeight: 800, color: '#1e293b', fontSize: '0.95rem', marginTop: '2px' }}>
-                                                        {patientDetails ? pname(patientDetails) || (patientDetails.full_name) || '—' : (selectedPatient ? pname(selectedPatient) : '—')}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="f-group-premium" style={{ margin: 0 }}>
-                                                <label style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Age & DOB</label>
-                                                {patientDetailsLoading ? (
-                                                    <div style={{ height: '24px', color: '#cbd5e1' }}><RefreshCw size={12} className="spinning" /></div>
-                                                ) : (
-                                                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '0.9rem', marginTop: '2px' }}>
-                                                        {age(patientDetails?.dob || selectedPatient?.dob) || '—'}
-                                                        <span style={{ color: '#94a3b8', fontWeight: 500, marginLeft: '6px', fontSize: '0.8rem' }}>({fmt(patientDetails?.dob || selectedPatient?.dob)})</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="f-group-premium" style={{ margin: 0 }}>
-                                                <label style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Gender</label>
-                                                {patientDetailsLoading ? (
-                                                    <div style={{ height: '24px', color: '#cbd5e1' }}><RefreshCw size={12} className="spinning" /></div>
-                                                ) : (
-                                                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '0.9rem', marginTop: '2px', textTransform: 'capitalize' }}>
-                                                        {(patientDetails?.gender || selectedPatient?.gender) || '—'}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="f-group-premium" style={{ margin: 0 }}>
-                                                <label style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Contact</label>
-                                                {patientDetailsLoading ? (
-                                                    <div style={{ height: '24px', color: '#cbd5e1' }}><RefreshCw size={12} className="spinning" /></div>
-                                                ) : (
-                                                    <div style={{ fontWeight: 700, color: '#334155', fontSize: '0.9rem', marginTop: '2px' }}>
-                                                        {(patientDetails?.wa_id || patientDetails?.parent_mobile || selectedPatient?.wa_id || selectedPatient?.parent_mobile) || '—'}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                        {(clinicalContext.allergy_summary.length > 0 || clinicalContext.current_meds.length > 0 || clinicalContext.vitals_history.length > 0) && (
-                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-                                                <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '10px', padding: '0.75rem' }}>
-                                                    <div style={{ fontSize: '0.72rem', color: '#c2410c', fontWeight: 800, textTransform: 'uppercase' }}>Allergy Summary</div>
-                                                    <div style={{ marginTop: '0.25rem', fontSize: '0.82rem', color: '#7c2d12' }}>
-                                                        {clinicalContext.allergy_summary.length > 0 ? clinicalContext.allergy_summary.slice(0, 3).join(', ') : 'No prior allergy recorded'}
-                                                    </div>
-                                                </div>
-                                                <div style={{ background: '#ecfeff', border: '1px solid #a5f3fc', borderRadius: '10px', padding: '0.75rem' }}>
-                                                    <div style={{ fontSize: '0.72rem', color: '#0e7490', fontWeight: 800, textTransform: 'uppercase' }}>Current Medications</div>
-                                                    <div style={{ marginTop: '0.25rem', fontSize: '0.82rem', color: '#155e75' }}>
-                                                        {clinicalContext.current_meds.length > 0 ? clinicalContext.current_meds.slice(0, 2).map((m) => m.medicine).filter(Boolean).join(', ') : 'No continued medication'}
-                                                    </div>
-                                                </div>
-                                                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '0.75rem' }}>
-                                                    <div style={{ fontSize: '0.72rem', color: '#166534', fontWeight: 800, textTransform: 'uppercase' }}>Vitals Trend</div>
-                                                    <div style={{ marginTop: '0.25rem', fontSize: '0.82rem', color: '#14532d' }}>
-                                                        {clinicalContext.vitals_history.length > 0 ? `${clinicalContext.vitals_history.length} prior entries` : 'No historical vitals'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {clinicalContext.patient_history.length > 0 && (
-                                            <div style={{ marginBottom: '1rem', border: '1px solid #e2e8f0', borderRadius: '10px', background: '#fff', padding: '0.75rem' }}>
-                                                <div style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-                                                    Patient History (Recent Visits)
-                                                </div>
-                                                <div style={{ display: 'grid', gap: '0.45rem' }}>
-                                                    {clinicalContext.patient_history.slice(0, 5).map((item, idx) => (
-                                                        <div key={`${item.source}-${item.appointment_id || idx}`} style={{ display: 'grid', gridTemplateColumns: '90px 90px 1fr', gap: '0.5rem', fontSize: '0.8rem', color: '#334155' }}>
-                                                            <span style={{ color: '#64748b' }}>{fmt(item.visit_date)}</span>
-                                                            <span style={{ fontWeight: 700 }}>{item.visit_type || '-'}</span>
-                                                            <span>{item.diagnosis || item.chief_complaint || 'No summary'}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                                            <div className="f-group-premium">
-                                                <label>Patient ID</label>
-                                                <input className="input-premium-v4" disabled value={form.patient_id} />
-                                            </div>
-                                            <div className="f-group-premium">
-                                                <label>Visit Date</label>
-                                                <input className="input-premium-v4" type="date" value={form.visit_date} onChange={e => setForm({ ...form, visit_date: e.target.value })} required />
-                                            </div>
-                                            <div className="f-group-premium">
-                                                <label>Visit Type</label>
-                                                <select className="input-premium-v4" value={form.visit_type} onChange={e => setForm({ ...form, visit_type: e.target.value })}>
-                                                    <option value="CONSULTATION">Consultation</option>
-                                                    <option value="VACCINATION">Vaccination</option>
-                                                    <option value="FOLLOW_UP">Follow-up</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div className="f-group-premium" style={{ marginTop: '0.5rem' }}>
-                                            <label>Attending Doctor</label>
-                                            <select className="input-premium-v4" value={form.attending_doctor} onChange={e => setForm({ ...form, attending_doctor: e.target.value })} required>
-                                                <option value="">Select Doctor</option>
-                                                {doctorsList.map(doc => <option key={doc._id} value={doc.name}>{doc.name}</option>)}
-                                                {form.attending_doctor && !doctorsList.find(d => d.name === form.attending_doctor) && (
-                                                    <option value={form.attending_doctor}>{form.attending_doctor}</option>
-                                                )}
-                                            </select>
-                                        </div>
-                                        {/* ── Patient Vitals ── */}
-                                        <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                            <div className="premium-header-v2">
-                                                <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <Activity size={16} /> Patient Vitals
-                                                </div>
-                                            </div>
-
-                                            {/* Physical Growth Group */}
-                                            <div style={{ marginBottom: '1.5rem' }}>
-                                                <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <div style={{ height: '1px', flex: 1, background: '#f1f5f9' }}></div>
-                                                    Growth
-                                                    <div style={{ height: '1px', flex: 1, background: '#f1f5f9' }}></div>
-                                                </div>
-                                                <div className="vitals-grid-v4" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                                                    <div className="vital-input-v4">
-                                                        <label>Weight <span style={{ color: '#94a3b8', fontWeight: 500 }}>(kg)</span></label>
-                                                        <input placeholder="0.0" value={form.weight} onChange={e => { const w = e.target.value; setForm({ ...form, weight: w, bmi: calcBMI(w, form.height) }); }} />
-                                                    </div>
-                                                    <div className="vital-input-v4">
-                                                        <label>Height <span style={{ color: '#94a3b8', fontWeight: 500 }}>(cm)</span></label>
-                                                        <input placeholder="0" value={form.height} onChange={e => { const h = e.target.value; setForm({ ...form, height: h, bmi: calcBMI(form.weight, h) }); }} />
-                                                    </div>
-                                                    <div className="vital-input-v4" style={{ gridColumn: '1 / -1', background: '#f8faff', borderStyle: 'dashed' }}>
-                                                        <label>BMI <span style={{ color: '#6366f1', fontSize: '0.6rem', fontWeight: 700, marginLeft: '6px' }}>Auto</span></label>
-                                                        <input placeholder="—" value={form.bmi} readOnly style={{ color: '#6366f1', fontWeight: 800 }} />
-                                                    </div>
-                                                    <div className="vital-input-v4" style={{ gridColumn: '1 / -1' }}>
-                                                        <label>Head Cir. <span style={{ color: '#94a3b8', fontWeight: 500 }}>(cm)</span></label>
-                                                        <input placeholder="0" value={form.head_circumference} onChange={e => setForm({ ...form, head_circumference: e.target.value })} />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Clinical Vitals Group */}
-                                            <div style={{ marginBottom: '1.5rem' }}>
-                                                <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <div style={{ height: '1px', flex: 1, background: '#f1f5f9' }}></div>
-                                                    Clinical
-                                                    <div style={{ height: '1px', flex: 1, background: '#f1f5f9' }}></div>
-                                                </div>
-                                                <div className="vitals-grid-v4" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                                                    <div className="vital-input-v4" style={{ borderLeft: '3px solid #ef4444' }}>
-                                                        <label>Pulse <span style={{ color: '#94a3b8', fontWeight: 500 }}>(bpm)</span></label>
-                                                        <input placeholder="0" value={form.pulse} onChange={e => setForm({ ...form, pulse: e.target.value })} />
-                                                    </div>
-                                                    <div className="vital-input-v4" style={{ borderLeft: '3px solid #3b82f6' }}>
-                                                        <label>SPO2 <span style={{ color: '#94a3b8', fontWeight: 500 }}>(%)</span></label>
-                                                        <input placeholder="98" value={form.spo2} onChange={e => setForm({ ...form, spo2: e.target.value })} />
-                                                    </div>
-                                                    <div className="vital-input-v4">
-                                                        <label>Temp <span style={{ color: '#94a3b8', fontWeight: 500 }}>(°F)</span></label>
-                                                        <input placeholder="98.6" value={form.temperature} onChange={e => setForm({ ...form, temperature: e.target.value })} />
-                                                    </div>
-                                                    <div className="vital-input-v4">
-                                                        <label>BP <span style={{ color: '#94a3b8', fontWeight: 500 }}>mm/Hg</span></label>
-                                                        <input placeholder="120/80" value={form.bp} onChange={e => setForm({ ...form, bp: e.target.value })} />
-                                                    </div>
-                                                    <div className="vital-input-v4" style={{ gridColumn: '1 / -1' }}>
-                                                        <label>Respiration <span style={{ color: '#94a3b8', fontWeight: 500 }}>b/min</span></label>
-                                                        <input placeholder="18" value={form.respiration} onChange={e => setForm({ ...form, respiration: e.target.value })} />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Assessment Group */}
-                                            <div>
-                                                <div style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <div style={{ height: '1px', flex: 1, background: '#f1f5f9' }}></div>
-                                                    Assessment
-                                                    <div style={{ height: '1px', flex: 1, background: '#f1f5f9' }}></div>
-                                                </div>
-                                                <div className="vitals-grid-v4">
-                                                    <div className="vital-input-v4" style={{ gridColumn: '1 / -1' }}>
-                                                        <label>Random Sugar <span style={{ color: '#94a3b8', fontWeight: 500 }}>(mg/dL)</span></label>
-                                                        <input placeholder="0" value={form.random_sugar} onChange={e => setForm({ ...form, random_sugar: e.target.value })} />
-                                                    </div>
-                                                    <div className="vital-input-v4">
-                                                        <label>Pain Score</label>
-                                                        <select value={form.pain_score} onChange={e => setForm({ ...form, pain_score: e.target.value })} style={{ border: 'none', fontSize: '0.9rem', fontWeight: 700, outline: 'none', background: 'transparent', cursor: 'pointer' }}>
-                                                            <option value="">—</option>
-                                                            {Array.from({ length: 11 }, (_, i) => i).map(n => <option key={n} value={String(n)}>{n}</option>)}
-                                                        </select>
-                                                    </div>
-                                                    <div className="vital-input-v4">
-                                                        <label>Fall Risk</label>
-                                                        <select value={form.fall_risk} onChange={e => setForm({ ...form, fall_risk: e.target.value })} style={{ border: 'none', fontSize: '0.8rem', fontWeight: 700, outline: 'none', background: 'transparent', cursor: 'pointer' }}>
-                                                            <option value="">—</option>
-                                                            <option value="Low">Low</option>
-                                                            <option value="Moderate">Med</option>
-                                                            <option value="High">High</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* ── Allergy Section ── */}
-                                        <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-
-                                            {/* Header row */}
-                                            <div className="premium-header-v2">
-                                                <div className="title" style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <AlertTriangle size={15} /> Allergy <span style={{ color: '#dc2626' }}>*</span>
-                                                </div>
-                                                <label style={{ display: 'flex', alignItems: 'center', gap: '7px', cursor: 'pointer', fontWeight: 700, fontSize: '0.83rem', color: form.no_known_allergy ? '#0ea5e9' : '#64748b', userSelect: 'none' }}>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={!!form.no_known_allergy}
-                                                        onChange={e => setForm({ ...form, no_known_allergy: e.target.checked, allergies: e.target.checked ? [] : form.allergies })}
-                                                        style={{ accentColor: '#0ea5e9', width: '15px', height: '15px' }}
-                                                    />
-                                                    No Known Allergy
-                                                </label>
-                                            </div>
-
-                                            {!form.no_known_allergy && (
-                                                <>
-                                                    {/* Saved allergy chips */}
-                                                    {(form.allergies || []).length > 0 && (
-                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.85rem' }}>
-                                                            {form.allergies.map((al, idx) => (
-                                                                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', padding: '0.45rem 0.75rem', background: '#fef9f9', borderRadius: '8px', border: '1px solid #fee2e2', fontSize: '0.8rem' }}>
-                                                                    <span style={{ background: '#fee2e2', color: '#991b1b', fontWeight: 800, fontSize: '0.68rem', padding: '1px 8px', borderRadius: '20px', textTransform: 'uppercase' }}>{al.category}</span>
-                                                                    <span style={{ fontWeight: 700, color: '#1e293b' }}>{al.type || '—'}</span>
-                                                                    {al.reaction && <span style={{ color: '#64748b' }}>— {al.reaction}</span>}
-                                                                    {al.intensity && (
-                                                                        <span style={{ fontWeight: 800, fontSize: '0.72rem', color: al.intensity === 'High' ? '#dc2626' : al.intensity === 'Moderate' ? '#d97706' : '#2563eb' }}>
-                                                                            ▲ {al.intensity}
-                                                                        </span>
-                                                                    )}
-                                                                    {al.duration && <span style={{ color: '#94a3b8' }}>• {al.duration}</span>}
-                                                                    {al.informed_by && <span style={{ color: '#94a3b8', fontSize: '0.72rem' }}>| {al.informed_by}</span>}
-                                                                    <button type="button" onClick={() => setForm({ ...form, allergies: form.allergies.filter((_, i) => i !== idx) })} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0 2px', lineHeight: 1 }}>
-                                                                        <X size={12} />
-                                                                    </button>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-
-                                                    {/* Category tabs */}
-                                                    <div style={{ display: 'flex', borderBottom: '2px solid #f1f5f9', marginBottom: '1rem' }}>
-                                                        {[{ val: 'Drug', label: 'Drugs' }, { val: 'Food', label: 'Food' }, { val: 'Other', label: 'Others' }].map(cat => (
-                                                            <button
-                                                                key={cat.val}
-                                                                type="button"
-                                                                onClick={() => setAllergyDraft({ ...allergyDraft, category: cat.val })}
-                                                                style={{ padding: '0.45rem 1.1rem', border: 'none', background: 'transparent', fontWeight: allergyDraft.category === cat.val ? 800 : 600, fontSize: '0.85rem', color: allergyDraft.category === cat.val ? '#0ea5e9' : '#64748b', borderBottom: allergyDraft.category === cat.val ? '2.5px solid #0ea5e9' : '2.5px solid transparent', marginBottom: '-2px', cursor: 'pointer', transition: '0.15s' }}
-                                                            >
-                                                                {cat.label}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-
-                                                    {/* 2-column label / input grid */}
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: '0.7rem 1rem', alignItems: 'center' }}>
-
-                                                        {/* Allergy name */}
-                                                        <span style={{ fontSize: '0.83rem', fontWeight: 700, color: '#374151' }}>{allergyDraft.category === 'Drug' ? 'Drug' : allergyDraft.category === 'Food' ? 'Food' : 'Other'}</span>
-                                                        <input className="input-premium-v4" style={{ fontSize: '0.82rem' }} placeholder={allergyDraft.category === 'Drug' ? 'Type Drug Name' : allergyDraft.category === 'Food' ? 'Type Food Name' : 'Type Other Text'} value={allergyDraft.type} list="allergy-options" onChange={e => setAllergyDraft({ ...allergyDraft, type: e.target.value })} />
-
-                                                        {/* Reaction */}
-                                                        <span style={{ fontSize: '0.83rem', fontWeight: 700, color: '#374151' }}>Reaction</span>
-                                                        <input className="input-premium-v4" style={{ fontSize: '0.82rem' }} placeholder="e.g. Rash, Swelling, Itching" value={allergyDraft.reaction} onChange={e => setAllergyDraft({ ...allergyDraft, reaction: e.target.value })} />
-
-                                                        {/* Intensity */}
-                                                        <span style={{ fontSize: '0.83rem', fontWeight: 700, color: '#374151' }}>Intensity</span>
-                                                        <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
-                                                            {[{ val: 'Low', color: '#2563eb' }, { val: 'Moderate', color: '#d97706' }, { val: 'High', color: '#dc2626' }].map(opt => (
-                                                                <label key={opt.val} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: allergyDraft.intensity === opt.val ? opt.color : '#64748b', userSelect: 'none' }}>
-                                                                    <input type="radio" name="al-intensity" value={opt.val} checked={allergyDraft.intensity === opt.val} onChange={() => setAllergyDraft({ ...allergyDraft, intensity: opt.val })} style={{ accentColor: opt.color }} />
-                                                                    {opt.val} <span style={{ color: opt.color, fontWeight: 900, fontSize: '0.8rem' }}>▲</span>
-                                                                </label>
-                                                            ))}
-                                                        </div>
-
-                                                        {/* Duration */}
-                                                        <span style={{ fontSize: '0.83rem', fontWeight: 700, color: '#374151' }}>Duration</span>
-                                                        <select className="input-premium-v4" style={{ fontSize: '0.82rem' }} value={allergyDraft.duration} onChange={e => setAllergyDraft({ ...allergyDraft, duration: e.target.value })}>
-                                                            <option value="">--select--</option>
-                                                            <option>Immediate (minutes)</option>
-                                                            <option>Hours (1–24 hrs)</option>
-                                                            <option>Days (1–7 days)</option>
-                                                            <option>Weeks (1–4 weeks)</option>
-                                                            <option>Months (1–6 months)</option>
-                                                            <option>Chronic / Lifelong</option>
-                                                        </select>
-
-                                                        {/* Informed By */}
-                                                        <span style={{ fontSize: '0.83rem', fontWeight: 700, color: '#374151', alignSelf: 'flex-start', paddingTop: '0.2rem' }}>Informed By:</span>
-                                                        <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
-                                                            {['By Patient', 'By Guardian', 'Observed by Doctor'].map(opt => (
-                                                                <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: allergyDraft.informed_by === opt ? '#6366f1' : '#64748b', userSelect: 'none' }}>
-                                                                    <input type="radio" name="al-informed-by" value={opt} checked={allergyDraft.informed_by === opt} onChange={() => setAllergyDraft({ ...allergyDraft, informed_by: opt })} style={{ accentColor: '#6366f1' }} />
-                                                                    {opt}
-                                                                </label>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Save / Clear buttons */}
-                                                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                if (!allergyDraft.type.trim()) return;
-                                                                setForm({ ...form, allergies: [...(form.allergies || []), { ...allergyDraft }] });
-                                                                setAllergyDraft({ ...EMPTY_ALLERGY });
-                                                            }}
-                                                            className="btn-add-item-premium"
-                                                        >
-                                                            <Plus size={14} /> Save Allergy
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setAllergyDraft({ ...EMPTY_ALLERGY })}
-                                                            className="btn-clear-item-premium"
-                                                        >
-                                                            Clear
-                                                        </button>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-
-                                        {/* ── Chief Complaints Section ── */}
-                                        <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                            <div className="premium-header-v2">
-                                                <div className="title">Chief Complaints</div>
-                                            </div>
-
-                                            <div className="f-group-premium">
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                                    <label style={{ margin: 0 }}>Chief Complaints</label>
-
-                                                </div>
-                                                <div style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.5rem', background: '#fff' }}>
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: form.chief_complaints_list?.length ? '0.5rem' : '0' }}>
-                                                        {(form.chief_complaints_list || []).map((cc, idx) => (
-                                                            <span key={idx} style={{ background: '#e2e8f0', color: '#475569', padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                                {cc}
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        const list = [...form.chief_complaints_list];
-                                                                        list.splice(idx, 1);
-                                                                        setForm({ ...form, chief_complaints_list: list });
-                                                                    }}
-                                                                    style={{ background: '#94a3b8', color: 'white', border: 'none', borderRadius: '50%', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                                                                >
-                                                                    <X size={10} />
-                                                                </button>
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                    <input
-                                                        className="input-premium-v4 cc-placeholder-style"
-                                                        style={{ border: 'none', padding: 0, boxShadow: 'none', width: '100%', background: 'transparent' }}
-                                                        placeholder="Type Chief Complaints and press Enter"
-                                                        list="chief-complaints-options"
-                                                        onKeyDown={e => {
-                                                            if (e.key === 'Enter') {
-                                                                e.preventDefault();
-                                                                const val = e.target.value.trim();
-                                                                if (val) {
-                                                                    setForm({ ...form, chief_complaints_list: [...(form.chief_complaints_list || []), val] });
-                                                                    e.target.value = '';
-                                                                }
-                                                            }
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="f-group-premium" style={{ marginTop: '1rem' }}>
-                                                <label>History of Present Illness</label>
-                                                <textarea
-                                                    className="textarea-premium-v4 cc-placeholder-style"
-                                                    rows={3}
-                                                    placeholder="Type History of Present Illness"
-                                                    value={form.history_of_present_illness}
-                                                    onChange={e => setForm({ ...form, history_of_present_illness: e.target.value })}
-                                                    style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* ── Past History Section ── */}
-                                        <div className="form-card-premium" style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.5rem' }}>
-                                            <div className="premium-header-v2">
-                                                <div className="title">Past & Family History</div>
-                                            </div>
-                                            <div className="f-group-premium">
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                                                    <label style={{ margin: 0 }}>Past History</label>
-
-                                                </div>
-                                                <textarea
-                                                    className="textarea-premium-v4 cc-placeholder-style"
-                                                    rows={3}
-                                                    placeholder="Type Past History"
-                                                    value={form.past_history}
-                                                    onChange={e => setForm({ ...form, past_history: e.target.value })}
-                                                    style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
-                                                    maxLength={2000}
-                                                />
-                                                <div style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'left', marginTop: '0.2rem' }}>
-                                                    {2000 - (form.past_history?.length || 0)} characters left
-                                                </div>
-                                            </div>
-
-                                            <div className="f-group-premium">
-                                                <label>Personal and Socioeconomic History</label>
-                                                <textarea
-                                                    className="textarea-premium-v4 cc-placeholder-style"
-                                                    rows={3}
-                                                    placeholder="Type Personal / Socioeconomic History"
-                                                    value={form.personal_history}
-                                                    onChange={e => setForm({ ...form, personal_history: e.target.value })}
-                                                    style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
-                                                />
-                                            </div>
-
-                                            <div className="f-group-premium">
-                                                <label>Family History</label>
-                                                <textarea
-                                                    className="textarea-premium-v4 cc-placeholder-style"
-                                                    rows={3}
-                                                    placeholder="Type Family History"
-                                                    value={form.family_history}
-                                                    onChange={e => setForm({ ...form, family_history: e.target.value })}
-                                                    style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
-                                                />
-                                            </div>
-
-                                            {/* Family Disease Builder */}
-                                            <div style={{ marginTop: '0.5rem' }}>
-                                                {form.family_diseases?.length > 0 && (
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.8rem' }}>
-                                                        {form.family_diseases.map((fd, idx) => (
-                                                            <span key={idx} style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', color: '#334155' }}>
-                                                                {fd.disease} - {fd.relationship}
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        const updated = [...form.family_diseases];
-                                                                        updated.splice(idx, 1);
-                                                                        setForm({ ...form, family_diseases: updated });
-                                                                    }}
-                                                                    style={{ background: '#94a3b8', color: 'white', border: 'none', borderRadius: '50%', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                                                                >
-                                                                    <X size={10} />
-                                                                </button>
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-
-                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto auto', gap: '0.8rem', alignItems: 'end' }}>
-                                                    <div className="f-group-premium" style={{ margin: 0 }}>
-                                                        <label style={{ fontSize: '0.75rem', fontWeight: 800 }}>Disease</label>
-                                                        <select
-                                                            className="input-premium-v4"
-                                                            style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.5rem' }}
-                                                            value={familyDiseaseDraft.disease}
-                                                            onChange={e => setFamilyDiseaseDraft({ ...familyDiseaseDraft, disease: e.target.value })}
-                                                        >
-                                                            <option value="">Select Disease</option>
-                                                            <option value="Diabetes">Diabetes</option>
-                                                            <option value="Hypertension">Hypertension</option>
-                                                            <option value="Asthma">Asthma</option>
-                                                            <option value="Thyroid">Thyroid</option>
-                                                            <option value="Heart Disease">Heart Disease</option>
-                                                            <option value="Cancer">Cancer</option>
-                                                        </select>
-                                                    </div>
-                                                    <div className="f-group-premium" style={{ margin: 0 }}>
-                                                        <label style={{ fontSize: '0.75rem', fontWeight: 800 }}>Relationship</label>
-                                                        <select
-                                                            className="input-premium-v4"
-                                                            style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.5rem' }}
-                                                            value={familyDiseaseDraft.relationship}
-                                                            onChange={e => setFamilyDiseaseDraft({ ...familyDiseaseDraft, relationship: e.target.value })}
-                                                        >
-                                                            <option value="">Select Relationship</option>
-                                                            <option value="Father">Father</option>
-                                                            <option value="Mother">Mother</option>
-                                                            <option value="Paternal Grandfather">Paternal Grandfather</option>
-                                                            <option value="Paternal Grandmother">Paternal Grandmother</option>
-                                                            <option value="Maternal Grandfather">Maternal Grandfather</option>
-                                                            <option value="Maternal Grandmother">Maternal Grandmother</option>
-                                                            <option value="Sibling">Sibling</option>
-                                                        </select>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            if (familyDiseaseDraft.disease && familyDiseaseDraft.relationship) {
-                                                                setForm({ ...form, family_diseases: [...(form.family_diseases || []), familyDiseaseDraft] });
-                                                                setFamilyDiseaseDraft({ disease: '', relationship: '' });
-                                                            }
-                                                        }}
-                                                        className="btn-add-item-premium"
-                                                        style={{ height: '38px' }}
-                                                    >
-                                                        Add
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setFamilyDiseaseDraft({ disease: '', relationship: '' })}
-                                                        className="btn-clear-item-premium"
-                                                        style={{ height: '38px' }}
-                                                    >
-                                                        Clear
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* ── Physical Examination Section ── */}
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title">Physical Examination</div>
-                                        </div>
-
-                                        <div className="f-group-premium" style={{ margin: 0 }}>
-                                            <label style={{ fontSize: '0.85rem', marginBottom: '0.5rem', display: 'block' }}>General Physical Examination</label>
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', rowGap: '1rem' }}>
-                                                {[
-                                                    { key: 'pe_pallor', label: 'Pallor' },
-                                                    { key: 'pe_icterus', label: 'Icterus' },
-                                                    { key: 'pe_oedema', label: 'Oedema' },
-                                                    { key: 'pe_lymphadenopathy', label: 'Lymphadenopathy' },
-                                                    { key: 'pe_cyanosis', label: 'Cyanosis' },
-                                                    { key: 'pe_clubbing', label: 'Clubbing' }
-                                                ].map(item => (
-                                                    <div key={item.key} style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                                                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#334155' }}>{item.label}</span>
-                                                        <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                                            {['Yes', 'No'].map(opt => (
-                                                                <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#475569', cursor: 'pointer' }}>
-                                                                    <input
-                                                                        type="radio"
-                                                                        name={item.key}
-                                                                        value={opt}
-                                                                        checked={form[item.key] === opt}
-                                                                        onChange={e => setForm({ ...form, [item.key]: e.target.value })}
-                                                                        style={{ accentColor: '#0ea5e9' }}
-                                                                    />
-                                                                    {opt}
-                                                                </label>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        <div className="f-group-premium" style={{ margin: 0 }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                                                <label style={{ margin: 0 }}>Physical Examination</label>
-
-                                            </div>
-                                            <textarea
-                                                className="textarea-premium-v4 cc-placeholder-style"
-                                                rows={4}
-                                                placeholder="Type Physical Examination"
-                                                value={form.physical_examination}
-                                                onChange={e => setForm({ ...form, physical_examination: e.target.value })}
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
-                                                maxLength={2000}
-                                            />
-                                            <div style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'left', marginTop: '0.2rem' }}>
-                                                {2000 - (form.physical_examination?.length || 0)} characters left
-                                            </div>
-                                        </div>
-
-                                        <div className="f-group-premium" style={{ margin: 0 }}>
-                                            <label>Systemic Examination</label>
-                                            <textarea
-                                                className="textarea-premium-v4 cc-placeholder-style"
-                                                rows={4}
-                                                placeholder="Type Systemic Examination"
-                                                value={form.systemic_examination}
-                                                onChange={e => setForm({ ...form, systemic_examination: e.target.value })}
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
-                                                maxLength={2000}
-                                            />
-                                            <div style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'left', marginTop: '0.2rem', display: 'flex', justifyContent: 'space-between' }}>
-                                                <span>{2000 - (form.systemic_examination?.length || 0)} characters left</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setForm({
-                                                        ...form,
-                                                        pe_pallor: '', pe_icterus: '', pe_oedema: '', pe_lymphadenopathy: '', pe_cyanosis: '', pe_clubbing: '',
-                                                        physical_examination: '', systemic_examination: ''
-                                                    })}
-                                                    style={{ background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '6px', padding: '0.3rem 1rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
-                                                >
-                                                    Clear
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* ── Annotate Diagram Section ── */}
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title">Annotate Diagram</div>
-                                        </div>
-                                        <div className="f-group-premium" style={{ margin: 0 }}>
-                                            <select
-                                                className="input-premium-v4 cc-placeholder-style"
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.6rem', width: '100%', maxWidth: '400px', color: form.diagram_image ? '#334155' : '#94a3b8' }}
-                                                value={form.diagram_image}
-                                                onChange={e => setForm({ ...form, diagram_image: e.target.value })}
-                                            >
-                                                <option value="" disabled hidden>select Image</option>
-                                                {masterData.diagrams.map((diagram) => (
-                                                    <option key={diagram.id} value={diagram.name} style={{ color: '#334155' }}>
-                                                        {diagram.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    {/* ── Clinical Notes/ Old Reports Section ── */}
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title">Clinical Notes / Old Reports</div>
-                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                                {masterData.noteTemplates.map(tmpl => (
-                                                    <button
-                                                        key={tmpl.name}
-                                                        type="button"
-                                                        onClick={() => setForm({ ...form, clinical_notes: (form.clinical_notes ? form.clinical_notes + '\n' : '') + tmpl.content })}
-                                                        style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
-                                                    >
-                                                        + {tmpl.name}
-                                                    </button>
-                                                ))}
-                                                <button
-                                                    type="button"
-                                                    onClick={async () => {
-                                                        const name = prompt('Enter template name (e.g. Fever Followup):');
-                                                        if (name && form.clinical_notes) {
-                                                            await upsertClinicalTemplate({ name, type: 'note', content: form.clinical_notes });
-                                                            alert('Template saved!');
-                                                            loadMasterData();
-                                                        }
-                                                    }}
-                                                    style={{ background: '#0d9488', color: '#fff', border: 'none', borderRadius: '4px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
-                                                >
-                                                    💾 Save as Template
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="f-group-premium" style={{ margin: 0 }}>
-                                            <textarea
-                                                className="textarea-premium-v4 cc-placeholder-style"
-                                                rows={4}
-                                                placeholder="Type Clinical Notes"
-                                                value={form.clinical_notes}
-                                                onChange={e => setForm({ ...form, clinical_notes: e.target.value })}
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
-                                            />
-                                        </div>
-                                    </div>
-
-
-
-                                    {/* ── Provisional Diagnosis Section ── */}
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title">Provisional Diagnosis</div>
-                                        </div>
-
-                                        <div className="f-group-premium" style={{ margin: 0, marginBottom: '1rem' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                                                <label style={{ margin: 0, fontWeight: 800, fontSize: '0.85rem' }}>Diagnosis</label>
-
-                                            </div>
-                                            <div style={{ position: 'relative' }}>
-                                                <input
-                                                    className="input-premium-v4 cc-placeholder-style"
-                                                    style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.6rem', width: '100%' }}
-                                                    placeholder="ASTHM"
-                                                    value={diagnosisDraft.diagnosis_name}
-                                                    list="icd10-options"
-                                                    onChange={e => {
-                                                        const value = e.target.value;
-                                                        const matched = masterData.icd10.find((row) => row.name?.toLowerCase() === value.toLowerCase());
-                                                        setDiagnosisDraft({ ...diagnosisDraft, diagnosis_name: value, icd_10: matched?.code || diagnosisDraft.icd_10 });
-                                                    }}
-                                                />
-                                                <Search size={16} color="#94a3b8" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                                            </div>
-                                        </div>
-
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
-                                            <div style={{ display: 'flex', gap: '2rem' }}>
-                                                <div className="f-group-premium" style={{ margin: 0 }}>
-                                                    <label style={{ fontSize: '0.8rem', fontWeight: 800, marginBottom: '0.4rem', display: 'block' }}>Stage</label>
-                                                    <div style={{ display: 'flex', gap: '1rem' }}>
-                                                        {['Provisional', 'Final'].map(opt => (
-                                                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: '#0ea5e9', cursor: 'pointer', fontWeight: 600 }}>
-                                                                <input
-                                                                    type="radio"
-                                                                    name="stage"
-                                                                    value={opt}
-                                                                    checked={diagnosisDraft.stage === opt}
-                                                                    onChange={e => setDiagnosisDraft({ ...diagnosisDraft, stage: e.target.value })}
-                                                                    style={{ accentColor: '#0ea5e9' }}
-                                                                />
-                                                                {opt}
-                                                            </label>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                <div className="f-group-premium" style={{ margin: 0 }}>
-                                                    <label style={{ fontSize: '0.8rem', fontWeight: 800, marginBottom: '0.4rem', display: 'block' }}>Type</label>
-                                                    <div style={{ display: 'flex', gap: '1rem' }}>
-                                                        {['Primary', 'Secondary'].map(opt => (
-                                                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: '#0ea5e9', cursor: 'pointer', fontWeight: 600 }}>
-                                                                <input
-                                                                    type="radio"
-                                                                    name="type"
-                                                                    value={opt}
-                                                                    checked={diagnosisDraft.type === opt}
-                                                                    onChange={e => setDiagnosisDraft({ ...diagnosisDraft, type: e.target.value })}
-                                                                    style={{ accentColor: '#0ea5e9' }}
-                                                                />
-                                                                {opt}
-                                                            </label>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (diagnosisDraft.diagnosis_name) {
-                                                            setForm({ ...form, provisional_diagnoses: [...(form.provisional_diagnoses || []), diagnosisDraft] });
-                                                            setDiagnosisDraft({ diagnosis_name: '', icd_10: '', stage: 'Provisional', type: 'Primary', notes: '' });
-                                                        }
-                                                    }}
-                                                    className="btn-add-item-premium"
-                                                >
-                                                    <Plus size={14} /> Add Diagnosis
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setDiagnosisDraft({ diagnosis_name: '', icd_10: '', stage: 'Provisional', type: 'Primary', notes: '' })}
-                                                    className="btn-clear-item-premium"
-                                                >
-                                                    Clear
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div className="f-group-premium" style={{ margin: 0, marginBottom: '1.5rem' }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block' }}>Diagnosis Notes</label>
-                                            <textarea
-                                                className="textarea-premium-v4 cc-placeholder-style"
-                                                rows={4}
-                                                placeholder="-"
-                                                value={diagnosisDraft.notes}
-                                                onChange={e => setDiagnosisDraft({ ...diagnosisDraft, notes: e.target.value })}
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
-                                                maxLength={10000}
-                                            />
-                                            <div style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'left', marginTop: '0.2rem' }}>
-                                                {10000 - (diagnosisDraft.notes?.length || 0)} characters left
-                                            </div>
-                                        </div>
-
-                                        {form.provisional_diagnoses?.length > 0 && (
-                                            <div style={{ overflowX: 'auto', border: '1px solid #bae6fd', borderRadius: '6px' }}>
-                                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                                                    <thead>
-                                                        <tr style={{ background: '#e0f2fe', color: '#0369a1', textAlign: 'left' }}>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>S.No.</th>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>Diagnosis</th>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>ICD 10</th>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>Stage</th>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>Type</th>
-                                                            <th style={{ padding: '0.5rem', borderBottom: '1px solid #bae6fd' }}>Action</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {form.provisional_diagnoses.map((diag, idx) => (
-                                                            <tr key={idx}>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>{idx + 1}</td>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>{diag.diagnosis_name}</td>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>{diag.icd_10 || '-'}</td>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>{diag.stage}</td>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>{diag.type}</td>
-                                                                <td style={{ padding: '0.5rem', borderBottom: '1px solid #e2e8f0' }}>
-                                                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                                        <span style={{ color: '#94a3b8', fontSize: '14px' }}>☆</span>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => {
-                                                                                const updated = [...form.provisional_diagnoses];
-                                                                                updated.splice(idx, 1);
-                                                                                setForm({ ...form, provisional_diagnoses: updated });
-                                                                            }}
-                                                                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0 }}
-                                                                        >
-                                                                            <Trash2 size={14} />
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* ── Investigation Section ── */}
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title">Investigation Advice</div>
-                                        </div>
-
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end', marginBottom: '1rem' }}>
-                                            <div className="f-group-premium" style={{ margin: 0, flex: '1 1 300px' }}>
-                                                <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.4rem', display: 'block' }}>Investigation Advised</label>
-                                                <div style={{ position: 'relative' }}>
-                                                    <input
-                                                        className="input-premium-v4 cc-placeholder-style"
-                                                        style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.6rem', width: '100%', borderColor: '#ef4444' }}
-                                                        placeholder="Investigation Advised"
-                                                        value={investigationDraft.name}
-                                                        list="investigation-options"
-                                                        onChange={e => setInvestigationDraft({ ...investigationDraft, name: e.target.value })}
-                                                    />
-                                                    <Search size={16} color="#94a3b8" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                                                </div>
-                                            </div>
-                                            <div className="f-group-premium" style={{ margin: 0 }}>
-                                                <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.4rem', display: 'block' }}>Priority</label>
-                                                <div style={{ display: 'flex', gap: '1rem', height: '42px', alignItems: 'center' }}>
-                                                    {['Routine', 'Stat', 'Follow-up'].map(opt => (
-                                                        <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: '#0ea5e9', cursor: 'pointer', fontWeight: 600 }}>
-                                                            <input
-                                                                type="radio"
-                                                                name="inv_priority"
-                                                                value={opt}
-                                                                checked={investigationDraft.priority === opt}
-                                                                onChange={e => setInvestigationDraft({ ...investigationDraft, priority: e.target.value })}
-                                                                style={{ accentColor: '#0ea5e9' }}
-                                                            />
-                                                            {opt}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div style={{ display: 'flex', gap: '0.5rem', height: '42px', alignItems: 'center' }}>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (investigationDraft.name && investigationDraft.priority) {
-                                                            setForm({ ...form, investigations_list: [...(form.investigations_list || []), investigationDraft] });
-                                                            setInvestigationDraft({ name: '', priority: 'Routine' });
-                                                        }
-                                                    }}
-                                                    className="btn-add-item-premium"
-                                                    style={{ height: '42px' }}
-                                                >
-                                                    <Plus size={14} /> Add
-                                                </button>
-
-
-                                            </div>
-                                        </div>
-
-                                        {form.investigations_list?.length > 0 && (
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
-                                                {form.investigations_list.map((inv, idx) => (
-                                                    <span key={idx} style={{ background: '#f1f5f9', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', color: '#0369a1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        {inv.name} ({inv.priority})
-                                                        <button type="button" onClick={() => { const updated = [...form.investigations_list]; updated.splice(idx, 1); setForm({ ...form, investigations_list: updated }); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}><X size={14} /></button>
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        <div className="f-group-premium" style={{ margin: 0 }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block' }}>Other Investigation</label>
-                                            <textarea
-                                                className="textarea-premium-v4 cc-placeholder-style"
-                                                rows={3}
-                                                placeholder="Type Investigation"
-                                                value={form.investigations}
-                                                onChange={e => setForm({ ...form, investigations: e.target.value })}
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* ── Procedure Section ── */}
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title">Procedure Advised</div>
-                                        </div>
-
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end', marginBottom: '1rem' }}>
-                                            <div className="f-group-premium" style={{ margin: 0, flex: '1 1 300px' }}>
-                                                <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.4rem', display: 'block' }}>Procedure Advised</label>
-                                                <div style={{ position: 'relative' }}>
-                                                    <input
-                                                        className="input-premium-v4 cc-placeholder-style"
-                                                        style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.6rem', width: '100%', borderColor: '#ef4444' }}
-                                                        placeholder="Procedure Advised"
-                                                        value={procedureDraft.name}
-                                                        list="procedure-options"
-                                                        onChange={e => setProcedureDraft({ ...procedureDraft, name: e.target.value })}
-                                                    />
-                                                    <Search size={16} color="#94a3b8" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                                                </div>
-                                            </div>
-                                            <div style={{ display: 'flex', gap: '0.5rem', height: '42px', alignItems: 'center' }}>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (procedureDraft.name) {
-                                                            setForm({ ...form, procedures_list: [...(form.procedures_list || []), procedureDraft] });
-                                                            setProcedureDraft({ name: '' });
-                                                        }
-                                                    }}
-                                                    className="btn-add-item-premium"
-                                                    style={{ height: '42px' }}
-                                                >
-                                                    <Plus size={14} /> Add
-                                                </button>
-
-
-                                            </div>
-                                        </div>
-
-                                        {form.procedures_list?.length > 0 && (
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
-                                                {form.procedures_list.map((proc, idx) => (
-                                                    <span key={idx} style={{ background: '#f1f5f9', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', color: '#0369a1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        {proc.name}
-                                                        <button type="button" onClick={() => { const updated = [...form.procedures_list]; updated.splice(idx, 1); setForm({ ...form, procedures_list: updated }); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}><X size={14} /></button>
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        <div className="f-group-premium" style={{ margin: 0 }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block' }}>Other Procedure</label>
-                                            <textarea
-                                                className="textarea-premium-v4 cc-placeholder-style"
-                                                rows={3}
-                                                placeholder="Type Procedure"
-                                                value={form.other_procedure}
-                                                onChange={e => setForm({ ...form, other_procedure: e.target.value })}
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* ── Medication History Section ── */}
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title">Medication History</div>
-                                        </div>
-
-                                        <div style={{ overflowX: 'auto', border: '1px solid #bae6fd', borderRadius: '6px', marginBottom: '1rem' }}>
-                                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                                                <thead>
-                                                    <tr style={{ background: '#e0f2fe', color: '#0369a1', textAlign: 'left' }}>
-                                                        <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd', width: '40px' }}>S.No</th>
-                                                        <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>Drug</th>
-                                                        <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>Form</th>
-                                                        <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>Dose</th>
-                                                        <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>Route</th>
-                                                        <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>Frequency</th>
-                                                        <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd', width: '100px' }}>To be Continued</th>
-                                                        <th style={{ padding: '0.5rem', borderBottom: '1px solid #bae6fd', width: '80px' }}>Action</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {form.medication_history?.map((med, idx) => (
-                                                        <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                            <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0' }}>
-                                                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '20px', height: '20px', background: '#f1f5f9', borderRadius: '4px' }}>
-                                                                    <span style={{ fontSize: '10px' }}>❖</span>
-                                                                </div>
-                                                            </td>
-                                                            <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', fontWeight: 600, color: '#475569' }}>{med.drug}</td>
-                                                            <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', color: '#475569' }}>{med.form}</td>
-                                                            <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', color: '#475569' }}>{med.dose}</td>
-                                                            <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', color: '#475569' }}>{med.route}</td>
-                                                            <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', color: '#475569' }}>{med.frequency}</td>
-                                                            <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', color: '#475569' }}>{med.to_be_continued}</td>
-                                                            <td style={{ padding: '0.5rem' }}>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        const updated = [...form.medication_history];
-                                                                        updated.splice(idx, 1);
-                                                                        setForm({ ...form, medication_history: updated });
-                                                                    }}
-                                                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem' }}
-                                                                >
-                                                                    <Trash2 size={16} />
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                    <tr>
-                                                        <td style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd' }}>
-                                                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '20px', height: '20px', background: '#f1f5f9', borderRadius: '4px' }}>
-                                                                <span style={{ fontSize: '10px' }}>❖</span>
-                                                            </div>
-                                                        </td>
-                                                        <td style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd' }}>
-                                                            <input
-                                                                className="input-premium-v4 cc-placeholder-style"
-                                                                style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.4rem', width: '100%' }}
-                                                                placeholder="Drug"
-                                                                value={medicationHistoryDraft.drug}
-                                                                list="medicine-options"
-                                                                onChange={e => setMedicationHistoryDraft({ ...medicationHistoryDraft, drug: e.target.value })}
-                                                            />
-                                                        </td>
-                                                        <td style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd' }}>
-                                                            <select
-                                                                className="input-premium-v4 cc-placeholder-style"
-                                                                style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.4rem', width: '100%', color: medicationHistoryDraft.form ? '#334155' : '#94a3b8' }}
-                                                                value={medicationHistoryDraft.form}
-                                                                onChange={e => setMedicationHistoryDraft({ ...medicationHistoryDraft, form: e.target.value })}
-                                                            >
-                                                                <option value="" disabled hidden>--select--</option>
-                                                                <option value="Tablet" style={{ color: '#334155' }}>Tablet</option>
-                                                                <option value="Capsule" style={{ color: '#334155' }}>Capsule</option>
-                                                                <option value="Syrup" style={{ color: '#334155' }}>Syrup</option>
-                                                                <option value="Injection" style={{ color: '#334155' }}>Injection</option>
-                                                            </select>
-                                                        </td>
-                                                        <td style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd' }}>
-                                                            <input
-                                                                className="input-premium-v4 cc-placeholder-style"
-                                                                style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.4rem', width: '100%' }}
-                                                                placeholder="Dose"
-                                                                value={medicationHistoryDraft.dose}
-                                                                onChange={e => setMedicationHistoryDraft({ ...medicationHistoryDraft, dose: e.target.value })}
-                                                            />
-                                                        </td>
-                                                        <td style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd' }}>
-                                                            <select
-                                                                className="input-premium-v4 cc-placeholder-style"
-                                                                style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.4rem', width: '100%', color: medicationHistoryDraft.route ? '#334155' : '#94a3b8' }}
-                                                                value={medicationHistoryDraft.route}
-                                                                onChange={e => setMedicationHistoryDraft({ ...medicationHistoryDraft, route: e.target.value })}
-                                                            >
-                                                                <option value="" disabled hidden>--Route--</option>
-                                                                <option value="Oral" style={{ color: '#334155' }}>Oral</option>
-                                                                <option value="IV" style={{ color: '#334155' }}>IV</option>
-                                                                <option value="IM" style={{ color: '#334155' }}>IM</option>
-                                                                <option value="Topical" style={{ color: '#334155' }}>Topical</option>
-                                                            </select>
-                                                        </td>
-                                                        <td style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd' }}>
-                                                            <select
-                                                                className="input-premium-v4 cc-placeholder-style"
-                                                                style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.4rem', width: '100%', color: medicationHistoryDraft.frequency ? '#334155' : '#94a3b8' }}
-                                                                value={medicationHistoryDraft.frequency}
-                                                                onChange={e => setMedicationHistoryDraft({ ...medicationHistoryDraft, frequency: e.target.value })}
-                                                            >
-                                                                <option value="" disabled hidden>--Schedule--</option>
-                                                                <option value="OD" style={{ color: '#334155' }}>OD</option>
-                                                                <option value="BD" style={{ color: '#334155' }}>BD</option>
-                                                                <option value="TDS" style={{ color: '#334155' }}>TDS</option>
-                                                                <option value="SOS" style={{ color: '#334155' }}>SOS</option>
-                                                            </select>
-                                                        </td>
-                                                        <td style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', fontSize: '0.8rem' }}>
-                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: '#0369a1', fontWeight: 600 }}>
-                                                                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                                                                    <input type="radio" name="med_continue" value="Yes" checked={medicationHistoryDraft.to_be_continued === 'Yes'} onChange={e => setMedicationHistoryDraft({ ...medicationHistoryDraft, to_be_continued: e.target.value })} /> Yes
-                                                                </label>
-                                                                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                                                                    <input type="radio" name="med_continue" value="No" checked={medicationHistoryDraft.to_be_continued === 'No'} onChange={e => setMedicationHistoryDraft({ ...medicationHistoryDraft, to_be_continued: e.target.value })} /> No
-                                                                </label>
-                                                            </div>
-                                                        </td>
-                                                        <td style={{ padding: '0.5rem' }}>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    if (medicationHistoryDraft.drug) {
-                                                                        setForm({ ...form, medication_history: [...(form.medication_history || []), medicationHistoryDraft] });
-                                                                        setMedicationHistoryDraft({ drug: '', form: '', dose: '', route: '', frequency: '', to_be_continued: 'Yes' });
-                                                                    }
-                                                                }}
-                                                                className="btn-add-item-premium"
-                                                                style={{ width: '100%', height: '38px', justifyContent: 'center' }}
-                                                            >
-                                                                Add
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                    {/* ── Medication Advice Section ── */}
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title">Medication Advice</div>
-                                        </div>
-
-                                        <div className="f-group-premium" style={{ margin: 0, marginBottom: '1.5rem' }}>
-                                            <textarea
-                                                className="textarea-premium-v4 cc-placeholder-style"
-                                                rows={3}
-                                                value={form.prescription}
-                                                onChange={e => setForm({ ...form, prescription: e.target.value })}
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
-                                            />
-                                        </div>
-
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                                            <div style={{ flex: '1 1 300px' }}>
-                                                <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden', height: '38px', marginBottom: '0.5rem' }}>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setPrescriptionDraft({ ...prescriptionDraft, type: 'Brand' })}
-                                                        style={{ padding: '0 1rem', background: prescriptionDraft.type === 'Brand' ? '#0d9488' : '#fff', color: prescriptionDraft.type === 'Brand' ? '#fff' : '#64748b', border: 'none', borderRight: '1px solid #cbd5e1', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
-                                                    >
-                                                        Brand
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setPrescriptionDraft({ ...prescriptionDraft, type: 'Generic' })}
-                                                        style={{ padding: '0 1rem', background: prescriptionDraft.type === 'Generic' ? '#0d9488' : '#fff', color: prescriptionDraft.type === 'Generic' ? '#fff' : '#64748b', border: 'none', borderRight: '1px solid #cbd5e1', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
-                                                    >
-                                                        Generic
-                                                    </button>
-                                                    <div style={{ position: 'relative', flex: 1 }}>
-                                                        <input
-                                                            className="input-premium-v4 cc-placeholder-style"
-                                                            style={{ border: 'none', padding: '0 0.8rem', width: '100%', height: '100%', outline: 'none' }}
-                                                            placeholder="ADV"
-                                                            value={prescriptionDraft.medicine}
-                                                            list="medicine-options"
-                                                            onChange={e => setPrescriptionDraft({ ...prescriptionDraft, medicine: e.target.value })}
-                                                        />
-                                                        <Search size={14} color="#94a3b8" style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)' }} />
-                                                    </div>
-                                                </div>
-                                                <div style={{ position: 'relative', height: '38px' }}>
-                                                    <select
-                                                        className="input-premium-v4 cc-placeholder-style"
-                                                        style={{ border: '1px solid #ef4444', borderRadius: '6px', padding: '0 0.8rem', width: '100%', height: '100%', color: prescriptionDraft.route ? '#334155' : '#94a3b8', outline: 'none' }}
-                                                        value={prescriptionDraft.route}
-                                                        onChange={e => setPrescriptionDraft({ ...prescriptionDraft, route: e.target.value })}
-                                                    >
-                                                        <option value="" disabled hidden>Route</option>
-                                                        <option value="ORAL" style={{ color: '#334155' }}>ORAL</option>
-                                                        <option value="INHALATION" style={{ color: '#334155' }}>INHALATION</option>
-                                                        <option value="IV" style={{ color: '#334155' }}>IV</option>
-                                                        <option value="IM" style={{ color: '#334155' }}>IM</option>
-                                                        <option value="TOPICAL" style={{ color: '#334155' }}>TOPICAL</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div style={{ width: '160px' }}>
-                                                <select
-                                                    className="input-premium-v4 cc-placeholder-style"
-                                                    style={{ border: '1px solid #ef4444', borderRadius: '6px', padding: '0 0.8rem', width: '100%', height: '38px', color: prescriptionDraft.schedule ? '#334155' : '#94a3b8', outline: 'none', marginBottom: '0.5rem' }}
-                                                    value={prescriptionDraft.schedule}
-                                                    onChange={e => setPrescriptionDraft({ ...prescriptionDraft, schedule: e.target.value })}
-                                                >
-                                                    <option value="" disabled hidden>--Schedule--</option>
-                                                    <option value="once a day" style={{ color: '#334155' }}>once a day</option>
-                                                    <option value="twice a day" style={{ color: '#334155' }}>twice a day</option>
-                                                    <option value="thrice a day" style={{ color: '#334155' }}>thrice a day</option>
-                                                    <option value="SOS" style={{ color: '#334155' }}>SOS</option>
-                                                </select>
-                                                {/* Error message placeholder like in image */}
-                                                {!prescriptionDraft.schedule && <div style={{ color: '#ef4444', fontSize: '0.7rem', marginTop: '-0.3rem', marginBottom: '0.2rem' }}>Value is required.</div>}
-                                                <input
-                                                    className="input-premium-v4 cc-placeholder-style"
-                                                    style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0 0.8rem', width: '100%', height: '38px', outline: 'none' }}
-                                                    placeholder="Days"
-                                                    type="number"
-                                                    value={prescriptionDraft.days}
-                                                    onChange={e => setPrescriptionDraft({ ...prescriptionDraft, days: e.target.value })}
-                                                />
-                                            </div>
-
-                                            <div style={{ flex: '1 1 200px', height: '80px' }}>
-                                                <textarea
-                                                    className="textarea-premium-v4 cc-placeholder-style"
-                                                    style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.6rem', width: '100%', height: '100%', outline: 'none', resize: 'none' }}
-                                                    placeholder="Instruction"
-                                                    value={prescriptionDraft.instruction}
-                                                    onChange={e => setPrescriptionDraft({ ...prescriptionDraft, instruction: e.target.value })}
-                                                />
-                                            </div>
-
-                                            <div style={{ display: 'flex', gap: '0.5rem', height: '38px', alignItems: 'center' }}>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        if (prescriptionDraft.medicine && prescriptionDraft.schedule) {
-                                                            setForm({ ...form, prescriptions_list: [...(form.prescriptions_list || []), prescriptionDraft] });
-                                                            setPrescriptionDraft({ type: 'Brand', medicine: '', schedule: '', instruction: '', days: '', route: '' });
-                                                        }
-                                                    }}
-                                                    className="btn-add-item-premium"
-                                                    style={{ height: '38px' }}
-                                                >
-                                                    <Plus size={14} /> Add
-                                                </button>
-
-
-                                            </div>
-                                        </div>
-
-                                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                                            <span style={{ fontSize: '0.85rem', fontWeight: 800 }}>Change day for all medicine</span>
-                                            <input
-                                                type="number"
-                                                className="input-premium-v4 cc-placeholder-style"
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.3rem 0.5rem', width: '60px', height: '32px', outline: 'none' }}
-                                                placeholder="Days"
-                                                value={globalDays}
-                                                onChange={e => setGlobalDays(e.target.value)}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (globalDays && form.prescriptions_list) {
-                                                        const updated = form.prescriptions_list.map(p => ({ ...p, days: globalDays }));
-                                                        setForm({ ...form, prescriptions_list: updated });
-                                                        setGlobalDays('');
-                                                    }
-                                                }}
-                                                className="btn-add-item-premium"
-                                                style={{ height: '32px', background: '#0d9488' }}
-                                            >
-                                                Set Day
-                                            </button>
-                                        </div>
-
-                                        {form.prescriptions_list?.length > 0 && (
-                                            <div style={{ overflowX: 'auto', border: '1px solid #bae6fd', borderRadius: '6px', marginBottom: '1.5rem' }}>
-                                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                                                    <thead>
-                                                        <tr style={{ background: '#e0f2fe', color: '#0369a1', textAlign: 'left' }}>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd', width: '40px' }}>S.No</th>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>Medicine</th>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>Schedule</th>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd' }}>Instruction</th>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd', width: '60px' }}>Days</th>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #bae6fd', borderBottom: '1px solid #bae6fd', width: '100px' }}>Route</th>
-                                                            <th style={{ padding: '0.5rem', borderBottom: '1px solid #bae6fd', width: '80px' }}>Action</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {form.prescriptions_list.map((med, idx) => (
-                                                            <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0' }}>{idx + 1}</td>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', color: '#475569' }}>{med.medicine}</td>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0' }}>
-                                                                    <select
-                                                                        className="input-premium-v4 cc-placeholder-style"
-                                                                        style={{ border: 'none', background: 'transparent', width: '100%', color: '#475569', outline: 'none' }}
-                                                                        value={med.schedule}
-                                                                        onChange={e => {
-                                                                            const updated = [...form.prescriptions_list];
-                                                                            updated[idx].schedule = e.target.value;
-                                                                            setForm({ ...form, prescriptions_list: updated });
-                                                                        }}
-                                                                    >
-                                                                        <option value="once a day">once a day</option>
-                                                                        <option value="twice a day">twice a day</option>
-                                                                        <option value="thrice a day">thrice a day</option>
-                                                                        <option value="SOS">SOS</option>
-                                                                    </select>
-                                                                </td>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0' }}>
-                                                                    <input
-                                                                        className="input-premium-v4 cc-placeholder-style"
-                                                                        style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.3rem', width: '100%', color: '#475569' }}
-                                                                        value={med.instruction}
-                                                                        onChange={e => {
-                                                                            const updated = [...form.prescriptions_list];
-                                                                            updated[idx].instruction = e.target.value;
-                                                                            setForm({ ...form, prescriptions_list: updated });
-                                                                        }}
-                                                                    />
-                                                                </td>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0' }}>
-                                                                    <input
-                                                                        type="number"
-                                                                        className="input-premium-v4 cc-placeholder-style"
-                                                                        style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.3rem', width: '100%', color: '#475569', textAlign: 'center' }}
-                                                                        value={med.days}
-                                                                        onChange={e => {
-                                                                            const updated = [...form.prescriptions_list];
-                                                                            updated[idx].days = e.target.value;
-                                                                            setForm({ ...form, prescriptions_list: updated });
-                                                                        }}
-                                                                    />
-                                                                </td>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0' }}>
-                                                                    <input
-                                                                        className="input-premium-v4 cc-placeholder-style"
-                                                                        style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.3rem', width: '100%', color: '#475569' }}
-                                                                        value={med.route}
-                                                                        onChange={e => {
-                                                                            const updated = [...form.prescriptions_list];
-                                                                            updated[idx].route = e.target.value;
-                                                                            setForm({ ...form, prescriptions_list: updated });
-                                                                        }}
-                                                                    />
-                                                                </td>
-                                                                <td style={{ padding: '0.5rem' }}>
-                                                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                                        <span style={{ color: '#94a3b8', fontSize: '14px', cursor: 'pointer' }}>☆</span>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => {
-                                                                                const updated = [...form.prescriptions_list];
-                                                                                updated.splice(idx, 1);
-                                                                                setForm({ ...form, prescriptions_list: updated });
-                                                                            }}
-                                                                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0 }}
-                                                                        >
-                                                                            <Trash2 size={14} />
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        )}
-
-                                        <div className="f-group-premium" style={{ margin: 0 }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block', color: '#334155' }}>Other Medication</label>
-                                            <textarea
-                                                className="textarea-premium-v4 cc-placeholder-style"
-                                                rows={3}
-                                                placeholder="Type Other Medication"
-                                                value={form.other_medication}
-                                                onChange={e => setForm({ ...form, other_medication: e.target.value })}
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%', outline: 'none' }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* ── Visit Context & Analytics ── */}
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title">Visit Context & Consents</div>
-                                        </div>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem' }}>
-                                            <div style={{ flex: 1, minWidth: '300px' }}>
-                                                <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block' }}>Visit Reason Tags</label>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                                    {['Fever', 'Cough/Cold', 'Vaccination', 'Follow-up', 'Growth check', 'Newborn Screening'].map(tag => (
-                                                        <button
-                                                            key={tag}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const tags = form.visit_tags || [];
-                                                                setForm({ ...form, visit_tags: tags.includes(tag) ? tags.filter(t => t !== tag) : [...tags, tag] });
-                                                            }}
-                                                            style={{
-                                                                padding: '0.4rem 0.8rem',
-                                                                borderRadius: '20px',
-                                                                fontSize: '0.8rem',
-                                                                fontWeight: 600,
-                                                                border: '1px solid #cbd5e1',
-                                                                background: form.visit_tags?.includes(tag) ? '#0ea5e9' : '#fff',
-                                                                color: form.visit_tags?.includes(tag) ? '#fff' : '#64748b',
-                                                                cursor: 'pointer',
-                                                                transition: 'all 0.2s'
-                                                            }}
-                                                        >
-                                                            {tag}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div style={{ flex: 1, minWidth: '300px' }}>
-                                                <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block' }}>Consents & Acknowledgements</label>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                                    {(form.consents || []).map((c, idx) => (
-                                                        <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.85rem', color: '#334155', cursor: 'pointer' }}>
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={c.is_accepted}
-                                                                onChange={e => {
-                                                                    const updated = [...form.consents];
-                                                                    updated[idx].is_accepted = e.target.checked;
-                                                                    setForm({ ...form, consents: updated });
-                                                                }}
-                                                                style={{ width: '16px', height: '16px', accentColor: '#0ea5e9' }}
-                                                            />
-                                                            {c.consent_type}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* ── Structured Care Advice ── */}
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title">Structured Parent Instructions</div>
-                                        </div>
-                                        
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                            {[
-                                                { label: 'Home Care Instructions', key: 'advice_home_care', placeholder: 'e.g. Keep well hydrated, sponge baths...' },
-                                                { label: 'Diet Advice', key: 'advice_diet', placeholder: 'e.g. Small frequent meals, coconut water...' },
-                                                { label: 'Warning Signs (Return if...)', key: 'advice_warning_signs', placeholder: 'e.g. Fever > 2 days, difficulty breathing...' }
-                                            ].map(field => (
-                                                <div key={field.key} className="f-group-premium" style={{ margin: 0 }}>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                                                        <label style={{ margin: 0, fontWeight: 700, fontSize: '0.85rem' }}>{field.label}</label>
-                                                        <button
-                                                            type="button"
-                                                            onClick={async () => {
-                                                                const name = prompt(`Save as ${field.label} template:`);
-                                                                if (name && form[field.key]) {
-                                                                    await upsertClinicalTemplate({ name, type: 'advice', content: form[field.key] });
-                                                                    alert('Template saved!');
-                                                                    loadMasterData();
-                                                                }
-                                                            }}
-                                                            style={{ background: 'none', border: 'none', color: '#0ea5e9', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
-                                                        >
-                                                            + Save as Template
-                                                        </button>
-                                                    </div>
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.5rem' }}>
-                                                        {masterData.adviceTemplates.map(tmpl => (
-                                                            <button
-                                                                key={tmpl.name}
-                                                                type="button"
-                                                                onClick={() => setForm({ ...form, [field.key]: (form[field.key] ? form[field.key] + '\n' : '') + tmpl.content })}
-                                                                style={{ background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '4px', padding: '2px 8px', fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer' }}
-                                                            >
-                                                                + {tmpl.name}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                    <textarea
-                                                        className="textarea-premium-v4 cc-placeholder-style"
-                                                        rows={2}
-                                                        placeholder={field.placeholder}
-                                                        value={form[field.key]}
-                                                        onChange={e => setForm({ ...form, [field.key]: e.target.value })}
-                                                        style={{ border: '1px solid #cbd5e1', borderRadius: '6px', width: '100%' }}
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        <div className="f-group-premium" style={{ marginTop: '1.5rem', marginBottom: '1rem' }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'flex', color: '#334155' }}>Admission Status <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span></label>
-                                            <select
-                                                className="input-premium-v4 cc-placeholder-style"
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.6rem', width: '100%', outline: 'none', color: '#475569' }}
-                                                value={form.admission_status || 'Not-Required'}
-                                                onChange={e => setForm({ ...form, admission_status: e.target.value })}
-                                            >
-                                                <option value="Not-Required">Not-Required</option>
-                                                <option value="Required">Required</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    {/* ── Follow-up & Referral Section ── */}
-                                    <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                                        <div className="f-group-premium" style={{ width: '250px', margin: 0 }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block', color: '#334155' }}>Next Follow up Date</label>
-                                            <div style={{ position: 'relative' }}>
-                                                <input
-                                                    type="date"
-                                                    className="input-premium-v4 cc-placeholder-style"
-                                                    style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.6rem 0.6rem 0.6rem 2.5rem', width: '100%', outline: 'none', color: '#475569' }}
-                                                    value={form.next_visit_due}
-                                                    onChange={e => setForm({ ...form, next_visit_due: e.target.value })}
-                                                />
-                                                <Calendar size={16} color="#64748b" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
-                                            </div>
-                                        </div>
-                                        <div className="f-group-premium" style={{ flex: 1, margin: 0, minWidth: '300px' }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block', color: '#334155' }}>Follow up Advice</label>
-                                            <textarea
-                                                className="textarea-premium-v4 cc-placeholder-style"
-                                                rows={3}
-                                                placeholder="Type Follow up Advice"
-                                                value={form.followup_advice}
-                                                onChange={e => setForm({ ...form, followup_advice: e.target.value })}
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '4px', width: '100%', padding: '0.6rem', outline: 'none', resize: 'vertical', minHeight: '62px' }}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="f-group-premium" style={{ margin: 0 }}>
-                                        <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '1rem', display: 'block', color: '#334155' }}>Referral Section</label>
-                                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                                            <div style={{ flex: 1, minWidth: '200px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', width: '70px' }}>Location</label>
-                                                    <select
-                                                        className="input-premium-v4 cc-placeholder-style"
-                                                        style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.5rem', width: '100%', outline: 'none', color: referralDraft.location ? '#334155' : '#94a3b8' }}
-                                                        value={referralDraft.location}
-                                                        onChange={e => setReferralDraft({ ...referralDraft, location: e.target.value })}
-                                                    >
-                                                        <option value="" disabled hidden>select</option>
-                                                        {referralTargets
-                                                            .filter((target) => target.type === 'hospital')
-                                                            .map((target) => (
-                                                                <option key={target.id} value={target.name} style={{ color: '#334155' }}>
-                                                                    {target.name}
-                                                                </option>
-                                                            ))}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div style={{ flex: 1, minWidth: '200px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', width: '70px' }}>Speciality</label>
-                                                    <div style={{ width: '100%' }}>
-                                                        <select
-                                                            className="input-premium-v4 cc-placeholder-style"
-                                                            style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.5rem', width: '100%', outline: 'none', color: referralDraft.speciality ? '#334155' : '#94a3b8' }}
-                                                            value={referralDraft.speciality}
-                                                            onChange={e => setReferralDraft({ ...referralDraft, speciality: e.target.value })}
-                                                        >
-                                                            <option value="" disabled hidden>select</option>
-                                                            {[...new Set(referralTargets
-                                                                .filter((target) => target.type === 'specialist' && target.speciality)
-                                                                .map((target) => target.speciality))]
-                                                                .map((speciality) => (
-                                                                    <option key={speciality} value={speciality} style={{ color: '#334155' }}>
-                                                                        {speciality}
-                                                                    </option>
-                                                                ))}
-                                                        </select>
-                                                        {!referralDraft.speciality && <div style={{ color: '#ef4444', fontSize: '0.7rem', marginTop: '0.2rem' }}>Value is required.</div>}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div style={{ flex: 1, minWidth: '200px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', width: '60px' }}>Doctor</label>
-                                                    <select
-                                                        className="input-premium-v4 cc-placeholder-style"
-                                                        style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.5rem', width: '100%', outline: 'none', color: referralDraft.doctor ? '#334155' : '#94a3b8' }}
-                                                        value={referralDraft.doctor}
-                                                        onChange={e => setReferralDraft({ ...referralDraft, doctor: e.target.value })}
-                                                    >
-                                                        <option value="" disabled hidden>select</option>
-                                                        {referralTargets
-                                                            .filter((target) => target.type === 'specialist' && (!referralDraft.speciality || target.speciality === referralDraft.speciality))
-                                                            .map((target) => (
-                                                                <option key={target.id} value={target.name} style={{ color: '#334155' }}>
-                                                                    {target.name}
-                                                                </option>
-                                                            ))}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (referralDraft.location || referralDraft.speciality || referralDraft.doctor) {
-                                                        setForm({ ...form, referrals_list: [...(form.referrals_list || []), referralDraft] });
-                                                        setReferralDraft({ location: '', speciality: '', doctor: '' });
-                                                    }
-                                                }}
-                                                className="btn-add-item-premium"
-                                                style={{ padding: '0.5rem 2.5rem' }}
-                                            >
-                                                Add
-                                            </button>
-                                        </div>
-                                        {form.referrals_list?.length > 0 && (
-                                            <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px', marginTop: '1rem' }}>
-                                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                                                    <thead>
-                                                        <tr style={{ background: '#f8fafc', color: '#475569', textAlign: 'left' }}>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>Location</th>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>Speciality</th>
-                                                            <th style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>Doctor</th>
-                                                            <th style={{ padding: '0.5rem', borderBottom: '1px solid #e2e8f0', width: '60px' }}>Action</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {form.referrals_list.map((ref, idx) => (
-                                                            <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', color: '#475569' }}>{ref.location}</td>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', color: '#475569' }}>{ref.speciality}</td>
-                                                                <td style={{ padding: '0.5rem', borderRight: '1px solid #e2e8f0', color: '#475569' }}>{ref.doctor}</td>
-                                                                <td style={{ padding: '0.5rem' }}>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => {
-                                                                            const updated = [...form.referrals_list];
-                                                                            updated.splice(idx, 1);
-                                                                            setForm({ ...form, referrals_list: updated });
-                                                                        }}
-                                                                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0 }}
-                                                                    >
-                                                                        <Trash2 size={14} />
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* ── Additional Information ── */}
-                                    <div style={{ marginBottom: '1.5rem' }}>
-                                        <div className="f-group-premium" style={{ margin: 0, marginBottom: '1.5rem' }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block', color: '#334155' }}>Intent of Treatment</label>
-                                            <select
-                                                className="input-premium-v4 cc-placeholder-style"
-                                                style={{ border: '1px solid #cbd5e1', borderRadius: '4px', padding: '0.6rem', width: '100%', outline: 'none', color: form.intent_of_treatment ? '#334155' : '#94a3b8' }}
-                                                value={form.intent_of_treatment}
-                                                onChange={e => setForm({ ...form, intent_of_treatment: e.target.value })}
-                                            >
-                                                <option value="" disabled hidden></option>
-                                                <option value="Curative" style={{ color: '#334155' }}>Curative</option>
-                                                <option value="Palliative" style={{ color: '#334155' }}>Palliative</option>
-                                                <option value="Symptomatic" style={{ color: '#334155' }}>Symptomatic</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="f-group-premium" style={{ margin: 0, marginBottom: '1.5rem' }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block', color: '#334155' }}>Refer Case to Tumor Board</label>
-                                            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#0369a1', fontSize: '0.9rem', cursor: 'pointer' }}>
-                                                    <input type="radio" name="tumorBoard" value="Yes" checked={form.refer_to_tumor_board === 'Yes'} onChange={() => setForm({ ...form, refer_to_tumor_board: 'Yes' })} style={{ accentColor: '#0ea5e9' }} /> Yes
-                                                </label>
-                                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#0369a1', fontSize: '0.9rem', cursor: 'pointer' }}>
-                                                    <input type="radio" name="tumorBoard" value="No" checked={form.refer_to_tumor_board === 'No'} onChange={() => setForm({ ...form, refer_to_tumor_board: 'No' })} style={{ accentColor: '#0ea5e9' }} /> No
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                                            <div className="f-group-premium" style={{ margin: 0 }}>
-                                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Nutrition Advice</label>
-                                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem' }}>
-                                                    {['Yes', 'No'].map(opt => (
-                                                        <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', color: form.nutrition_advice === opt ? '#6366f1' : '#64748b' }}>
-                                                            <input type="radio" name="nutrition" value={opt} checked={form.nutrition_advice === opt} onChange={() => setForm({ ...form, nutrition_advice: opt })} style={{ accentColor: '#6366f1', width: '16px', height: '16px' }} /> {opt}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className="f-group-premium" style={{ margin: 0 }}>
-                                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Psychology Advice</label>
-                                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem' }}>
-                                                    {['Yes', 'No'].map(opt => (
-                                                        <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', color: form.psychology_advice === opt ? '#6366f1' : '#64748b' }}>
-                                                            <input type="radio" name="psychology" value={opt} checked={form.psychology_advice === opt} onChange={() => setForm({ ...form, psychology_advice: opt })} style={{ accentColor: '#6366f1', width: '16px', height: '16px' }} /> {opt}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className="f-group-premium" style={{ margin: 0 }}>
-                                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Physiotherapy Advice</label>
-                                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem' }}>
-                                                    {['Yes', 'No'].map(opt => (
-                                                        <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', color: form.physiotherapy_advice === opt ? '#6366f1' : '#64748b' }}>
-                                                            <input type="radio" name="physiotherapy" value={opt} checked={form.physiotherapy_advice === opt} onChange={() => setForm({ ...form, physiotherapy_advice: opt })} style={{ accentColor: '#6366f1', width: '16px', height: '16px' }} /> {opt}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className="f-group-premium" style={{ margin: 0 }}>
-                                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Complex Care</label>
-                                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem' }}>
-                                                    {['Yes', 'No'].map(opt => (
-                                                        <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', color: form.complex_care === opt ? '#6366f1' : '#64748b' }}>
-                                                            <input type="radio" name="complex" value={opt} checked={form.complex_care === opt} onChange={() => setForm({ ...form, complex_care: opt })} style={{ accentColor: '#6366f1', width: '16px', height: '16px' }} /> {opt}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="f-group-premium" style={{ margin: 0 }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.5rem', display: 'block', color: '#334155' }}>Additional Remarks (Non-Printable)</label>
-                                        </div>
-                                    </div>
-
-                                    {/* ── Visit Reasons & Consents ── */}
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title">Visit Context & Consents</div>
-                                        </div>
-                                        
-                                        <div style={{ marginBottom: '1.5rem' }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '0.75rem' }}>Visit Reason Tags (Analytics)</label>
-                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                                {['Fever', 'Vaccination', 'Follow-up', 'Growth check', 'Cough/Cold', 'Injury'].map(tag => (
-                                                    <button
-                                                        key={tag}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const tags = form.visit_tags || [];
-                                                            if (tags.includes(tag)) {
-                                                                setForm({ ...form, visit_tags: tags.filter(t => t !== tag) });
-                                                            } else {
-                                                                setForm({ ...form, visit_tags: [...tags, tag] });
-                                                            }
-                                                        }}
-                                                        style={{
-                                                            padding: '0.4rem 1rem',
-                                                            borderRadius: '20px',
-                                                            fontSize: '0.8rem',
-                                                            fontWeight: 600,
-                                                            cursor: 'pointer',
-                                                            transition: 'all 0.2s',
-                                                            background: (form.visit_tags || []).includes(tag) ? '#0284c7' : '#f1f5f9',
-                                                            color: (form.visit_tags || []).includes(tag) ? '#fff' : '#64748b',
-                                                            border: '1px solid',
-                                                            borderColor: (form.visit_tags || []).includes(tag) ? '#0284c7' : '#e2e8f0'
-                                                        }}
-                                                    >
-                                                        {tag}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                                            <label style={{ fontSize: '0.85rem', fontWeight: 800, color: '#334155', display: 'block', marginBottom: '1rem' }}>Patient Consents & Acknowledgements</label>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                                {(form.consents || []).map((consent, idx) => (
-                                                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: '#fff', padding: '0.75rem', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={consent.is_accepted}
-                                                            onChange={e => {
-                                                                const updated = [...form.consents];
-                                                                updated[idx].is_accepted = e.target.checked;
-                                                                updated[idx].accepted_at = e.target.checked ? new Date().toISOString() : null;
-                                                                setForm({ ...form, consents: updated });
-                                                            }}
-                                                            style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#0ea5e9' }}
-                                                        />
-                                                        <div style={{ flex: 1 }}>
-                                                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>{consent.consent_type}</div>
-                                                            {consent.is_accepted && (
-                                                                <div style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 600 }}>Accepted on {new Date(consent.accepted_at).toLocaleString()}</div>
-                                                            )}
-                                                        </div>
-                                                        {consent.is_accepted && (
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Witness Name"
-                                                                value={consent.witness_name || ''}
-                                                                onChange={e => {
-                                                                    const updated = [...form.consents];
-                                                                    updated[idx].witness_name = e.target.value;
-                                                                    setForm({ ...form, consents: updated });
-                                                                }}
-                                                                style={{ border: '1px solid #e2e8f0', borderRadius: '4px', padding: '4px 8px', fontSize: '0.75rem', width: '150px' }}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Right Column: Vitals & Attachments */}
-                                <div className="col-span-12">
-
-
-                                    <div className="form-card-premium" style={{ marginBottom: '1.5rem', padding: '1.5rem' }}>
-                                        <div className="premium-header-v2">
-                                            <div className="title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <Paperclip size={16} /> Attachments
-                                            </div>
-                                        </div>
-                                        <div className="attachment-grid-premium">
-                                            {form.attachments?.map((att, idx) => (
-                                                <div key={idx} className="att-preview-premium">
-                                                    {att.file_type === 'application/pdf' ? (
-                                                        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', color: '#64748b', background: '#f8fafc' }}>
-                                                            <FileText size={24} />
-                                                            <span style={{ fontSize: '0.7rem', textAlign: 'center', padding: '0 0.35rem' }}>{att.name}</span>
-                                                        </div>
-                                                    ) : (
-                                                        <img src={att.preview} alt="preview" />
-                                                    )}
-                                                    <button type="button" onClick={() => removeAttachment(idx)} className="rem-btn-premium"><X size={10} /></button>
-                                                </div>
-                                            ))}
-                                            <label className="att-upload-btn-premium">
-                                                <Plus size={20} />
-                                                <input type="file" multiple accept="image/*,.pdf,application/pdf" onChange={handleFileChange} style={{ display: 'none' }} />
-                                            </label>
-                                        </div>
-                                    </div>
-
-
-                                </div>
-                            </div>
-
-                            <datalist id="chief-complaints-options">
-                                {masterData.complaints.map((item, idx) => <option key={`cc-${idx}`} value={item.name} />)}
-                            </datalist>
-                            <datalist id="allergy-options">
-                                {masterData.allergies.map((item, idx) => <option key={`allergy-${idx}`} value={item.name} />)}
-                            </datalist>
-                            <datalist id="icd10-options">
-                                {masterData.icd10.map((item, idx) => <option key={`icd-${idx}`} value={item.name}>{item.code}</option>)}
-                            </datalist>
-                            <datalist id="investigation-options">
-                                {masterData.investigations.map((item, idx) => <option key={`inv-${idx}`} value={item.name} />)}
-                            </datalist>
-                            <datalist id="procedure-options">
-                                {masterData.procedures.map((item, idx) => <option key={`proc-${idx}`} value={item.name} />)}
-                            </datalist>
-                            <datalist id="medicine-options">
-                                {masterData.medicines.map((item, idx) => <option key={`med-${idx}`} value={item.name} />)}
-                            </datalist>
-                            {formStatus.error && <p className="error-msg" style={{ marginTop: '1rem' }}>{formStatus.error}</p>}
-                            {formStatus.success && <p className="success-msg" style={{ marginTop: '1rem' }}>{formStatus.success}</p>}
-                        </form>
-
-                        <footer className="modal-footer-v3" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc', padding: '1.25rem 2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem', borderRadius: '0 0 24px 24px' }}>
-                            <button type="button" onClick={() => setShowModal(false)} className="btn-cancel-v3">Discard</button>
-                            <button type="button" onClick={handleAddEntry} className="btn-save-v3" style={{ minWidth: '160px', height: '48px', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                                <RefreshCw size={18} className={saving ? 'spinning' : ''} style={{ display: saving ? 'block' : 'none' }} />
-                                {saving ? 'Finalizing...' : 'Save & Close'}
-                            </button>
-                        </footer>
-
-                    </div>
-                </div>
-            )}
 
         </div>
     );

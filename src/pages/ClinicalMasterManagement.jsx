@@ -202,6 +202,7 @@ const extractImageUrls = (input) => {
 };
 
 // Structured parser for Q_A (Questions & Answers)
+// Handles separators: |, \n, :::, ::, ?, comma, Q./A., Q:/A.
 const parseQA = (val) => {
     if (!val) return [];
     if (Array.isArray(val)) {
@@ -227,8 +228,23 @@ const parseQA = (val) => {
         } catch (e) { }
     }
 
-    // Split by pipe '|' or multiple newlines
-    const items = s.split(/\s*\|\s*|\n{2,}/).map(x => x.trim()).filter(Boolean);
+    // Split by pipe '|', multiple newlines, or comma if followed by a new question
+    let items = [];
+    if (s.includes('|')) {
+        items = s.split(/\s*\|\s*/);
+    } else if (s.includes('\n')) {
+        items = s.split(/\n+/);
+    } else if (/:::[^:]+,\s*[A-Z]/.test(s)) {
+        items = s.split(/,\s*(?=[^,]+:::)/);
+    } else if (/(?<=[.!?])\s+(?=[A-Z][^?]*\?)/.test(s)) {
+        items = s.split(/(?<=[.!?])\s+(?=[A-Z][^?]*\?)/);
+    } else if (/(?:Q\d*[:.-]|Q\.\s*)/i.test(s)) {
+        items = s.split(/(?=(?:Q\d*[:.-]|Q\.\s*))/i);
+    } else {
+        items = [s];
+    }
+
+    items = items.map(x => x.trim()).filter(Boolean);
     const parsed = [];
 
     for (const item of items) {
@@ -239,6 +255,10 @@ const parseQA = (val) => {
             const parts = item.split(':::');
             question = parts[0].trim();
             answer = parts.slice(1).join(':::').trim();
+        } else if (item.includes('::')) {
+            const parts = item.split('::');
+            question = parts[0].trim();
+            answer = parts.slice(1).join('::').trim();
         } else if (item.includes('?')) {
             const qIdx = item.indexOf('?');
             question = item.slice(0, qIdx + 1).trim();
@@ -256,7 +276,6 @@ const parseQA = (val) => {
             answer = item;
         }
 
-        // Clean HTML tags and excess whitespace
         question = question.replace(/<\/?[^>]+(>|$)/g, ' ').replace(/\s+/g, ' ').trim();
         answer = answer.replace(/<\/?[^>]+(>|$)/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -269,13 +288,29 @@ const parseQA = (val) => {
 };
 
 // Structured parser and deduplicator for drug-drug Interaction
+// Handles separators: |, \n, ;, comma, ::, :::, - Drug: Severity <p> Details
 const parseDrugInteractions = (val) => {
     if (!val) return [];
     if (Array.isArray(val)) return val;
     const s = String(val).trim();
     if (!s) return [];
 
-    const rawItems = s.split(/\s*\|\s*|\n+/).map(x => x.trim()).filter(Boolean);
+    let rawItems = [];
+    if (s.includes('|')) {
+        rawItems = s.split(/\s*\|\s*/);
+    } else if (s.includes('\n')) {
+        rawItems = s.split(/\n+/);
+    } else if (/[,;]\s*-(?=[A-Z])/.test(s)) {
+        rawItems = s.split(/[,;]\s*(?=-[A-Z])/);
+    } else if (/-\s*[A-Z][a-zA-Z0-9\s()]+:/.test(s)) {
+        rawItems = s.split(/(?=-\s*[A-Z][a-zA-Z0-9\s()]+:)/);
+    } else if (s.includes(';') && s.includes(':')) {
+        rawItems = s.split(/\s*;\s*/);
+    } else {
+        rawItems = [s];
+    }
+
+    rawItems = rawItems.map(x => x.trim()).filter(Boolean);
     const drugMap = new Map();
 
     for (const item of rawItems) {
@@ -286,10 +321,22 @@ const parseDrugInteractions = (val) => {
         let severity = '';
         let details = '';
 
-        const colonIdx = text.indexOf(':');
+        let colonIdx = -1;
+        let sepLen = 1;
+        if (text.includes(':::')) {
+            colonIdx = text.indexOf(':::');
+            sepLen = 3;
+        } else if (text.includes('::')) {
+            colonIdx = text.indexOf('::');
+            sepLen = 2;
+        } else if (text.indexOf(':') !== -1) {
+            colonIdx = text.indexOf(':');
+            sepLen = 1;
+        }
+
         if (colonIdx !== -1) {
             drugName = text.slice(0, colonIdx).trim();
-            const rest = text.slice(colonIdx + 1).trim();
+            const rest = text.slice(colonIdx + sepLen).trim();
             const upper = rest.toUpperCase();
 
             if (upper.startsWith('SEVERE')) {
@@ -304,18 +351,20 @@ const parseDrugInteractions = (val) => {
             } else if (upper.startsWith('MINOR')) {
                 severity = 'Minor';
                 details = rest.slice(5).trim();
+            } else if (upper.startsWith('CAUTION')) {
+                severity = 'Caution';
+                details = rest.slice(7).trim();
             } else {
                 details = rest;
             }
         } else {
-            drugName = 'Drug Interaction';
-            details = text;
+            drugName = text;
+            details = '';
         }
 
         details = details.replace(/^[:\-–—\s]+/, '').trim();
         const normKey = drugName.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-        // If duplicate drug found, keep the one with the longest/most complete details
         if (!drugMap.has(normKey) || details.length > (drugMap.get(normKey).details || '').length) {
             drugMap.set(normKey, { drugName, severity, details });
         }
@@ -333,20 +382,38 @@ const getSeverityBadgeStyle = (severity) => {
 };
 
 // Structured parser for Fact_Box (Pharmaceutical Classification)
+// Handles separators: |, \n, comma, ::, :::, :
 const parseFactBox = (val) => {
     if (!val) return [];
     if (Array.isArray(val)) return val;
     const s = String(val).trim();
     if (!s) return [];
 
-    const items = s.split(/\s*\|\s*|\n+/).map(x => x.trim()).filter(Boolean);
+    let items = [];
+    if (s.includes('|')) {
+        items = s.split(/\s*\|\s*/);
+    } else if (s.includes('\n')) {
+        items = s.split(/\n+/);
+    } else if (/,\s*(?=[A-Z][a-zA-Z\s]+::)/.test(s)) {
+        items = s.split(/,\s*(?=[A-Z][a-zA-Z\s]+::)/);
+    } else if (s.includes(';')) {
+        items = s.split(/\s*;\s*/);
+    } else {
+        items = [s];
+    }
+
+    items = items.map(x => x.trim()).filter(Boolean);
     const parsed = [];
 
     for (const item of items) {
         let label = '';
         let value = '';
 
-        if (item.includes('::')) {
+        if (item.includes(':::')) {
+            const parts = item.split(/:::+/);
+            label = parts[0].trim();
+            value = parts.slice(1).join(':::').trim();
+        } else if (item.includes('::')) {
             const parts = item.split(/::+/);
             label = parts[0].trim();
             value = parts.slice(1).join('::').trim();
@@ -372,6 +439,56 @@ const parseFactBox = (val) => {
     }
 
     return parsed;
+};
+
+// Structured parser for How it works (Mechanism of Action)
+// Handles separators: |, \n, ;, bullet points - / •, sentences
+const parseHowItWorks = (val) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val.map(v => String(v).trim()).filter(Boolean);
+    const s = String(val).trim();
+    if (!s) return [];
+
+    let parts = [];
+    if (s.includes('|')) {
+        parts = s.split(/\s*\|\s*/);
+    } else if (s.includes('\n')) {
+        parts = s.split(/\n+/);
+    } else if (/;\s*(?=[A-Z])/.test(s)) {
+        parts = s.split(/;\s*(?=[A-Z])/);
+    } else if (/(?<=\.)\s+(?=[A-Z])/.test(s) && s.length > 150) {
+        parts = s.split(/(?<=\.)\s+(?=[A-Z])/);
+    } else {
+        parts = [s];
+    }
+
+    return parts
+        .map(p => p.replace(/^[-•*]\s*/, '').replace(/<\/?[^>]+(>|$)/g, ' ').replace(/\s+/g, ' ').trim())
+        .filter(Boolean);
+};
+
+// Structured parser for side_effect (Adverse Effects)
+// Handles separators: |, comma, \n, ;
+const parseSideEffects = (val) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val.map(v => String(v).trim()).filter(Boolean);
+    const s = String(val).trim();
+    if (!s) return [];
+    return s.split(/\s*\|\s*|\s*,\s*|\n+|;\s*/)
+        .map(x => x.replace(/^[-•*]\s*/, '').trim())
+        .filter(Boolean);
+};
+
+// Structured parser for primary_use / indications
+// Handles separators: |, comma, \n, ;
+const parsePrimaryUse = (val) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val.map(v => String(v).trim()).filter(Boolean);
+    const s = String(val).trim();
+    if (!s) return [];
+    return s.split(/\s*\|\s*|\s*,\s*|\n+|;\s*/)
+        .map(x => x.replace(/^[-•*]\s*/, '').trim())
+        .filter(Boolean);
 };
 
 // All 32 Medicine Fields matching the complete clinical master standard
@@ -508,8 +625,25 @@ const MEDICINE_COLUMNS = [
     {
         key: 'primary_use',
         label: 'primary_use',
-        width: '160px',
-        render: (i) => i.primary_use ? <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>{i.primary_use}</span> : '-'
+        width: '180px',
+        render: (i) => {
+            const uses = parsePrimaryUse(i.primary_use);
+            if (!uses.length) return <span style={{ color: '#94a3b8' }}>-</span>;
+            return (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '170px' }} title={uses.join(', ')}>
+                    {uses.slice(0, 2).map((u, idx) => (
+                        <span key={idx} style={{ fontSize: '11px', background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '2px 6px', borderRadius: '6px', fontWeight: 700 }}>
+                            {u}
+                        </span>
+                    ))}
+                    {uses.length > 2 && (
+                        <span style={{ fontSize: '10px', background: '#bae6fd', color: '#0369a1', padding: '2px 5px', borderRadius: '4px', fontWeight: 700 }}>
+                            +{uses.length - 2}
+                        </span>
+                    )}
+                </div>
+            );
+        }
     },
     {
         key: 'storage',
@@ -520,8 +654,25 @@ const MEDICINE_COLUMNS = [
     {
         key: 'side_effect',
         label: 'side_effect',
-        width: '220px',
-        render: (i) => <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#dc2626' }} title={i.side_effects}>{i.side_effects || '-'}</div>
+        width: '230px',
+        render: (i) => {
+            const list = parseSideEffects(i.side_effects || i.side_effect);
+            if (!list.length) return <span style={{ color: '#94a3b8' }}>-</span>;
+            return (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '220px' }} title={list.join(', ')}>
+                    {list.slice(0, 3).map((effect, idx) => (
+                        <span key={idx} style={{ fontSize: '10px', background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                            {effect}
+                        </span>
+                    ))}
+                    {list.length > 3 && (
+                        <span style={{ fontSize: '10px', background: '#fee2e2', color: '#dc2626', padding: '2px 5px', borderRadius: '4px', fontWeight: 700 }}>
+                            +{list.length - 3}
+                        </span>
+                    )}
+                </div>
+            );
+        }
     },
     {
         key: 'alcoholInteraction',
@@ -598,7 +749,7 @@ const MEDICINE_COLUMNS = [
             if (!qaList.length) return <span style={{ color: '#94a3b8' }}>-</span>;
             const first = qaList[0];
             return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxWidth: '270px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{
                             fontSize: '10px',
@@ -615,31 +766,40 @@ const MEDICINE_COLUMNS = [
                             <HelpCircle size={10} />
                             {qaList.length} Q&A{qaList.length > 1 ? 's' : ''}
                         </span>
+                        {qaList.length > 1 && (
+                            <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); setViewingItem(i); }}
+                                style={{ fontSize: '10px', background: 'transparent', border: 'none', color: '#6366f1', textDecoration: 'underline', cursor: 'pointer', fontWeight: 700 }}
+                            >
+                                +{qaList.length - 1} more
+                            </button>
+                        )}
                     </div>
                     <div
                         title={`Q: ${first.question}\nA: ${first.answer}`}
                         style={{
                             fontSize: '11px',
-                            fontWeight: 600,
+                            fontWeight: 700,
                             color: '#0f172a',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
                         }}
                     >
-                        <span style={{ color: '#6366f1', fontWeight: 800 }}>Q:</span> {first.question}
+                        <span style={{ color: '#6366f1', fontWeight: 800, marginRight: '4px' }}>Q:</span>{first.question}
                     </div>
                     <div
                         title={`Q: ${first.question}\nA: ${first.answer}`}
                         style={{
                             fontSize: '11px',
-                            color: '#64748b',
+                            color: '#475569',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap'
                         }}
                     >
-                        <span style={{ color: '#059669', fontWeight: 700 }}>A:</span> {first.answer}
+                        <span style={{ color: '#059669', fontWeight: 700, marginRight: '4px' }}>A:</span>{first.answer}
                     </div>
                 </div>
             );
@@ -648,20 +808,42 @@ const MEDICINE_COLUMNS = [
     {
         key: 'How it works',
         label: 'How it works',
-        width: '220px',
-        render: (i) => <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={i.how_it_works}>{i.how_it_works || '-'}</div>
+        width: '240px',
+        render: (i) => {
+            const points = parseHowItWorks(i.how_it_works);
+            if (!points.length) return <span style={{ color: '#94a3b8' }}>-</span>;
+            return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', maxWidth: '230px' }} title={points.join('\n• ')}>
+                    {points.slice(0, 2).map((pt, idx) => (
+                        <div key={idx} style={{ fontSize: '11px', color: '#334155', display: 'flex', alignItems: 'flex-start', gap: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <span style={{ color: '#6366f1', fontSize: '10px' }}>•</span>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pt}</span>
+                        </div>
+                    ))}
+                    {points.length > 2 && (
+                        <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setViewingItem(i); }}
+                            style={{ fontSize: '10px', background: 'transparent', border: 'none', color: '#6366f1', textDecoration: 'underline', cursor: 'pointer', fontWeight: 700, textAlign: 'left', padding: 0 }}
+                        >
+                            +{points.length - 2} more points
+                        </button>
+                    )}
+                </div>
+            );
+        }
     },
     {
         key: 'drug-drug Interaction',
         label: 'drug-drug Interaction',
-        width: '260px',
+        width: '270px',
         render: (i) => {
             const list = parseDrugInteractions(i.drug_interactions);
             if (!list.length) return <span style={{ color: '#94a3b8' }}>-</span>;
             const first = list[0];
             const sevStyle = getSeverityBadgeStyle(first.severity);
             return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', maxWidth: '250px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', maxWidth: '260px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ 
                             fontSize: '10px', 
@@ -682,6 +864,15 @@ const MEDICINE_COLUMNS = [
                             <span style={{ fontSize: '10px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px', background: sevStyle.bg, color: sevStyle.color, border: `1px solid ${sevStyle.border}` }}>
                                 {first.severity}
                             </span>
+                        )}
+                        {list.length > 1 && (
+                            <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); setViewingItem(i); }}
+                                style={{ fontSize: '10px', background: 'transparent', border: 'none', color: '#dc2626', textDecoration: 'underline', cursor: 'pointer', fontWeight: 700 }}
+                            >
+                                +{list.length - 1} more
+                            </button>
                         )}
                     </div>
                     <div 
@@ -1057,6 +1248,9 @@ const ClinicalMasterManagement = () => {
     const [parsedRows, setParsedRows] = useState([]);
     const [importLoading, setImportLoading] = useState(false);
     const [importParseInfo, setImportParseInfo] = useState(null); // { detectedCols, warnings, sample }
+    const [availableSheets, setAvailableSheets] = useState([]);
+    const [activeSheetName, setActiveSheetName] = useState('');
+    const workbookRef = useRef(null);
     const fileInputRef = useRef(null);
 
     // Detail view modal
@@ -1315,23 +1509,120 @@ const ClinicalMasterManagement = () => {
         return { marketer: null, marketer_details: s };
     };
 
+    const isShifted17Col = (row) => {
+        if (!row || typeof row !== 'object') return false;
+        const img = String(row['Image_Urls'] || row['image_urls'] || '').trim();
+        if (img.toLowerCase().startsWith('http://') || img.toLowerCase().startsWith('https://')) return false;
+
+        const mrp = String(row['MRP'] || row['mrp'] || '').trim();
+        const dir = row['Directions for Use'] || row['directions_for_use'] || row['Directions'];
+
+        if (mrp.toLowerCase().includes('miss') || mrp.toLowerCase().includes('schedule')) return true;
+
+        const imgIsStorage = img.toLowerCase().includes('store') || img.toLowerCase().includes('°c') || img.toLowerCase().includes('degree');
+        const dirIsPrice = typeof dir === 'number' || (!isNaN(Number(dir)) && Number(dir) > 0 && String(dir).length < 10);
+        if (imgIsStorage && dirIsPrice) return true;
+
+        const keyBen = String(row['Key Benefits'] || '').trim().toLowerCase();
+        const isForm = ['tablet', 'capsule', 'syrup', 'injection', 'drops', 'ointment', 'gel'].some(f => keyBen.startsWith(f));
+        if (isForm && (typeof row['Key Ingredients'] === 'number' || dirIsPrice)) return true;
+
+        return false;
+    };
+
     const smartNormalizeRow = (row) => {
+        const str = v => { const s = v !== null && v !== undefined ? String(v).trim() : ''; return s || null; };
+        const flt = v => { if (!v) return null; const n = parseFloat(String(v).replace(/[^0-9.]/g, '')); return isNaN(n) ? null : n; };
+        const bool = v => { if (!v) return true; const s = String(v).toLowerCase(); return !s.includes('otc') && !s.includes('not req') && !s.includes('false') && !s.includes('no'); };
+
+        // Handle shifted 17-column legacy Excel format
+        if (isShifted17Col(row)) {
+            const name = str(row.name || row['Product Name'] || row.product_name) || 'Unnamed Medicine';
+            const productId = str(row['Product ID'] || row.product_id || row.productId || row.code);
+            const marketer = str(row['Category']);
+            const composition = str(row['Marketing Company']);
+            const medType = str(row.type || row.medicine_type) || 'drugs';
+            const introduction = str(row['Packaging']);
+            const benefits = str(row['Package']);
+            const safetyAdvise = str(row['Product Form']);
+            const packagingDetail = str(row['product_highlights'] || row['product_h']);
+            const packageType = str(row['Information'] || row['Informatic']);
+            const qty = str(row['Key Ingredients'] || row['Key Ingred']);
+            const productForm = str(row['Key Benefits'] || row['Key Benefi']);
+            const mrp = flt(row['Directions for Use'] || row['Directions']);
+            const prescReq = bool(row['Safety Information'] || row['Safety Info'], true);
+            const factBox = str(row['country_of_origin'] || row['country_o']);
+            const primaryUse = str(row['Marketer details'] || row['Marketer d']);
+            const storage = str(row['Image_Urls']);
+            const rawImg = row['__EMPTY_12'] || row['images'] || row['Images'] || row.image_urls;
+            const imageUrls = smartExtractImageUrls(rawImg);
+            const parsedSafety = parseSafetyInteractions(safetyAdvise);
+
+            return {
+                category: 'medicine',
+                name,
+                product_id: productId,
+                code: productId,
+                marketing_company: marketer,
+                marketer: marketer,
+                medicine_type: medType,
+                type: medType,
+                packaging: packagingDetail,
+                packaging_detail: packagingDetail,
+                package: packageType,
+                package_type: packageType,
+                qty: qty,
+                product_form: productForm,
+                mrp: mrp,
+                product_highlights: packagingDetail,
+                information: introduction,
+                introduction: introduction,
+                key_ingredients: composition,
+                composition: composition,
+                key_benefits: benefits,
+                benefits: benefits,
+                directions_for_use: str(row['how_to_use'] || row.how_to_use),
+                how_to_use: str(row['how_to_use'] || row.how_to_use),
+                safety_information: safetyAdvise,
+                safety_advise: safetyAdvise,
+                if_miss: str(row.if_miss || row['if_miss']),
+                prescription_required: prescReq,
+                fact_box: factBox,
+                primary_use: primaryUse,
+                storage: storage,
+                side_effects: str(row['__EMPTY'] || row.side_effects || row.side_effect || row['side_effect'] || benefits),
+                alcohol_interaction: str(row['__EMPTY_1'] || parsedSafety.alcohol_interaction),
+                pregnancy_interaction: str(row['__EMPTY_2'] || parsedSafety.pregnancy_interaction),
+                lactation_interaction: str(row['__EMPTY_3'] || parsedSafety.lactation_interaction),
+                driving_interaction: str(row['__EMPTY_4'] || parsedSafety.driving_interaction),
+                kidney_interaction: str(row['__EMPTY_5'] || parsedSafety.kidney_interaction),
+                liver_interaction: str(row['__EMPTY_6'] || parsedSafety.liver_interaction),
+                country_of_origin: str(row['__EMPTY_7'] || row.country_of_origin || 'India'),
+                q_a: str(row['__EMPTY_8'] || row.q_a || row.Q_A || row['Q_A'] || row['Q_A (FAQs)'] || row['Q&A']),
+                how_it_works: str(row['__EMPTY_9'] || row.how_it_works || row['How it works'] || row['how_it_works']),
+                drug_interactions: str(row['__EMPTY_10'] || row.drug_interactions || row['drug-drug Interaction'] || row['Drug-Drug Interaction']),
+                marketer_details: str(row['__EMPTY_11'] || row.marketer_details || null),
+                image_urls: imageUrls,
+                is_active: true
+            };
+        }
+
         const g = (...keys) => {
             const rowKeys = Object.keys(row);
             for (const k of keys) {
                 if (row[k] !== undefined && row[k] !== null && String(row[k]).trim() !== '') return row[k];
                 const norm = k.toLowerCase().replace(/[^a-z0-9]/g, '');
-                const found = rowKeys.find(rk => rk.toLowerCase().replace(/[^a-z0-9]/g, '') === norm);
+                const found = rowKeys.find(rk => {
+                    const rkNorm = rk.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    return rkNorm === norm || (norm.length >= 4 && rkNorm.startsWith(norm)) || (rkNorm.length >= 4 && norm.startsWith(rkNorm));
+                });
                 if (found && row[found] !== undefined && row[found] !== null && String(row[found]).trim() !== '') return row[found];
             }
             return null;
         };
-        const str = v => { const s = v !== null && v !== undefined ? String(v).trim() : ''; return s || null; };
-        const flt = v => { if (!v) return null; const n = parseFloat(String(v).replace(/[^0-9.]/g, '')); return isNaN(n) ? null : n; };
-        const bool = v => { if (!v) return true; const s = String(v).toLowerCase(); return !s.includes('otc') && !s.includes('not req') && !s.includes('false') && !s.includes('no'); };
 
-        const rawMarketer = g('Marketer', 'marketer', 'Marketing Company', 'marketing_company', 'Company', 'Manufacturer', 'Brand');
-        const rawDetails = g('Marketer details', 'marketer_details', 'Marketer Details', 'Address', 'Company Address');
+        const rawMarketer = g('Marketer', 'marketer', 'Marketing Company', 'Marketing', 'marketing_company', 'Company', 'Manufacturer', 'Brand');
+        const rawDetails = g('Marketer details', 'marketer_details', 'Marketer Details', 'Marketer d', 'Address', 'Company Address');
         const { marketer, marketer_details } = smartSeparateMarketer(rawDetails || rawMarketer);
         const finalMarketer = (!rawDetails && marketer) ? rawMarketer : (str(rawMarketer) || marketer);
         const finalDetails = rawDetails ? str(rawDetails) : marketer_details;
@@ -1339,7 +1630,7 @@ const ClinicalMasterManagement = () => {
         const rawImages = g('Image_Urls', 'image_urls', 'Images', 'images', 'Image URL', 'Image URLs', 'Photos');
         const imageUrls = smartExtractImageUrls(rawImages);
 
-        const rawSafety = g('safety_advise', 'safety_information', 'Safety Advise', 'Safety Advice', 'Safety Information', 'Precautions');
+        const rawSafety = g('safety_advise', 'safety_information', 'Safety Advise', 'Safety Advice', 'Safety Information', 'Safety Info', 'Precautions');
         const safetyInteractions = {
             alcohol: str(g('alcoholInteraction', 'alcohol_interaction', 'Alcohol', 'Alcohol Interaction')),
             pregnancy: str(g('pregnancyInteraction', 'pregnancy_interaction', 'Pregnancy', 'Pregnancy Interaction')),
@@ -1368,23 +1659,23 @@ const ClinicalMasterManagement = () => {
             marketer: str(finalMarketer),
             medicine_type: str(g('medicine_type', 'type', 'Medicine Type')) || 'drugs',
             type: str(g('medicine_type', 'type')) || 'drugs',
-            composition: str(g('Composition', 'composition', 'Key Ingredients', 'key_ingredients', 'Salt', 'Salt Composition', 'Active Ingredients')),
-            key_ingredients: str(g('Composition', 'composition', 'Key Ingredients', 'key_ingredients', 'Salt')),
-            introduction: str(g('Introduction', 'introduction', 'Information', 'information', 'Description', 'About')),
-            information: str(g('Introduction', 'introduction', 'Information', 'information')),
-            benefits: str(g('Benefits', 'benefits', 'Key Benefits', 'key_benefits', 'Uses', 'Indications')),
-            key_benefits: str(g('Benefits', 'benefits', 'Key Benefits', 'key_benefits')),
-            how_to_use: str(g('how_to_use', 'directions_for_use', 'How To Use', 'Directions for Use', 'Usage', 'Dosage')),
-            directions_for_use: str(g('how_to_use', 'directions_for_use', 'Directions for Use', 'Dosage')),
+            composition: str(g('Composition', 'composition', 'Key Ingredients', 'Key Ingred', 'key_ingredients', 'Salt', 'Salt Composition', 'Active Ingredients')),
+            key_ingredients: str(g('Composition', 'composition', 'Key Ingredients', 'Key Ingred', 'key_ingredients', 'Salt')),
+            introduction: str(g('Introduction', 'introduction', 'Information', 'Informatic', 'information', 'Description', 'About')),
+            information: str(g('Introduction', 'introduction', 'Information', 'Informatic', 'information')),
+            benefits: str(g('Benefits', 'benefits', 'Key Benefits', 'Key Benefi', 'key_benefits', 'Uses', 'Indications')),
+            key_benefits: str(g('Benefits', 'benefits', 'Key Benefits', 'Key Benefi', 'key_benefits')),
+            how_to_use: str(g('how_to_use', 'directions_for_use', 'Directions for Use', 'Directions', 'How To Use', 'Usage', 'Dosage')),
+            directions_for_use: str(g('how_to_use', 'directions_for_use', 'Directions for Use', 'Directions', 'Dosage')),
             safety_advise: str(rawSafety),
             safety_information: str(rawSafety),
             if_miss: str(g('if_miss', 'If Miss', 'Missed Dose')),
-            packaging_detail: str(g('Packaging Detail', 'packaging_detail', 'Packaging', 'packaging', 'product_highlights', 'Packing')),
+            packaging_detail: str(g('Packaging Detail', 'packaging_detail', 'Packaging', 'packaging', 'product_highlights', 'product_h', 'Packing')),
             packaging: str(g('Packaging Detail', 'packaging_detail', 'Packaging', 'packaging')),
             package: str(g('Package', 'package', 'Package Type', 'package_type', 'Container')),
             package_type: str(g('Package', 'package', 'Package Type', 'package_type')),
             qty: str(g('Qty', 'qty', 'Quantity', 'Pack Size')),
-            product_form: str(g('Product Form', 'product_form', 'Form', 'form', 'Dosage Form')),
+            product_form: str(g('Product Form', 'Product Fc', 'product_form', 'Form', 'form', 'Dosage Form')),
             mrp: flt(g('MRP', 'mrp', 'Price', 'price', 'Rate', 'Cost')),
             prescription_required: bool(g('prescription_required', 'Prescription Required', 'prescriptionRequired', 'Rx', 'Prescription')),
             fact_box: str(g('Fact_Box', 'fact_box', 'Fact Box', 'Classification', 'Pharmaceutical Classification')),
@@ -1397,14 +1688,112 @@ const ClinicalMasterManagement = () => {
             driving_interaction: safetyInteractions.driving,
             kidney_interaction: safetyInteractions.kidney,
             liver_interaction: safetyInteractions.liver,
-            country_of_origin: str(g('country_of_origin', 'Country of Origin', 'countryOfOrigin')) || 'India',
-            q_a: str(g('Q_A', 'q_a', 'QA', 'Q&A', 'Questions & Answers', 'FAQS', 'FAQs')),
-            how_it_works: str(g('How it works', 'how_it_works', 'How It Works', 'Mechanism of Action', 'Mechanism')),
-            drug_interactions: str(g('drug-drug Interaction', 'drug_interactions', 'Drug-Drug Interaction', 'Drug Interactions', 'Interactions')),
-            marketer_details: finalDetails,
-            image_urls: imageUrls,
+            country_of_origin: str(g('country_of_origin', 'country_o', 'Country of Origin', 'countryOfOrigin', '__EMPTY_7')) || 'India',
+            q_a: str(g('Q_A', 'q_a', 'QA', 'Q&A', 'Questions & Answers', 'FAQS', 'FAQs', 'Q_A (FAQs)', '__EMPTY_8')),
+            how_it_works: str(g('How it works', 'how_it_works', 'How It Works', 'Mechanism of Action', 'Mechanism', '__EMPTY_9')),
+            drug_interactions: str(g('drug-drug Interaction', 'drug_interactions', 'Drug-Drug Interaction', 'Drug Interactions', 'Interactions', '__EMPTY_10')),
+            marketer_details: finalDetails || str(g('__EMPTY_11')),
+            image_urls: (imageUrls && imageUrls.length > 0) ? imageUrls : smartExtractImageUrls(g('__EMPTY_12')),
             is_active: true
         };
+    };
+
+    const processSheet = (wb, sheetName) => {
+        try {
+            const ws = wb.Sheets[sheetName];
+            if (!ws) return;
+            const rawData = XLSX.utils.sheet_to_json(ws, { defval: null });
+
+            if (!rawData || rawData.length === 0) {
+                setStatus({ type: 'error', message: `No data found in sheet "${sheetName}".` });
+                setParsedRows([]);
+                setImportParseInfo(null);
+                return;
+            }
+
+            // Check if uploaded file is the 17-column shifted dataset
+            const isShifted = rawData.length > 0 && isShifted17Col(rawData[0]);
+
+            // Auto-detect columns from headers of first row
+            const headers = Object.keys(rawData[0] || {});
+            const firstRow = rawData[0] || {};
+            const colMap = isShifted ? {
+                'Product ID': true,
+                'Product Name': true,
+                'Marketer': true,
+                'Composition': true,
+                'MRP': true,
+                'Product Form': true,
+                'Fact Box': true,
+                'Safety Info': true,
+                'Primary Use': true,
+                'Storage': true,
+                'Marketer Details': !!(firstRow['__EMPTY_11'] || firstRow['marketer_details'] || firstRow['Marketer details'] || firstRow['Marketer d']),
+                'Image URLs': !!(firstRow['__EMPTY_12'] || (firstRow['Image_Urls'] && !String(firstRow['Image_Urls']).toLowerCase().startsWith('store'))),
+                'Q&A': !!(firstRow['__EMPTY_8'] || firstRow['Q_A'] || firstRow['Q_A (FAQs)'] || firstRow['Q&A']),
+                'How it works': !!(firstRow['__EMPTY_9'] || firstRow['How it works']),
+                'Drug Interactions': !!(firstRow['__EMPTY_10'] || firstRow['drug-drug Interaction']),
+            } : {
+                'Product ID': headers.some(h => /product.?id|drs.?code|code/i.test(h)),
+                'Product Name': headers.some(h => /product.?name|medicine.?name|^name$/i.test(h)),
+                'Marketer': headers.some(h => /marketer|company|manufacturer|brand|^marketing/i.test(h)),
+                'Composition': headers.some(h => /composition|ingredient|salt/i.test(h)),
+                'MRP': headers.some(h => /^mrp$|^price$|^rate$|^cost$/i.test(h)),
+                'Product Form': headers.some(h => /product.?form|product.?fc|^form$|dosage.?form/i.test(h)),
+                'Fact Box': headers.some(h => /fact.?box|classification/i.test(h)),
+                'Safety Info': headers.some(h => /safety|precaution/i.test(h)),
+                'Primary Use': headers.some(h => /primary.?use|therapeutic.?use|indication|uses/i.test(h)),
+                'Storage': headers.some(h => /storage/i.test(h)),
+                'Q&A': headers.some(h => /q_a|q&a|faq|questions/i.test(h)) || !!firstRow['__EMPTY_8'],
+                'How it works': headers.some(h => /how.?it.?works|mechanism/i.test(h)) || !!firstRow['__EMPTY_9'],
+                'Drug Interactions': headers.some(h => /drug.*interact|interaction/i.test(h)) || !!firstRow['__EMPTY_10'],
+                'Marketer Details': headers.some(h => /marketer.?details?|company.?address|address|^marketer.?d$/i.test(h)) || !!firstRow['__EMPTY_11'],
+                'Image URLs': headers.some(h => /image|photo|picture/i.test(h)) || !!firstRow['__EMPTY_12']
+            };
+
+            // Smart normalize each row for medicine category
+            const normalized = rawData.map(row => smartNormalizeRow(row))
+                .filter(r => r.name && r.name !== 'Unnamed Medicine');
+
+            // Compute quality stats
+            const stats = {
+                total: normalized.length,
+                withProductId: normalized.filter(r => r.product_id).length,
+                withImages: normalized.filter(r => r.image_urls && r.image_urls.length > 0).length,
+                withMarketerDetails: normalized.filter(r => r.marketer_details).length,
+                withPrimaryUse: normalized.filter(r => r.primary_use).length,
+                withDrugInteractions: normalized.filter(r => r.drug_interactions).length,
+                withQA: normalized.filter(r => r.q_a).length,
+                withHowItWorks: normalized.filter(r => r.how_it_works).length,
+                withSafety: normalized.filter(r => r.alcohol_interaction || r.safety_advise).length,
+            };
+
+            // Warnings / Info messages
+            const warnings = [];
+            if (isShifted) {
+                warnings.push('✨ Auto-aligned legacy shifted format: Mapped Composition, Marketer, MRP, Form, Storage & Primary Use.');
+                if (stats.withQA > 0 || stats.withHowItWorks > 0 || stats.withImages > 0) {
+                    warnings.push(`✨ Successfully recovered clinical columns: ${stats.withQA} Q&A (FAQs), ${stats.withHowItWorks} How it Works, ${stats.withDrugInteractions} Drug Interactions, ${stats.withMarketerDetails} Marketer Addresses & ${stats.withImages} Product Images!`);
+                }
+            } else {
+                warnings.push(`✨ Standard format detected: Verified all columns across ${stats.total} records.`);
+                if (stats.withImages > 0) warnings.push(`🖼️ ${stats.withImages} products with image links.`);
+                if (stats.withQA > 0) warnings.push(`❓ ${stats.withQA} products with Q&A FAQs.`);
+                if (stats.withProductId < stats.total) warnings.push(`${stats.total - stats.withProductId} rows missing Product ID (will generate new records)`);
+            }
+
+            setParsedRows(normalized);
+            setImportParseInfo({ colMap, stats, warnings, isShifted, sample: normalized[0], sheetName });
+        } catch (err) {
+            console.error('Error processing sheet:', err);
+            setStatus({ type: 'error', message: 'Failed to read sheet: ' + err.message });
+        }
+    };
+
+    const handleSwitchSheet = (sheetName) => {
+        if (!workbookRef.current) return;
+        setActiveSheetName(sheetName);
+        processSheet(workbookRef.current, sheetName);
     };
 
     const handleFileUpload = (e) => {
@@ -1412,64 +1801,28 @@ const ClinicalMasterManagement = () => {
         if (!file) return;
         setImportingFile(file);
         setImportParseInfo(null);
+        setAvailableSheets([]);
+        setActiveSheetName('');
 
         const reader = new FileReader();
         reader.onload = (evt) => {
             try {
                 const bstr = evt.target.result;
                 const wb = XLSX.read(bstr, { type: 'binary' });
-                const wsname = wb.SheetNames[0];
-                const ws = wb.Sheets[wsname];
-                const rawData = XLSX.utils.sheet_to_json(ws, { defval: null });
+                workbookRef.current = wb;
 
-                if (!rawData || rawData.length === 0) {
-                    setStatus({ type: 'error', message: 'No data found in the spreadsheet.' });
-                    return;
+                const sheets = wb.SheetNames || [];
+                setAvailableSheets(sheets);
+
+                let defaultSheet = sheets[0];
+                if (sheets.length > 1) {
+                    const match = sheets.find(s => s.toLowerCase().includes(selectedCategory.toLowerCase())) ||
+                                  sheets.find(s => s.toLowerCase().includes('drug')) ||
+                                  sheets[0];
+                    defaultSheet = match;
                 }
-
-                // Auto-detect columns from headers of first row
-                const headers = Object.keys(rawData[0] || {});
-                const colMap = {
-                    'Product ID': headers.some(h => /product.?id|drs.?code|code/i.test(h)),
-                    'Product Name': headers.some(h => /product.?name|medicine.?name|name/i.test(h)),
-                    'Marketer': headers.some(h => /marketer|company|manufacturer|brand/i.test(h)),
-                    'Composition': headers.some(h => /composition|ingredient|salt/i.test(h)),
-                    'MRP': headers.some(h => /^mrp$|^price$|^rate$|^cost$/i.test(h)),
-                    'Product Form': headers.some(h => /product.?form|form|dosage.?form/i.test(h)),
-                    'Fact Box': headers.some(h => /fact.?box|classification/i.test(h)),
-                    'Safety Info': headers.some(h => /safety|precaution/i.test(h)),
-                    'Q&A': headers.some(h => /q_a|q&a|faq|questions/i.test(h)),
-                    'How it works': headers.some(h => /how.?it.?works|mechanism/i.test(h)),
-                    'Drug Interactions': headers.some(h => /drug.*interact|interaction/i.test(h)),
-                    'Marketer Details': headers.some(h => /marketer.?details?|company.?address|address/i.test(h)),
-                    'Image URLs': headers.some(h => /image|photo|picture/i.test(h))
-                };
-
-                // Smart normalize each row for medicine category
-                const normalized = rawData.map(row => smartNormalizeRow(row))
-                    .filter(r => r.name && r.name !== 'Unnamed Medicine');
-
-                // Compute quality stats
-                const stats = {
-                    total: normalized.length,
-                    withProductId: normalized.filter(r => r.product_id).length,
-                    withImages: normalized.filter(r => r.image_urls && r.image_urls.length > 0).length,
-                    withMarketerDetails: normalized.filter(r => r.marketer_details).length,
-                    withDrugInteractions: normalized.filter(r => r.drug_interactions).length,
-                    withQA: normalized.filter(r => r.q_a).length,
-                    withHowItWorks: normalized.filter(r => r.how_it_works).length,
-                    withSafety: normalized.filter(r => r.alcohol_interaction || r.safety_advise).length,
-                };
-
-                // Warnings for missing critical columns
-                const warnings = [];
-                if (stats.withProductId < stats.total) warnings.push(`${stats.total - stats.withProductId} rows missing Product ID (will create new records)`);
-                if (stats.withImages < stats.total) warnings.push(`${stats.total - stats.withImages} rows have no image URLs`);
-                if (!colMap['Q&A'] && stats.withQA === 0) warnings.push('No Q&A column detected');
-                if (!colMap['Drug Interactions'] && stats.withDrugInteractions === 0) warnings.push('No Drug Interactions column detected');
-
-                setParsedRows(normalized);
-                setImportParseInfo({ colMap, stats, warnings, sample: normalized[0] });
+                setActiveSheetName(defaultSheet);
+                processSheet(wb, defaultSheet);
             } catch (err) {
                 console.error('Error parsing spreadsheet:', err);
                 setStatus({ type: 'error', message: 'Failed to read Excel/CSV file: ' + err.message });
@@ -2347,6 +2700,46 @@ const ClinicalMasterManagement = () => {
                             </p>
                         </div>
 
+                        {/* Multi-Sheet Selector */}
+                        {availableSheets.length > 1 && (
+                            <div style={{ marginTop: '16px', background: '#f8fafc', padding: '14px', borderRadius: '12px', border: '1.5px solid #e2e8f0' }}>
+                                <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>📑 Select Sheet ({availableSheets.length} Sheets in file)</span>
+                                    <span style={{ fontSize: '11px', color: '#6366f1', fontWeight: 700 }}>Active: {activeSheetName}</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                    {availableSheets.map(s => {
+                                        const isSelected = activeSheetName === s;
+                                        return (
+                                            <button
+                                                key={s}
+                                                type="button"
+                                                onClick={() => handleSwitchSheet(s)}
+                                                style={{
+                                                    padding: '7px 16px',
+                                                    borderRadius: '8px',
+                                                    border: isSelected ? '1.5px solid #6366f1' : '1.5px solid #cbd5e1',
+                                                    background: isSelected ? '#6366f1' : '#ffffff',
+                                                    color: isSelected ? '#ffffff' : '#334155',
+                                                    fontWeight: 700,
+                                                    fontSize: '12px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    boxShadow: isSelected ? '0 2px 8px rgba(99,102,241,0.25)' : 'none',
+                                                    transition: 'all 0.15s'
+                                                }}
+                                            >
+                                                <span>{s}</span>
+                                                {isSelected && <CheckCircle2 size={13} color="#fff" />}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Smart Parse Preview */}
                         {parsedRows.length > 0 && importParseInfo && (
                             <div style={{ marginTop: '18px' }}>
@@ -2388,7 +2781,9 @@ const ClinicalMasterManagement = () => {
                                         { label: 'Q&A', val: importParseInfo.stats.withQA, icon: '❓' },
                                         { label: 'How it Works', val: importParseInfo.stats.withHowItWorks, icon: '⚙️' },
                                         { label: 'Drug Interactions', val: importParseInfo.stats.withDrugInteractions, icon: '⚠️' },
-                                        { label: 'Marketer Details', val: importParseInfo.stats.withMarketerDetails, icon: '🏢' },
+                                        importParseInfo.isShifted
+                                            ? { label: 'Primary Uses', val: importParseInfo.stats.withPrimaryUse, icon: '🎯' }
+                                            : { label: 'Marketer Details', val: importParseInfo.stats.withMarketerDetails, icon: '🏢' },
                                         { label: 'Safety Info', val: importParseInfo.stats.withSafety, icon: '🛡️' },
                                         { label: 'Total Records', val: importParseInfo.stats.total, icon: '📋', highlight: true },
                                     ].map(({ label, val, icon, highlight }) => (
@@ -2407,7 +2802,7 @@ const ClinicalMasterManagement = () => {
                                 {/* Warnings */}
                                 {importParseInfo.warnings.length > 0 && (
                                     <div style={{ background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: '10px', padding: '10px 14px', marginBottom: '10px' }}>
-                                        <div style={{ fontWeight: 700, color: '#92400e', fontSize: '12px', marginBottom: '4px' }}>⚠️ Warnings</div>
+                                        <div style={{ fontWeight: 700, color: '#92400e', fontSize: '12px', marginBottom: '4px' }}>⚠️ Import Information</div>
                                         {importParseInfo.warnings.map((w, i) => (
                                             <div key={i} style={{ fontSize: '12px', color: '#78350f' }}>• {w}</div>
                                         ))}
@@ -2432,7 +2827,7 @@ const ClinicalMasterManagement = () => {
                                 }}
                             >
                                 {importLoading ? <Loader2 size={18} className="spinning" /> : <Save size={18} />}
-                                <span>{importLoading ? 'Importing to Postgres...' : `Smart Import ${parsedRows.length || ''} Medicines`}</span>
+                                <span>{importLoading ? 'Importing to Database...' : `Smart Import ${parsedRows.length || ''} Medicines`}</span>
                             </button>
                             <button
                                 type="button"
@@ -3270,6 +3665,368 @@ const ClinicalMasterManagement = () => {
                                 </div>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Comprehensive 32-Column Medicine Details Modal */}
+            {viewingItem && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        background: 'rgba(15,23,42,0.7)',
+                        backdropFilter: 'blur(6px)',
+                        zIndex: 1100,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '16px'
+                    }}
+                    onClick={() => setViewingItem(null)}
+                >
+                    <div
+                        style={{
+                            background: '#fff',
+                            borderRadius: '20px',
+                            width: '100%',
+                            maxWidth: '1120px',
+                            maxHeight: '92vh',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            boxShadow: '0 25px 60px -15px rgba(15,23,42,0.4)',
+                            overflow: 'hidden'
+                        }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div style={{ padding: '20px 24px', borderBottom: '1.5px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexShrink: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4338ca', flexShrink: 0, border: '1.5px solid #c7d2fe' }}>
+                                    <Pill size={26} />
+                                </div>
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                                        <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                                            {viewingItem.name}
+                                        </h2>
+                                        {(viewingItem.product_id || viewingItem.code) && (
+                                            <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '12px', background: '#e0e7ff', color: '#4338ca', padding: '2px 8px', borderRadius: '6px', border: '1px solid #c7d2fe' }}>
+                                                {viewingItem.product_id || viewingItem.code}
+                                            </span>
+                                        )}
+                                        {viewingItem.mrp != null && (
+                                            <span style={{ fontWeight: 800, fontSize: '13px', background: '#ecfdf5', color: '#047857', padding: '2px 10px', borderRadius: '6px', border: '1px solid #a7f3d0' }}>
+                                                ₹{viewingItem.mrp}
+                                            </span>
+                                        )}
+                                        <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '6px', background: viewingItem.prescription_required !== false ? '#fee2e2' : '#f0fdf4', color: viewingItem.prescription_required !== false ? '#dc2626' : '#16a34a', border: `1px solid ${viewingItem.prescription_required !== false ? '#fecaca' : '#bbf7d0'}` }}>
+                                            {viewingItem.prescription_required !== false ? 'Rx Required' : 'OTC'}
+                                        </span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px', fontSize: '12px', color: '#64748b', flexWrap: 'wrap' }}>
+                                        {(viewingItem.marketing_company || viewingItem.marketer) && (
+                                            <span>🏢 <strong>Marketer:</strong> {viewingItem.marketing_company || viewingItem.marketer}</span>
+                                        )}
+                                        {viewingItem.product_form && (
+                                            <span>💊 <strong>Form:</strong> {viewingItem.product_form}</span>
+                                        )}
+                                        {viewingItem.package && (
+                                            <span>📦 <strong>Package:</strong> {viewingItem.package} {viewingItem.qty ? `(${viewingItem.qty})` : ''}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => setViewingItem(null)}
+                                style={{ background: '#f1f5f9', border: 'none', borderRadius: '10px', padding: '8px', cursor: 'pointer', color: '#64748b' }}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body - Scrollable */}
+                        <div style={{ padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1, background: '#ffffff' }}>
+
+                            {/* Section: Composition & Primary Use */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
+                                <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                        🧪 Active Composition / Salts
+                                    </div>
+                                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                                        {viewingItem.composition || viewingItem.key_ingredients || '-'}
+                                    </div>
+                                </div>
+
+                                <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: '12px', padding: '14px' }}>
+                                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#0369a1', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                        🎯 Primary Use / Indications
+                                    </div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                        {parsePrimaryUse(viewingItem.primary_use).length > 0 ? (
+                                            parsePrimaryUse(viewingItem.primary_use).map((u, idx) => (
+                                                <span key={idx} style={{ fontSize: '12px', background: '#fff', color: '#0369a1', border: '1px solid #7dd3fc', padding: '3px 10px', borderRadius: '8px', fontWeight: 700 }}>
+                                                    {u}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span style={{ fontSize: '13px', color: '#64748b' }}>{viewingItem.primary_use || '-'}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section: Description, Benefits & How to use */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+                                {(viewingItem.introduction || viewingItem.information) && (
+                                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '6px' }}>
+                                            📖 Introduction / Information
+                                        </div>
+                                        <p style={{ fontSize: '13px', color: '#334155', lineHeight: '1.5', margin: 0 }}>
+                                            {viewingItem.introduction || viewingItem.information}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {(viewingItem.benefits || viewingItem.key_benefits) && (
+                                    <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '14px' }}>
+                                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#15803d', textTransform: 'uppercase', marginBottom: '6px' }}>
+                                            ✨ Key Benefits
+                                        </div>
+                                        <p style={{ fontSize: '13px', color: '#166534', lineHeight: '1.5', margin: 0 }}>
+                                            {viewingItem.benefits || viewingItem.key_benefits}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {(viewingItem.how_to_use || viewingItem.directions_for_use) && (
+                                    <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '14px' }}>
+                                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase', marginBottom: '6px' }}>
+                                            📋 Directions for Use / How to Use
+                                        </div>
+                                        <p style={{ fontSize: '13px', color: '#78350f', lineHeight: '1.5', margin: 0 }}>
+                                            {viewingItem.how_to_use || viewingItem.directions_for_use}
+                                        </p>
+                                        {viewingItem.if_miss && (
+                                            <p style={{ fontSize: '12px', color: '#92400e', marginTop: '8px', borderTop: '1px dashed #fcd34d', paddingTop: '8px', margin: '8px 0 0' }}>
+                                                <strong>If Missed:</strong> {viewingItem.if_miss}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Section: How it works (Mechanism of Action) */}
+                            {viewingItem.how_it_works && (
+                                <div style={{ background: '#f5f3ff', border: '1.5px solid #ddd6fe', borderRadius: '14px', padding: '16px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                                        <span style={{ fontSize: '16px' }}>⚙️</span>
+                                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#5b21b6', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                                            How It Works (Mechanism of Action)
+                                        </h3>
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        {parseHowItWorks(viewingItem.how_it_works).map((pt, idx) => (
+                                            <div key={idx} style={{ background: '#fff', border: '1px solid #e9d5ff', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#3b0764', lineHeight: '1.5', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                                                <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#ede9fe', color: '#6d28d9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, flexShrink: 0, marginTop: '1px' }}>
+                                                    {idx + 1}
+                                                </span>
+                                                <span>{pt}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Section: Q_A (Frequently Asked Questions) */}
+                            {viewingItem.q_a && (
+                                <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: '14px', padding: '16px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                        <span style={{ fontSize: '16px' }}>❓</span>
+                                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                                            Questions & Answers ({parseQA(viewingItem.q_a).length})
+                                        </h3>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '10px' }}>
+                                        {parseQA(viewingItem.q_a).map((item, idx) => (
+                                            <div key={idx} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                <div style={{ fontSize: '13px', fontWeight: 700, color: '#4338ca', lineHeight: '1.4' }}>
+                                                    <span style={{ background: '#e0e7ff', padding: '1px 6px', borderRadius: '4px', marginRight: '6px', fontSize: '11px', fontWeight: 800 }}>Q{idx + 1}</span>
+                                                    {item.question}
+                                                </div>
+                                                <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.5', paddingLeft: '4px' }}>
+                                                    <span style={{ color: '#059669', fontWeight: 800, marginRight: '4px' }}>A:</span>
+                                                    {item.answer}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Section: Drug-Drug Interactions */}
+                            {viewingItem.drug_interactions && (
+                                <div style={{ background: '#fff1f2', border: '1.5px solid #fecdd3', borderRadius: '14px', padding: '16px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                        <AlertCircle size={18} color="#e11d48" />
+                                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#9f1239', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                                            Drug-Drug Interactions ({parseDrugInteractions(viewingItem.drug_interactions).length})
+                                        </h3>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '10px' }}>
+                                        {parseDrugInteractions(viewingItem.drug_interactions).map((d, idx) => {
+                                            const sev = getSeverityBadgeStyle(d.severity);
+                                            return (
+                                                <div key={idx} style={{ background: '#fff', border: `1.5px solid ${sev.border}`, borderRadius: '10px', padding: '12px' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                                        <span style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a' }}>{d.drugName}</span>
+                                                        {d.severity && (
+                                                            <span style={{ fontSize: '10px', fontWeight: 800, background: sev.bg, color: sev.color, border: `1px solid ${sev.border}`, padding: '2px 8px', borderRadius: '4px' }}>
+                                                                {d.severity}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {d.details && (
+                                                        <p style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.4', margin: 0 }}>{d.details}</p>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Section: Safety Advisories (6 Categories) */}
+                            <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: '14px', padding: '16px' }}>
+                                <div style={{ fontSize: '13px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>
+                                    🛡️ Safety Advisories & Interactions
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
+                                    {[
+                                        { label: 'Alcohol', icon: '🍷', val: viewingItem.alcohol_interaction || viewingItem.alcoholInteraction },
+                                        { label: 'Pregnancy', icon: '🤰', val: viewingItem.pregnancy_interaction || viewingItem.pregnancyInteraction },
+                                        { label: 'Breast feeding / Lactation', icon: '🤱', val: viewingItem.lactation_interaction || viewingItem.lactationInteraction },
+                                        { label: 'Driving', icon: '🚗', val: viewingItem.driving_interaction || viewingItem.drivingInteraction },
+                                        { label: 'Kidney', icon: '🩺', val: viewingItem.kidney_interaction || viewingItem.kidneyInteraction },
+                                        { label: 'Liver', icon: '🫁', val: viewingItem.liver_interaction || viewingItem.liverInteraction },
+                                    ].map(({ label, icon, val }) => (
+                                        <div key={label} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '12px', color: '#1e293b', marginBottom: '4px' }}>
+                                                <span>{icon}</span>
+                                                <span>{label}</span>
+                                            </div>
+                                            <div style={{ fontSize: '12px' }}>
+                                                {renderSafetyCell(val)}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Section: Classification (Fact Box) & Side Effects */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
+                                {viewingItem.fact_box && (
+                                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: '8px' }}>
+                                            🏷️ Pharmaceutical Classification (Fact Box)
+                                        </div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                            {parseFactBox(viewingItem.fact_box).map((f, idx) => (
+                                                <span key={idx} style={{ fontSize: '11px', background: '#fff', color: '#334155', border: '1px solid #cbd5e1', padding: '3px 8px', borderRadius: '6px', fontWeight: 600 }}>
+                                                    <span style={{ color: '#64748b' }}>{f.label}:</span> <strong>{f.value}</strong>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {(viewingItem.side_effects || viewingItem.side_effect) && (
+                                    <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '14px' }}>
+                                        <div style={{ fontSize: '11px', fontWeight: 800, color: '#991b1b', textTransform: 'uppercase', marginBottom: '8px' }}>
+                                            ⚠️ Side Effects / Adverse Reactions
+                                        </div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                            {parseSideEffects(viewingItem.side_effects || viewingItem.side_effect).map((s, idx) => (
+                                                <span key={idx} style={{ fontSize: '11px', background: '#fff', color: '#b91c1c', border: '1px solid #fca5a5', padding: '3px 8px', borderRadius: '6px', fontWeight: 600 }}>
+                                                    {s}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Section: Image Gallery */}
+                            {extractImageUrls(viewingItem).length > 0 && (
+                                <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: '14px', padding: '16px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                        <ImageIcon size={18} color="#4f46e5" />
+                                        <h3 style={{ fontSize: '13px', fontWeight: 800, color: '#334155', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                                            Product Images ({extractImageUrls(viewingItem).length})
+                                        </h3>
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '12px' }}>
+                                        {extractImageUrls(viewingItem).map((url, idx) => (
+                                            <a
+                                                key={idx}
+                                                href={url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: '10px', padding: '8px', textAlign: 'center', textDecoration: 'none', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}
+                                            >
+                                                <img
+                                                    src={url}
+                                                    alt={`Img ${idx + 1}`}
+                                                    referrerPolicy="no-referrer"
+                                                    style={{ width: '100%', height: '110px', objectFit: 'contain', borderRadius: '6px' }}
+                                                    onError={(e) => {
+                                                        e.target.onerror = null;
+                                                        e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="%234f46e5" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+                                                    }}
+                                                />
+                                                <span style={{ fontSize: '11px', color: '#4f46e5', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                                    Image #{idx + 1} <ExternalLink size={11} />
+                                                </span>
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Section: Logistics & Packaging Details */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', background: '#fafafa', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                <div>
+                                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>STORAGE:</span>
+                                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a', marginTop: '2px' }}>{viewingItem.storage || '-'}</div>
+                                </div>
+                                <div>
+                                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>PACKAGING DETAIL:</span>
+                                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a', marginTop: '2px' }}>{viewingItem.packaging_detail || viewingItem.packaging || '-'}</div>
+                                </div>
+                                <div>
+                                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>COUNTRY OF ORIGIN:</span>
+                                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a', marginTop: '2px' }}>{viewingItem.country_of_origin || 'India'}</div>
+                                </div>
+                                <div>
+                                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>MARKETER DETAILS:</span>
+                                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a', marginTop: '2px' }}>{viewingItem.marketer_details || '-'}</div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div style={{ padding: '14px 24px', borderTop: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
+                            <button
+                                onClick={() => setViewingItem(null)}
+                                style={{ padding: '10px 24px', borderRadius: '8px', background: '#6366f1', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+                            >
+                                Close Details
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

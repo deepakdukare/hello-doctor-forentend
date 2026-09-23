@@ -135,7 +135,7 @@ const AdminUserForm = ({
                             { id: 'view_appointments', label: 'Appointments' },
                             { id: 'view_scheduling', label: 'Scheduling' },
                             { id: 'view_queue', label: 'Queue Tokens' },
-                            { id: 'view_mrd', label: 'Medical Documentation' },
+                            { id: 'view_mrd', label: 'E-prescription' },
                             { id: 'view_bot_hub', label: 'Bot Hub' },
                             { id: 'view_doctors', label: 'Doctors' },
                             { id: 'view_admins', label: 'Admin Control' },
